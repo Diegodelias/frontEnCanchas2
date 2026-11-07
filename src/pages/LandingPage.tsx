@@ -16,7 +16,7 @@ import { HowItWorksSection } from '../components/sections/HowItWorksSection';
 import { PlayerBenefitsSection } from '../components/sections/PlayerBenefitsSection';
 import { TestimonialsSection } from '../components/sections/TestimonialsSection';
 import { PLACEHOLDER_MODALS } from '../data/landingContent';
-import { MOCK_CITIES } from '../data/mockComplexes';
+import { CITIES } from '../data/cities';
 import { useComplexes } from '../context/ComplexesContext';
 import { ROUTES } from '../routes/paths';
 import { Complex, PlaceholderModalInfo, SearchSelection } from '../types/canchas';
@@ -24,14 +24,13 @@ import { Complex, PlaceholderModalInfo, SearchSelection } from '../types/canchas
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { complexes } = useComplexes();
+  const { complexes, status, reload, refresh } = useComplexes();
 
   const [selectedCityId, setSelectedCityId] = useState<string>(
-    MOCK_CITIES[0]?.id ?? 'buenos-aires'
+    CITIES[0]?.id ?? 'buenos-aires'
   );
   const [sportFilter, setSportFilter] = useState<SportFilterOption>('Todos');
   const [activeSearch, setActiveSearch] = useState<SearchSelection | null>(null);
-  const [isLoadingComplexes, setIsLoadingComplexes] = useState<boolean>(false);
 
   const [bookingComplex, setBookingComplex] = useState<Complex | null>(null);
   const [ownerModalOpen, setOwnerModalOpen] = useState<boolean>(false);
@@ -39,7 +38,7 @@ export const LandingPage: React.FC = () => {
     useState<PlaceholderModalInfo | null>(null);
 
   const activeCity = useMemo(
-    () => MOCK_CITIES.find((c) => c.id === selectedCityId) ?? MOCK_CITIES[0],
+    () => CITIES.find((c) => c.id === selectedCityId) ?? CITIES[0],
     [selectedCityId]
   );
 
@@ -72,6 +71,12 @@ export const LandingPage: React.FC = () => {
     }
   };
 
+  // Al volver a la landing se piden de nuevo los complejos: así se ve un cambio que hizo un admin
+  // (sin mostrar carga si ya hay datos).
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
   // If arriving at /#complejos or other hash, scroll smoothly to it
   useEffect(() => {
     if (location.hash) {
@@ -93,7 +98,7 @@ export const LandingPage: React.FC = () => {
     <div className="min-h-screen flex flex-col bg-canvas text-ink">
       {/* 1. Header */}
       <Header
-        cities={MOCK_CITIES}
+        cities={CITIES}
         selectedCityId={selectedCityId}
         onSelectCity={handleCityChange}
         onFindMatchClick={() => scrollToElement('buscador')}
@@ -122,7 +127,9 @@ export const LandingPage: React.FC = () => {
           }}
           onOpenOwnerModal={() => setOwnerModalOpen(true)}
           onOpenBooking={(complex) => setBookingComplex(complex)}
-          isLoading={isLoadingComplexes}
+          isLoading={status === 'loading'}
+          loadError={status === 'error'}
+          onRetry={reload}
         />
 
         {/* 4. Cómo funciona */}

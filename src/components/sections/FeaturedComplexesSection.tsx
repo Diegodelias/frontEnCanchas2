@@ -22,6 +22,9 @@ interface FeaturedComplexesSectionProps {
   onOpenOwnerModal: () => void;
   onOpenBooking: (complex: Complex, mode: 'schedule' | 'book') => void;
   isLoading: boolean;
+  /** true si no se pudo obtener el listado de complejos del backend. */
+  loadError: boolean;
+  onRetry: () => void;
 }
 
 const SPORT_TABS: SportFilterOption[] = [
@@ -44,6 +47,8 @@ export const FeaturedComplexesSection: React.FC<
   onOpenOwnerModal,
   onOpenBooking,
   isLoading,
+  loadError,
+  onRetry,
 }) => {
   const featuredLiveCamera =
     MOCK_LIVE_CAMERAS.find((c) => c.status === 'live') || MOCK_LIVE_CAMERAS[0];
@@ -142,6 +147,25 @@ export const FeaturedComplexesSection: React.FC<
             <ComplexCardSkeleton />
             <ComplexCardSkeleton />
             <ComplexCardSkeleton />
+          </div>
+        ) : loadError ? (
+          /* No se pudo cargar el listado: mensaje claro y reintento, sin datos de ejemplo */
+          <div
+            role="alert"
+            className="mt-8 p-8 sm:p-10 rounded-xl bg-surface border border-line text-center max-w-2xl mx-auto"
+          >
+            <h3 className="font-display text-2xl sm:text-3xl font-bold text-ink">
+              No pudimos cargar los complejos
+            </h3>
+            <p className="mt-2.5 text-sm sm:text-base text-ink-muted leading-relaxed">
+              Hubo un problema al conectar con el servidor. Revisá tu conexión y probá de nuevo.
+            </p>
+            <div className="mt-6 flex justify-center">
+              <Button variant="volt" onClick={onRetry}>
+                <RotateCcw className="w-4 h-4 shrink-0" aria-hidden="true" />
+                <span>Reintentar</span>
+              </Button>
+            </div>
           </div>
         ) : complexes.length === 0 ? (
           /* Empty State when city has no active complexes yet */

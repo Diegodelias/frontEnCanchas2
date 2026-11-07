@@ -24,7 +24,6 @@ export interface Court {
   id: string;
   name: string;
   sport: SportType;
-  surface: string;
   availabilityByDay: DayAvailability[];
 }
 
@@ -34,9 +33,11 @@ export interface Complex {
   zone: string;
   city: string;
   address: string;
+  /** Deportes de sus canchas activas. */
   sports: SportType[];
-  rating: number;
+  /** Precio de su cancha activa más barata. */
   minPrice: number;
+  /** «2 canchas · Fútbol 5 y Fútbol 7», calculado de sus canchas activas. */
   availabilitySummary: string;
   imageUrl?: string;
   visualVariant: CourtVisualVariant;

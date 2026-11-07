@@ -1,4 +1,3 @@
-import { MOCK_COMPLEXES } from '../data/mockComplexes';
 import { UserProfile } from '../types/user';
 
 /** Usuario tal como lo devuelve la API (`/api/auth/*`). */
@@ -39,7 +38,6 @@ export function shortEmailName(email: string): string {
 }
 
 function toAdminProfile(apiUser: ApiUser): UserProfile {
-  const club = MOCK_COMPLEXES.find((c) => c.id === apiUser.clubId);
   const name = apiUser.name ?? shortEmailName(apiUser.email);
   return {
     id: apiUser.id,
@@ -49,7 +47,6 @@ function toAdminProfile(apiUser: ApiUser): UserProfile {
     role: 'club_admin',
     roleLabel: 'Administrador',
     clubId: apiUser.clubId ?? undefined,
-    clubName: club?.name,
     joinedAt: '',
     savedMatchIds: [],
   };

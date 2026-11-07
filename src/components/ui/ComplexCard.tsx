@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, Star } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import { Complex } from '../../types/canchas';
 import { Button } from './Button';
 import { ComplexImagePlaceholder } from './ComplexImagePlaceholder';
@@ -14,26 +14,15 @@ export function formatCurrencyArs(amount: number): string {
   return `$${amount.toLocaleString('es-AR')}`;
 }
 
-const DEFAULT_COURT_IMAGES: Record<string, string> = {
-  'estacion-norte': '/assets/complejos/estacion-norte.jpg',
-  'la-cantera-crespo': '/assets/complejos/la-cantera-villa-crespo.jpg',
-  'polideportivo-belgrano': '/assets/complejos/polideportivo-belgrano.jpg',
-  'parque-sur-caballito': '/assets/complejos/complejo-parque-sur.jpg',
-  'arena-nunez': '/assets/complejos/arena-nunez.jpg',
-  'terraza-colegiales': '/assets/complejos/terraza-colegiales.jpg',
-};
-
 export const ComplexCard: React.FC<ComplexCardProps> = ({
   complex,
   matchedHint,
   onOpenBooking,
 }) => {
-  const imageUrl = complex.imageUrl ?? DEFAULT_COURT_IMAGES[complex.id];
-
   return (
     <article className="complex-card group flex flex-col bg-surface border border-line rounded-xl overflow-hidden transition-colors duration-200 hover:border-line-strong">
       <ComplexImagePlaceholder
-        imageUrl={imageUrl}
+        imageUrl={complex.imageUrl}
         name={complex.name}
         zone={complex.zone}
         sports={complex.sports}
@@ -53,11 +42,6 @@ export const ComplexCard: React.FC<ComplexCardProps> = ({
         </h3>
 
         <div className="mt-2.5 flex items-center gap-2 text-sm text-ink-muted">
-          <span className="inline-flex items-center gap-1 font-mono font-semibold text-ink tabular-nums">
-            <Star className="w-4 h-4 text-turf fill-turf shrink-0" aria-hidden="true" />
-            {complex.rating.toFixed(1).replace('.', ',')}
-          </span>
-          <span aria-hidden="true">·</span>
           <span className="inline-flex items-center gap-1.5 truncate">
             <Clock className="w-3.5 h-3.5 text-ink-muted shrink-0" aria-hidden="true" />
             <span className="truncate">{complex.availabilitySummary}</span>

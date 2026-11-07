@@ -10,6 +10,7 @@ import {
   Download,
   ExternalLink,
   Eye,
+  LayoutGrid,
   FileText,
   Lock,
   Play,
@@ -25,11 +26,12 @@ import {
   Users,
   Video,
 } from 'lucide-react';
+import { CourtsManager } from '../components/club/CourtsManager';
+import { useMyCourts } from '../components/club/useMyCourts';
 import { Navbar } from '../components/layout/Navbar';
 import { Button } from '../components/ui/Button';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { MOCK_COMPLEXES } from '../data/mockComplexes';
 import { MOCK_MATCHES } from '../data/mockMatches';
 import { buildLiveStreamPath, buildMatchPath, buildQrScanPath, ROUTES } from '../routes/paths';
 
@@ -41,7 +43,8 @@ export const ClubAdminPage: React.FC = () => {
   // Solo un admin con sesión real ve el panel, y siempre el de su propio club.
   const isClubAdmin = activeRole === 'club_admin' && user?.role === 'club_admin' && !!user.clubId;
   const clubId = isClubAdmin ? user!.clubId! : null;
-  const club = MOCK_COMPLEXES.find((c) => c.id === clubId);
+  // Datos reales del club y sus canchas, del backend (solo se piden cuando ya se sabe que hay un admin).
+  const { club, courts, setCourts, status: courtsStatus, reload: reloadCourts } = useMyCourts(isClubAdmin);
 
   const redirected = useRef(false);
   useEffect(() => {
@@ -59,7 +62,7 @@ export const ClubAdminPage: React.FC = () => {
     }
   }, [isLoading, isClubAdmin, user, activeRole, navigate, showToast]);
 
-  const [activeTab, setActiveTab] = useState<'cameras' | 'matches' | 'settings' | 'metrics'>('cameras');
+  const [activeTab, setActiveTab] = useState<'courts' | 'cameras' | 'matches' | 'settings' | 'metrics'>('courts');
   const [qrModalCourtId, setQrModalCourtId] = useState<string | null>(null);
 
   // Settings form state
@@ -226,6 +229,19 @@ export const ClubAdminPage: React.FC = () => {
           <div className="flex items-center gap-2 border-b border-line overflow-x-auto pb-px">
             <button
               type="button"
+              onClick={() => setActiveTab('courts')}
+              className={`pb-3 px-3 text-sm font-semibold transition-colors cursor-pointer border-b-2 flex items-center gap-2 whitespace-nowrap ${
+                activeTab === 'courts'
+                  ? 'border-turf text-turf-ink'
+                  : 'border-transparent text-ink-muted hover:text-ink'
+              }`}
+            >
+              <LayoutGrid className="w-4 h-4" />
+              <span>Canchas{courtsStatus === 'ready' ? ` (${courts.length})` : ''}</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => setActiveTab('cameras')}
               className={`pb-3 px-3 text-sm font-semibold transition-colors cursor-pointer border-b-2 flex items-center gap-2 whitespace-nowrap ${
                 activeTab === 'cameras'
@@ -277,7 +293,17 @@ export const ClubAdminPage: React.FC = () => {
             </button>
           </div>
 
-          {/* TAB 1: Canchas y Cámaras IP */}
+          {/* TAB 1: Canchas del club (datos reales del backend) */}
+          {activeTab === 'courts' && (
+            <CourtsManager
+              courts={courts}
+              status={courtsStatus}
+              onRetry={reloadCourts}
+              onCourtsChange={setCourts}
+            />
+          )}
+
+          {/* TAB 2: Canchas y Cámaras IP */}
           {activeTab === 'cameras' && (
             <div className="space-y-5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">

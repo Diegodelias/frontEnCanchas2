@@ -264,7 +264,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                           selected ? 'text-pitch-muted' : 'text-ink-muted'
                         }`}
                       >
-                        {court.surface}
+                        {court.sport}
                       </span>
                     </button>
                   );
