@@ -9,7 +9,7 @@
  * 5. Consultar y revivir desde el perfil.
  */
 
-export const HERO_VIDEO_SRC = '/assets/aistudio/ref_6fe9ff42.mp4';
+export const HERO_VIDEO_SRC = '/assets/home-bg.mp4';
 
 export const HERO_VIDEO_PLAYBACK_RATE = 0.78;
 
