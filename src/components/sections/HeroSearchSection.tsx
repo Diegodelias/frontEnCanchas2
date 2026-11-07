@@ -6,18 +6,13 @@ import {
   HERO_VIDEO_SRC,
 } from '../../data/heroConfig';
 import { MatchCascadingSelector } from '../match/MatchCascadingSelector';
-import { Button } from '../ui/Button';
 
 interface HeroSearchSectionProps {
   activeCityName: string;
-  onPrimaryCta: () => void;
-  onOwnerCta: () => void;
 }
 
 export const HeroSearchSection: React.FC<HeroSearchSectionProps> = ({
   activeCityName,
-  onPrimaryCta,
-  onOwnerCta,
 }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [posterUri, setPosterUri] = useState<string>('');
@@ -84,7 +79,7 @@ export const HeroSearchSection: React.FC<HeroSearchSectionProps> = ({
         />
       )}
 
-      {/* Measured Dark Gradient Scrim for >= 4.5:1 Contrast */}
+      {/* Light dark-gradient scrim; contrast target >= 4.5:1, validated per openspec change tasks 3.3 */}
       <div
         aria-hidden="true"
         className="absolute inset-0 pointer-events-none"
@@ -108,25 +103,6 @@ export const HeroSearchSection: React.FC<HeroSearchSectionProps> = ({
           <p className="mt-4 text-base sm:text-xl text-pitch-ink/90 max-w-2xl leading-relaxed">
             {HERO_COPY.subtitle}
           </p>
-
-          <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <Button
-              variant="volt"
-              size="lg"
-              className="w-full sm:w-auto"
-              onClick={onPrimaryCta}
-            >
-              {HERO_COPY.primaryCta}
-            </Button>
-            <Button
-              variant="darkSecondary"
-              size="lg"
-              className="w-full sm:w-auto"
-              onClick={onOwnerCta}
-            >
-              {HERO_COPY.secondaryCta}
-            </Button>
-          </div>
         </div>
 
         {/* Protagonista Cascading Search Bar Reutilizado */}

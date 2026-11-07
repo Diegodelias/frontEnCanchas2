@@ -96,10 +96,8 @@ export const LandingPage: React.FC = () => {
         {/* 2. Hero + Buscador en cascada integrado */}
         <HeroSearchSection
           activeCityName={activeCity?.name ?? 'Buenos Aires'}
-          onPrimaryCta={() => navigate(ROUTES.SEARCH)}
           onLiveCta={() => navigate(ROUTES.LIVE)}
           onReserveCta={() => scrollToElement('complejos')}
-          onOwnerCta={() => setOwnerModalOpen(true)}
         />
 
         {/* 3. Complejos destacados */}
