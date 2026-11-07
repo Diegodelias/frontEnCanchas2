@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Building2,
   ChevronDown,
@@ -14,7 +14,7 @@ import { useAuth } from '../../context/AuthContext';
 import { NAV_LINKS } from '../../data/landingContent';
 import { ROUTES } from '../../routes/paths';
 import { CityOption } from '../../types/canchas';
-import { LoginAccessModal } from '../modals/LoginAccessModal';
+import { LoginAccessModal, type LoginView } from '../modals/LoginAccessModal';
 import { ThemeToggle } from '../theme/ThemeToggle';
 import { BrandWordmark } from '../ui/BrandWordmark';
 import { Button } from '../ui/Button';
@@ -35,16 +35,32 @@ export const Header: React.FC<HeaderProps> = ({
   onLoginClick,
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { authMode, user, activeRole, logout } = useAuth();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [loginView, setLoginView] = useState<LoginView>('player');
+
+  // La guardia de /panel-club redirige acá con { openLogin: 'admin' }: se abre el formulario de admin
+  // y se limpia el estado, para que volver atrás o recargar no lo vuelva a abrir.
+  const openLoginRequest = (location.state as { openLogin?: string } | null)?.openLogin;
+  useEffect(() => {
+    if (openLoginRequest !== 'admin') return;
+    setLoginView('admin');
+    setLoginModalOpen(true);
+    navigate(
+      { pathname: location.pathname, search: location.search, hash: location.hash },
+      { replace: true, state: null }
+    );
+  }, [openLoginRequest, location.pathname, location.search, location.hash, navigate]);
 
   const handleOpenLogin = () => {
     if (onLoginClick) {
       onLoginClick();
     }
+    setLoginView('player');
     setLoginModalOpen(true);
     setMobileMenuOpen(false);
   };
@@ -363,6 +379,7 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Login / Role Access Modal */}
       <LoginAccessModal
         isOpen={loginModalOpen}
+        initialView={loginView}
         onClose={() => setLoginModalOpen(false)}
       />
     </>

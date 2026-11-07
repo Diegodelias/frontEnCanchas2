@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
@@ -35,11 +35,31 @@ import { buildLiveStreamPath, buildMatchPath, buildQrScanPath, ROUTES } from '..
 
 export const ClubAdminPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, activeRole, switchRole } = useAuth();
+  const { user, activeRole, isLoading } = useAuth();
   const { showToast } = useToast();
 
+  // Solo un admin con sesión real ve el panel, y siempre el de su propio club.
+  const isClubAdmin = activeRole === 'club_admin' && user?.role === 'club_admin' && !!user.clubId;
+  const clubId = isClubAdmin ? user!.clubId! : null;
+  const club = MOCK_COMPLEXES.find((c) => c.id === clubId);
+
+  const redirected = useRef(false);
+  useEffect(() => {
+    if (isLoading || isClubAdmin || redirected.current) return;
+    redirected.current = true;
+    if (user && activeRole === 'player') {
+      showToast({
+        title: 'Panel solo para administradores',
+        message: 'El panel del club es para administradores de club. Seguís con tu perfil de jugador.',
+        type: 'info',
+      });
+      navigate(ROUTES.HOME, { replace: true });
+    } else {
+      navigate(ROUTES.HOME, { replace: true, state: { openLogin: 'admin' } });
+    }
+  }, [isLoading, isClubAdmin, user, activeRole, navigate, showToast]);
+
   const [activeTab, setActiveTab] = useState<'cameras' | 'matches' | 'settings' | 'metrics'>('cameras');
-  const [selectedClubId, setSelectedClubId] = useState<string>('estacion-norte');
   const [qrModalCourtId, setQrModalCourtId] = useState<string | null>(null);
 
   // Settings form state
@@ -86,9 +106,7 @@ export const ClubAdminPage: React.FC = () => {
     },
   ]);
 
-  const clubMatches = MOCK_MATCHES.filter(
-    (m) => m.clubId === selectedClubId || m.clubId === 'estacion-norte'
-  );
+  const clubMatches = MOCK_MATCHES.filter((m) => m.clubId === clubId);
 
   const handleSaveSettings = () => {
     setIsSavingSettings(true);
@@ -109,6 +127,9 @@ export const ClubAdminPage: React.FC = () => {
       type: 'success',
     });
   };
+
+  // Mientras se consulta la sesión, o si no es admin (y se está redirigiendo), no se muestra nada del panel.
+  if (isLoading || !isClubAdmin) return null;
 
   return (
     <div className="min-h-screen flex flex-col bg-canvas text-ink">
@@ -131,10 +152,10 @@ export const ClubAdminPage: React.FC = () => {
 
               <h1 className="font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-ink flex items-center gap-3">
                 <Building2 className="w-8 h-8 text-turf shrink-0" aria-hidden="true" />
-                <span>Estación Norte Fútbol</span>
+                <span>{club?.name ?? user?.clubName ?? 'Tu club'}</span>
               </h1>
               <p className="mt-1 text-sm text-ink-muted">
-                Belgrano, Buenos Aires · 3 canchas conectadas al sistema de grabación HD Canchas3
+                {club?.zone ? `${club.zone} · ` : ''}3 canchas conectadas al sistema de grabación HD Canchas3
               </p>
             </div>
 
@@ -678,7 +699,7 @@ export const ClubAdminPage: React.FC = () => {
                 Cartel Oficial Canchas3 para Reja
               </p>
               <h3 className="font-display text-2xl font-bold text-ink mt-1">
-                Cancha 1 · Estación Norte
+                Cancha 1 · {club?.name ?? 'Tu club'}
               </h3>
               <p className="text-xs text-ink-muted mt-1">
                 Los jugadores escanean este código con la cámara de su celular para abrir la transmisión en vivo o buscar su partido grabado.

@@ -6,13 +6,17 @@ interface AuthContextValue {
   authMode: AuthMode;
   user: UserProfile | null;
   activeRole: UserRole | 'guest';
+  /** true hasta que se sabe si hay una sesión de admin en el backend. */
   isLoading: boolean;
   setAuthMode: (mode: AuthMode) => void;
-  switchRole: (role: UserRole | 'guest') => Promise<void>;
+  /** Jugador demo o invitado. El admin solo entra con `loginAdmin`. */
+  switchRole: (role: 'player' | 'guest') => Promise<void>;
   toggleDemoAuth: () => void;
   sendMagicLink: (email: string) => Promise<{ success: boolean; message: string }>;
   loginAsDemoUser: () => Promise<void>;
-  logout: () => void;
+  /** Ingreso real de admin; lanza `AuthError` con el mensaje a mostrar si falla. */
+  loginAdmin: (email: string, password: string) => Promise<UserProfile>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -23,54 +27,64 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const loadUser = async (mode: AuthMode) => {
+  const applyUser = (profile: UserProfile | null) => {
+    setUser(profile);
+    setActiveRole(profile ? profile.role : 'guest');
+    setAuthModeState(profile ? 'registered' : 'guest');
+  };
+
+  // Al montar: si el backend tiene una sesión de admin, se carga; si no, se arranca como invitado.
+  useEffect(() => {
+    let cancelled = false;
+    authService
+      .fetchSession()
+      .catch(() => null)
+      .then((profile) => {
+        if (cancelled) return;
+        if (profile) applyUser(profile);
+        setIsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  /** Cierra la sesión del backend si el usuario actual es un admin real. */
+  const endAdminSession = async () => {
+    if (user?.role === 'club_admin') {
+      await authService.logout().catch(() => undefined);
+    }
+  };
+
+  const switchRole = async (role: 'player' | 'guest') => {
     setIsLoading(true);
     try {
-      const profile = await authService.getCurrentUser(mode);
-      setUser(profile);
-      if (profile) {
-        setActiveRole(profile.role);
-      } else {
-        setActiveRole('guest');
-      }
+      await endAdminSession();
+      applyUser(await authService.switchRole(role));
     } finally {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    loadUser(authMode);
-  }, [authMode]);
 
   const setAuthMode = (mode: AuthMode) => {
-    setAuthModeState(mode);
     if (mode === 'guest') {
-      setActiveRole('guest');
-      setUser(null);
+      void switchRole('guest');
+      return;
     }
-  };
-
-  const switchRole = async (role: UserRole | 'guest') => {
-    setIsLoading(true);
-    try {
-      if (role === 'guest') {
-        setAuthModeState('guest');
-        setActiveRole('guest');
-        setUser(null);
-      } else {
-        setAuthModeState('registered');
-        setActiveRole(role);
-        const profile = await authService.switchRole(role);
-        setUser(profile);
+    // Modo demo: el jugador simulado que ya tenga el servicio (p. ej. con el mail que ingresó).
+    void (async () => {
+      setIsLoading(true);
+      try {
+        await endAdminSession();
+        applyUser(await authService.getCurrentUser('registered'));
+      } finally {
+        setIsLoading(false);
       }
-    } finally {
-      setIsLoading(false);
-    }
+    })();
   };
 
   const toggleDemoAuth = () => {
-    const nextMode = authMode === 'registered' ? 'guest' : 'registered';
-    setAuthMode(nextMode);
+    setAuthMode(authMode === 'registered' ? 'guest' : 'registered');
   };
 
   const sendMagicLink = async (email: string) => {
@@ -81,10 +95,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await switchRole('player');
   };
 
-  const logout = () => {
-    setAuthModeState('guest');
-    setActiveRole('guest');
-    setUser(null);
+  const loginAdmin = async (email: string, password: string) => {
+    const profile = await authService.loginAdmin(email, password);
+    applyUser(profile);
+    return profile;
+  };
+
+  const logout = async () => {
+    await endAdminSession();
+    applyUser(null);
   };
 
   return (
@@ -99,6 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toggleDemoAuth,
         sendMagicLink,
         loginAsDemoUser,
+        loginAdmin,
         logout,
       }}
     >

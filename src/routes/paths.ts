@@ -11,7 +11,6 @@ export const ROUTES = {
   LIVE: '/en-vivo',
   LIVE_STREAM: '/en-vivo/:cameraId',
   CLUB_ADMIN: '/panel-club',
-  SUPERADMIN: '/panel-club',
   QR_SCAN: '/qr/:courtId',
 } as const;
 
