@@ -7,7 +7,19 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function isPlayableMatch(match: Match): boolean {
+  return match.status === 'available' && Boolean(match.videoSrc?.trim());
+}
+
 export const matchesService = {
+  /**
+   * Obtiene solo partidos que tienen una grabación lista para reproducir.
+   */
+  async getPlayableMatches(): Promise<Match[]> {
+    await sleep(SIMULATED_LATENCY_MS);
+    return MOCK_MATCHES.filter(isPlayableMatch).map((match) => ({ ...match }));
+  },
+
   /**
    * Obtiene la lista de partidos con filtros opcionales.
    */
@@ -41,35 +53,24 @@ export const matchesService = {
    */
   async findMatchBySelection(
     clubId: string,
-    courtId?: string,
-    dayId?: string,
-    timeSlot?: string
+    courtId: string,
+    dayId: string,
+    timeSlot: string
   ): Promise<Match | null> {
     await sleep(SIMULATED_LATENCY_MS);
 
-    const matches = MOCK_MATCHES.filter((m) => m.clubId === clubId);
-    if (matches.length === 0) return null;
+    if (!clubId || !courtId || !dayId || !timeSlot) return null;
 
-    if (courtId) {
-      const byCourt = matches.filter((m) => m.courtId === courtId);
-      if (byCourt.length > 0) {
-        if (dayId) {
-          const byDay = byCourt.filter((m) => m.dayId === dayId);
-          if (byDay.length > 0) {
-            if (timeSlot) {
-              const bySlot = byDay.find(
-                (m) => m.timeSlot === timeSlot || timeSlot.includes(m.timeSlot.replace(':', ''))
-              );
-              if (bySlot) return { ...bySlot };
-            }
-            return { ...byDay[0] };
-          }
-        }
-        return { ...byCourt[0] };
-      }
-    }
+    const match = MOCK_MATCHES.find(
+      (candidate) =>
+        isPlayableMatch(candidate) &&
+        candidate.clubId === clubId &&
+        candidate.courtId === courtId &&
+        candidate.dayId === dayId &&
+        candidate.timeSlot === timeSlot
+    );
 
-    return { ...matches[0] };
+    return match ? { ...match } : null;
   },
 
   /**

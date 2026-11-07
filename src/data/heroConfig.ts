@@ -15,9 +15,9 @@ export const HERO_VIDEO_PLAYBACK_RATE = 0.78;
 
 export const HERO_COPY = {
   badge: 'Grabaciones HD · Canchas en vivo · Jugadas destacadas',
-  headline: 'Tus partidos grabados. Tus mejores jugadas.',
+  headline: 'Encontrá la grabación de tu partido.',
   subtitle:
-    'Elegí tu complejo deportivo, reviví cada partido en video HD, marcá tus mejores jugadas con un toque y compartilas con tu equipo.',
+    'Elegí complejo, cancha, fecha y horario. Abrí el partido en video HD y guardá tus mejores jugadas para compartirlas.',
   primaryCta: 'Buscar mi partido grabado',
   secondaryCta: 'Mirar canchas en vivo',
   tertiaryCta: 'Reservar una cancha',

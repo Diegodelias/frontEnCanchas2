@@ -6,13 +6,13 @@ import {
   CheckCircle2,
   ChevronDown,
   Clock,
+  Loader2,
   Play,
   Search,
   Video,
 } from 'lucide-react';
 import { buildMatchPath } from '../../routes/paths';
 import { matchesService } from '../../services/matchesService';
-import { Complex } from '../../types/canchas';
 import { Match } from '../../types/match';
 import { Button } from '../ui/Button';
 import { useComplexes } from '../../context/ComplexesContext';
@@ -50,6 +50,10 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
   const [dayId, setDayId] = useState<string>(initialDayId);
   const [slotId, setSlotId] = useState<string>(initialSlotId);
 
+  const [playableMatches, setPlayableMatches] = useState<Match[]>([]);
+  const [isLoadingRecordings, setIsLoadingRecordings] = useState<boolean>(true);
+  const [recordingsLoadError, setRecordingsLoadError] = useState<boolean>(false);
+  const [recordingsLoadAttempt, setRecordingsLoadAttempt] = useState<number>(0);
   const [foundMatch, setFoundMatch] = useState<Match | null>(null);
   const [isCheckingMatch, setIsCheckingMatch] = useState<boolean>(false);
   const [userPromptMessage, setUserPromptMessage] = useState<string>('');
@@ -62,45 +66,104 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
     if (initialSlotId) setSlotId(initialSlotId);
   }, [initialClubId, initialCourtId, initialDayId, initialSlotId]);
 
-  const selectedComplex: Complex | undefined = useMemo(
-    () => complexes.find((c) => c.id === clubId),
-    [complexes, clubId]
+  useEffect(() => {
+    let isCancelled = false;
+
+    setIsLoadingRecordings(true);
+    setRecordingsLoadError(false);
+    matchesService
+      .getPlayableMatches()
+      .then((matches) => {
+        if (!isCancelled) setPlayableMatches(matches);
+      })
+      .catch(() => {
+        if (!isCancelled) setRecordingsLoadError(true);
+      })
+      .finally(() => {
+        if (!isCancelled) setIsLoadingRecordings(false);
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [recordingsLoadAttempt]);
+
+  const availableClubs = useMemo(
+    () => Array.from(new Map(playableMatches.map((match) => [match.clubId, match])).values()),
+    [playableMatches]
   );
 
-  const selectedCourt = useMemo(
-    () => selectedComplex?.courts.find((c) => c.id === courtId),
-    [selectedComplex, courtId]
+  const matchesForClub = useMemo(
+    () => playableMatches.filter((match) => match.clubId === clubId),
+    [playableMatches, clubId]
   );
 
-  const selectedDay = useMemo(
-    () => selectedCourt?.availabilityByDay.find((d) => d.id === dayId),
-    [selectedCourt, dayId]
+  const availableCourts = useMemo(
+    () => Array.from(new Map(matchesForClub.map((match) => [match.courtId, match])).values()),
+    [matchesForClub]
+  );
+
+  const selectedCourt = availableCourts.find((match) => match.courtId === courtId);
+
+  const matchesForCourt = useMemo(
+    () => matchesForClub.filter((match) => match.courtId === courtId),
+    [matchesForClub, courtId]
+  );
+
+  const availableDays = useMemo(
+    () => Array.from(new Map(matchesForCourt.map((match) => [match.dayId, match])).values()),
+    [matchesForCourt]
+  );
+
+  const selectedDay = availableDays.find((match) => match.dayId === dayId);
+
+  const matchesForDay = useMemo(
+    () => matchesForCourt.filter((match) => match.dayId === dayId),
+    [matchesForCourt, dayId]
   );
 
   const availableSlots = useMemo(
-    () => selectedDay?.slots ?? [],
-    [selectedDay]
+    () => Array.from(new Set(matchesForDay.map((match) => match.timeSlot))),
+    [matchesForDay]
   );
 
   const selectedSlot = useMemo(
-    () => availableSlots.find((s) => s.id === slotId),
-    [availableSlots, slotId]
+    () => matchesForDay.find((match) => match.timeSlot === slotId),
+    [matchesForDay, slotId]
   );
 
+  const isHero = variant === 'hero';
   const isComplete = Boolean(clubId && courtId && dayId && slotId);
+  const activeHeroStep = !clubId ? 1 : !courtId ? 2 : !dayId ? 3 : !slotId ? 4 : 0;
+  const displayedHeroStep = activeHeroStep || 4;
+  const isHeroSelectionComplete = isComplete;
+  const heroStepGuidance = [
+    '',
+    'Empezá por elegir un complejo.',
+    'Ahora elegí la cancha donde jugaste.',
+    'Después, seleccioná la fecha.',
+    'Por último, elegí el horario del partido.',
+  ][activeHeroStep];
+  const heroStepMarker = (step: number) =>
+    activeHeroStep === step ? 'bg-volt shadow-[0_0_10px_rgba(196,242,54,0.6)]' :
+    activeHeroStep > step || activeHeroStep === 0 ? 'bg-white/60' : 'bg-white/35';
+  const heroStepField = (step: number) =>
+    isHero && activeHeroStep === step ? 'ring-1 ring-volt/50 border-volt/70' : '';
 
   // Check matching match asynchronously via matchesService
   useEffect(() => {
     let isCancelled = false;
 
     async function check() {
-      if (!clubId) {
+      if (isHero || !isComplete || isLoadingRecordings || recordingsLoadError) {
         setFoundMatch(null);
+        setIsCheckingMatch(false);
         return;
       }
       setIsCheckingMatch(true);
+      setUserPromptMessage('');
       try {
-        const timeSlotString = selectedSlot?.time || slotId;
+        const timeSlotString = selectedSlot?.timeSlot || slotId;
         const match = await matchesService.findMatchBySelection(
           clubId,
           courtId,
@@ -118,6 +181,18 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
               match,
             });
           }
+          if (!match) {
+            setUserPromptMessage(
+              'No encontramos un video para esa selección. Revisá los filtros e intentá nuevamente.'
+            );
+          }
+        }
+      } catch {
+        if (!isCancelled) {
+          setFoundMatch(null);
+          setUserPromptMessage(
+            'No pudimos comprobar esa grabación. Conservamos tu selección para que puedas intentarlo de nuevo.'
+          );
         }
       } finally {
         if (!isCancelled) {
@@ -131,7 +206,18 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
     return () => {
       isCancelled = true;
     };
-  }, [clubId, courtId, dayId, slotId, selectedSlot, onSelectionChange]);
+  }, [
+    clubId,
+    courtId,
+    dayId,
+    slotId,
+    selectedSlot,
+    isComplete,
+    isHero,
+    isLoadingRecordings,
+    recordingsLoadError,
+    onSelectionChange,
+  ]);
 
   const handleClubChange = (nextClubId: string) => {
     setClubId(nextClubId);
@@ -159,40 +245,96 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
     setUserPromptMessage('');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!isComplete) {
       if (!clubId) setUserPromptMessage('Elegí primero un club o complejo.');
       else if (!courtId) setUserPromptMessage('Seleccioná la cancha.');
       else if (!dayId) setUserPromptMessage('Elegí el día.');
-      else if (!slotId) setUserPromptMessage('Seleccioná el horario del partido.');
+      else if (!slotId) {
+        setUserPromptMessage(
+          availableSlots.length === 0
+            ? 'No hay videos disponibles para ese día.'
+            : 'Seleccioná el horario del partido.'
+        );
+      }
       return;
     }
 
-    if (foundMatch) {
-      navigate(buildMatchPath(foundMatch.id));
-    } else {
-      // Fallback: navigate to first active match or show error
-      navigate(buildMatchPath('match-en-f5-1900'));
+    if (isLoadingRecordings || recordingsLoadError) return;
+    if (isCheckingMatch) return;
+
+    const submittedSelection = { clubId, courtId, dayId, slotId };
+    setIsCheckingMatch(true);
+    setUserPromptMessage('');
+    try {
+      const exactMatch = await matchesService.findMatchBySelection(
+        clubId,
+        courtId,
+        dayId,
+        slotId
+      );
+
+      if (
+        clubId !== submittedSelection.clubId ||
+        courtId !== submittedSelection.courtId ||
+        dayId !== submittedSelection.dayId ||
+        slotId !== submittedSelection.slotId
+      ) {
+        return;
+      }
+
+      if (!exactMatch) {
+        setFoundMatch(null);
+        setUserPromptMessage(
+          'No encontramos un video para esa selección. Revisá los filtros e intentá nuevamente.'
+        );
+        return;
+      }
+
+      setFoundMatch(exactMatch);
+      onSelectionChange?.({ ...submittedSelection, match: exactMatch });
+      navigate(buildMatchPath(exactMatch.id));
+    } catch {
+      if (
+        clubId === submittedSelection.clubId &&
+        courtId === submittedSelection.courtId &&
+        dayId === submittedSelection.dayId &&
+        slotId === submittedSelection.slotId
+      ) {
+        setUserPromptMessage(
+          'No pudimos comprobar esa grabación. Conservamos tu selección para que puedas intentarlo de nuevo.'
+        );
+      }
+    } finally {
+      setIsCheckingMatch(false);
     }
   };
-
-  const isHero = variant === 'hero';
 
   return (
     <form
       onSubmit={handleSubmit}
+      aria-busy={isLoadingRecordings || isCheckingMatch}
       className={`rounded-2xl transition-all ${
         isHero
-          ? 'bg-[#0d1611]/85 backdrop-blur-xl text-white border-t border-white/20 border-b border-white/5 border-x border-white/10 p-4 sm:p-5 shadow-[0_24px_60px_rgba(0,0,0,0.65)] ring-1 ring-white/10'
+          ? 'bg-[#09110c]/95 backdrop-blur-xl text-white border border-white/25 p-4 sm:p-5 shadow-[0_24px_60px_rgba(0,0,0,0.75)] ring-1 ring-white/15'
           : 'bg-surface text-ink border border-line p-5 sm:p-6 shadow-sm'
       } ${className}`}
     >
+      {isHero && (
+        <p role="status" aria-live="polite" className="mb-3 text-xs sm:text-sm text-white/85">
+          <span className="font-semibold text-volt">
+            {isHeroSelectionComplete ? 'Listo para buscar' : `Paso ${displayedHeroStep} de 4`}
+          </span>
+          <span className="mx-1.5 text-white/50" aria-hidden="true">·</span>
+          {isHeroSelectionComplete ? 'Buscá el video de tu partido.' : heroStepGuidance}
+        </p>
+      )}
       <div
         className={`grid grid-cols-1 ${
           isHero
-            ? 'lg:grid-cols-[1.25fr_1.15fr_1fr_1fr_auto] gap-3.5 lg:gap-3 lg:items-end'
+            ? 'xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,1fr)_auto] gap-3.5 xl:gap-3 xl:items-end'
             : 'sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end'
         }`}
       >
@@ -204,26 +346,38 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
               isHero ? 'text-white/75 flex items-center gap-1.5' : 'text-ink-muted'
             }`}
           >
-            {isHero && <span className="w-1.5 h-1.5 rounded-full bg-volt shrink-0" />}
+            {isHero && <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${heroStepMarker(1)}`} />}
             <span>1. Club o complejo</span>
           </label>
           <div className="relative">
             <select
               id={`selector-club-${variant}`}
               value={clubId}
+              disabled={isLoadingRecordings || recordingsLoadError}
               onChange={(e) => handleClubChange(e.target.value)}
               className={`w-full min-h-[48px] appearance-none rounded-xl pl-3.5 pr-9 py-2.5 text-sm font-medium cursor-pointer focus:outline-none transition-all ${
                 isHero
-                  ? 'bg-black/50 hover:bg-black/60 border border-white/20 hover:border-white/30 text-white focus:border-volt focus:ring-1 focus:ring-volt'
-                  : 'bg-canvas border border-line-strong text-ink focus:border-turf'
+                ? `bg-black/50 hover:bg-black/60 border border-white/20 hover:border-white/30 text-white focus:border-volt focus:ring-1 focus:ring-volt focus-visible:ring-2 focus-visible:ring-volt ${heroStepField(1)}`
+                  : 'bg-canvas border border-line-strong text-ink focus:border-turf focus-visible:ring-2 focus-visible:ring-turf focus-visible:ring-offset-2 focus-visible:ring-offset-surface'
               }`}
             >
-              <option value="">Elegí un complejo</option>
-              {complexes.map((complex) => (
-                <option key={complex.id} value={complex.id} className="bg-[#121c15] text-white">
-                  {complex.name} ({complex.zone})
+              <option value="">
+                {isLoadingRecordings
+                  ? 'Cargando grabaciones…'
+                  : recordingsLoadError
+                  ? 'No se pudieron cargar los videos'
+                  : availableClubs.length === 0
+                  ? 'No hay videos disponibles'
+                  : 'Elegí un complejo'}
+              </option>
+              {availableClubs.map((match) => {
+                const complex = complexes.find((item) => item.id === match.clubId);
+                return (
+                <option key={match.clubId} value={match.clubId} className="bg-[#121c15] text-white">
+                  {complex ? `${complex.name} (${complex.zone})` : match.clubName}
                 </option>
-              ))}
+                );
+              })}
             </select>
             <ChevronDown
               className={`w-4 h-4 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 ${
@@ -242,7 +396,7 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
               isHero ? 'text-white/75 flex items-center gap-1.5' : 'text-ink-muted'
             }`}
           >
-            {isHero && <span className="w-1.5 h-1.5 rounded-full bg-white/40 shrink-0" />}
+            {isHero && <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${heroStepMarker(2)}`} />}
             <span>2. Cancha</span>
           </label>
           <div className="relative">
@@ -250,19 +404,23 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
               id={`selector-court-${variant}`}
               value={courtId}
               onChange={(e) => handleCourtChange(e.target.value)}
-              disabled={!selectedComplex}
+              disabled={isLoadingRecordings || recordingsLoadError || !clubId || availableCourts.length === 0}
               className={`w-full min-h-[48px] appearance-none rounded-xl pl-3.5 pr-9 py-2.5 text-sm font-medium cursor-pointer focus:outline-none transition-all ${
                 isHero
-                  ? 'bg-black/50 hover:bg-black/60 border border-white/20 hover:border-white/30 text-white focus:border-volt focus:ring-1 focus:ring-volt disabled:bg-black/25 disabled:text-white/35 disabled:border-white/10 disabled:cursor-not-allowed'
-                  : 'bg-canvas border border-line-strong text-ink focus:border-turf disabled:bg-surface-muted disabled:text-ink-muted/60 disabled:border-line disabled:cursor-not-allowed'
+                  ? `bg-black/65 hover:bg-black/70 border border-white/25 hover:border-white/35 text-white focus:border-volt focus:ring-1 focus:ring-volt focus-visible:ring-2 focus-visible:ring-volt disabled:bg-black/35 disabled:text-white/80 disabled:border-white/40 disabled:cursor-not-allowed ${heroStepField(2)}`
+                  : 'bg-canvas border border-line-strong text-ink focus:border-turf focus-visible:ring-2 focus-visible:ring-turf focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:bg-surface-muted disabled:text-ink-muted disabled:border-line-strong disabled:cursor-not-allowed'
               }`}
             >
               <option value="">
-                {selectedComplex ? 'Elegí una cancha' : 'Primero elegí complejo'}
+                {!clubId
+                  ? 'Elegí complejo'
+                  : availableCourts.length === 0
+                  ? 'No hay videos disponibles'
+                  : 'Elegí una cancha'}
               </option>
-              {selectedComplex?.courts.map((court) => (
-                <option key={court.id} value={court.id} className="bg-[#121c15] text-white">
-                  {court.name}
+              {availableCourts.map((match) => (
+                <option key={match.courtId} value={match.courtId} className="bg-[#121c15] text-white">
+                  {match.courtName}
                 </option>
               ))}
             </select>
@@ -283,7 +441,7 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
               isHero ? 'text-white/75 flex items-center gap-1.5' : 'text-ink-muted'
             }`}
           >
-            {isHero && <span className="w-1.5 h-1.5 rounded-full bg-white/40 shrink-0" />}
+            {isHero && <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${heroStepMarker(3)}`} />}
             <span>3. Fecha</span>
           </label>
           <div className="relative">
@@ -291,19 +449,19 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
               id={`selector-day-${variant}`}
               value={dayId}
               onChange={(e) => handleDayChange(e.target.value)}
-              disabled={!selectedCourt}
+              disabled={isLoadingRecordings || recordingsLoadError || !selectedCourt}
               className={`w-full min-h-[48px] appearance-none rounded-xl pl-3.5 pr-9 py-2.5 text-sm font-medium cursor-pointer focus:outline-none transition-all ${
                 isHero
-                  ? 'bg-black/50 hover:bg-black/60 border border-white/20 hover:border-white/30 text-white focus:border-volt focus:ring-1 focus:ring-volt disabled:bg-black/25 disabled:text-white/35 disabled:border-white/10 disabled:cursor-not-allowed'
-                  : 'bg-canvas border border-line-strong text-ink focus:border-turf disabled:bg-surface-muted disabled:text-ink-muted/60 disabled:border-line disabled:cursor-not-allowed'
+                  ? `bg-black/65 hover:bg-black/70 border border-white/25 hover:border-white/35 text-white focus:border-volt focus:ring-1 focus:ring-volt focus-visible:ring-2 focus-visible:ring-volt disabled:bg-black/35 disabled:text-white/80 disabled:border-white/40 disabled:cursor-not-allowed ${heroStepField(3)}`
+                  : 'bg-canvas border border-line-strong text-ink focus:border-turf focus-visible:ring-2 focus-visible:ring-turf focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:bg-surface-muted disabled:text-ink-muted disabled:border-line-strong disabled:cursor-not-allowed'
               }`}
             >
               <option value="">
-                {selectedCourt ? 'Elegí una fecha' : 'Primero elegí cancha'}
+                {selectedCourt ? 'Elegí fecha' : 'Elegí cancha'}
               </option>
-              {selectedCourt?.availabilityByDay.map((day) => (
-                <option key={day.id} value={day.id} className="bg-[#121c15] text-white">
-                  {day.label}
+              {availableDays.map((match) => (
+                <option key={match.dayId} value={match.dayId} className="bg-[#121c15] text-white">
+                  {match.dateLabel}
                 </option>
               ))}
             </select>
@@ -324,31 +482,31 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
               isHero ? 'text-white/75 flex items-center gap-1.5' : 'text-ink-muted'
             }`}
           >
-            {isHero && <span className="w-1.5 h-1.5 rounded-full bg-white/40 shrink-0" />}
-            <span>4. Horario</span>
+            {isHero && <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${heroStepMarker(4)}`} />}
+            <span>4. Horario del partido</span>
           </label>
           <div className="relative">
             <select
               id={`selector-slot-${variant}`}
               value={slotId}
               onChange={(e) => handleSlotChange(e.target.value)}
-              disabled={!selectedDay || availableSlots.length === 0}
+              disabled={isLoadingRecordings || recordingsLoadError || !selectedDay || availableSlots.length === 0}
               className={`w-full min-h-[48px] appearance-none rounded-xl pl-3.5 pr-9 py-2.5 text-sm font-mono font-medium cursor-pointer focus:outline-none transition-all ${
                 isHero
-                  ? 'bg-black/50 hover:bg-black/60 border border-white/20 hover:border-white/30 text-white focus:border-volt focus:ring-1 focus:ring-volt disabled:font-sans disabled:bg-black/25 disabled:text-white/35 disabled:border-white/10 disabled:cursor-not-allowed'
-                  : 'bg-canvas border border-line-strong text-ink focus:border-turf disabled:font-sans disabled:bg-surface-muted disabled:text-ink-muted/60 disabled:border-line disabled:cursor-not-allowed'
+                  ? `bg-black/65 hover:bg-black/70 border border-white/25 hover:border-white/35 text-white focus:border-volt focus:ring-1 focus:ring-volt focus-visible:ring-2 focus-visible:ring-volt disabled:font-sans disabled:bg-black/35 disabled:text-white/80 disabled:border-white/40 disabled:cursor-not-allowed ${heroStepField(4)}`
+                  : 'bg-canvas border border-line-strong text-ink focus:border-turf focus-visible:ring-2 focus-visible:ring-turf focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:font-sans disabled:bg-surface-muted disabled:text-ink-muted disabled:border-line-strong disabled:cursor-not-allowed'
               }`}
             >
               <option value="">
                 {!selectedDay
-                  ? 'Primero elegí fecha'
+                  ? 'Elegí fecha'
                   : availableSlots.length === 0
-                  ? 'Sin turnos registrados'
+                  ? 'Sin videos disponibles'
                   : 'Elegí un horario'}
               </option>
-              {availableSlots.map((slot) => (
-                <option key={slot.id} value={slot.id} className="bg-[#121c15] text-white">
-                  {slot.time} hs
+              {availableSlots.map((timeSlot) => (
+                <option key={timeSlot} value={timeSlot} className="bg-[#121c15] text-white">
+                  {timeSlot} hs
                 </option>
               ))}
             </select>
@@ -362,22 +520,33 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
         </div>
 
         {/* Botón de acción */}
-        <div className={isHero ? '' : 'sm:col-span-2 lg:col-span-4 mt-2'}>
+        <div className={isHero ? 'xl:self-end' : 'sm:col-span-2 lg:col-span-4 mt-2'}>
           <Button
             type="submit"
+            aria-label={isCheckingMatch ? 'Buscando video…' : undefined}
             variant="volt"
             size="lg"
-            disabled={!isHero && !isComplete}
+            disabled={
+              isLoadingRecordings ||
+              recordingsLoadError ||
+              isCheckingMatch ||
+              (!isHero && !isComplete)
+            }
             className={`w-full ${
               isHero
                 ? 'lg:w-auto min-h-[48px] font-bold px-6 shadow-[0_4px_20px_rgba(196,242,54,0.35)] hover:shadow-[0_4px_28px_rgba(196,242,54,0.55)]'
                 : 'min-h-[48px]'
             }`}
           >
-            {isHero ? (
+            {isCheckingMatch ? (
+              <>
+                <Loader2 className="w-4 h-4 shrink-0 animate-spin" aria-hidden="true" />
+                <span>{isHero ? 'Buscar video' : 'Buscando video…'}</span>
+              </>
+            ) : isHero ? (
               <>
                 <Search className="w-4 h-4 shrink-0 stroke-[2.5]" aria-hidden="true" />
-                <span>Buscar canchas</span>
+                <span>Buscar video</span>
               </>
             ) : (
               <>
@@ -390,9 +559,45 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
       </div>
 
       {/* Validation or status notifications */}
-      {userPromptMessage && (
+      {isLoadingRecordings && (
         <div
           role="status"
+          className="mt-3.5 p-3 rounded-lg bg-surface-muted border border-line flex items-center gap-2 text-xs sm:text-sm text-ink font-medium"
+        >
+          <Loader2 className="w-4 h-4 text-turf shrink-0 animate-spin" aria-hidden="true" />
+          <span>Cargando videos disponibles…</span>
+        </div>
+      )}
+
+      {!isLoadingRecordings && !recordingsLoadError && playableMatches.length === 0 && (
+        <div
+          role="status"
+          className="mt-3.5 p-3 rounded-lg bg-surface-muted border border-line flex items-center gap-2 text-xs sm:text-sm text-ink font-medium"
+        >
+          <Video className="w-4 h-4 text-ink-muted shrink-0" aria-hidden="true" />
+          <span>Todavía no hay partidos con video disponible.</span>
+        </div>
+      )}
+
+      {recordingsLoadError && (
+        <div
+          role="alert"
+          className="mt-3.5 p-3 rounded-lg bg-surface-muted border border-line flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm text-ink font-medium"
+        >
+          <span>No pudimos cargar los videos disponibles.</span>
+          <button
+            type="button"
+            onClick={() => setRecordingsLoadAttempt((attempt) => attempt + 1)}
+            className="min-h-10 rounded-lg border border-line-strong px-3 font-semibold text-ink hover:bg-surface transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-turf"
+          >
+            Reintentar
+          </button>
+        </div>
+      )}
+
+      {userPromptMessage && (
+        <div
+          role="alert"
           className="mt-3.5 p-3 rounded-lg bg-surface-muted border border-line flex items-center gap-2 text-xs sm:text-sm text-ink font-medium"
         >
           <AlertCircle className="w-4 h-4 text-turf shrink-0" aria-hidden="true" />

@@ -61,7 +61,14 @@ export const LandingPage: React.FC = () => {
   const scrollToElement = (elementId: string) => {
     const el = document.getElementById(elementId);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const prefersReducedMotion = window.matchMedia(
+        '(prefers-reduced-motion: reduce)'
+      ).matches;
+
+      el.scrollIntoView({
+        behavior: prefersReducedMotion ? 'auto' : 'smooth',
+        block: 'start',
+      });
     }
   };
 
@@ -89,7 +96,7 @@ export const LandingPage: React.FC = () => {
         cities={MOCK_CITIES}
         selectedCityId={selectedCityId}
         onSelectCity={handleCityChange}
-        onReserveNowClick={() => scrollToElement('complejos')}
+        onFindMatchClick={() => scrollToElement('buscador')}
       />
 
       <main className="flex-1">

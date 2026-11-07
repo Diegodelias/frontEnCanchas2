@@ -23,7 +23,7 @@ interface HeaderProps {
   cities: CityOption[];
   selectedCityId: string;
   onSelectCity: (cityId: string) => void;
-  onReserveNowClick: () => void;
+  onFindMatchClick: () => void;
   onLoginClick?: () => void;
 }
 
@@ -31,7 +31,7 @@ export const Header: React.FC<HeaderProps> = ({
   cities,
   selectedCityId,
   onSelectCity,
-  onReserveNowClick,
+  onFindMatchClick,
   onLoginClick,
 }) => {
   const navigate = useNavigate();
@@ -212,10 +212,10 @@ export const Header: React.FC<HeaderProps> = ({
             <Button
               variant="volt"
               size="sm"
-              onClick={onReserveNowClick}
+              onClick={onFindMatchClick}
               className="text-xs sm:text-sm h-10 self-center"
             >
-              Reservá tu cancha
+              Ver mi partido
             </Button>
 
             <div className="theme-toggle-container flex items-center justify-center shrink-0 self-center my-auto sm:ml-0.5">
@@ -307,10 +307,10 @@ export const Header: React.FC<HeaderProps> = ({
                 fullWidth
                 onClick={() => {
                   setMobileMenuOpen(false);
-                  onReserveNowClick();
+                  onFindMatchClick();
                 }}
               >
-                Reservá tu cancha
+                Ver mi partido
               </Button>
 
               {authMode === 'registered' && user ? (

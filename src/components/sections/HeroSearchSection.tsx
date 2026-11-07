@@ -106,7 +106,7 @@ export const HeroSearchSection: React.FC<HeroSearchSectionProps> = ({
         </div>
 
         {/* Protagonista Cascading Search Bar Reutilizado */}
-        <div id="buscador" className="hero-search-enter mt-8 sm:mt-10">
+        <div id="buscador" className="hero-search-enter mt-5 scroll-mt-20 sm:mt-6 sm:scroll-mt-24">
           <MatchCascadingSelector variant="hero" />
         </div>
       </div>
