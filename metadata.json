@@ -1,0 +1,6 @@
+{
+  "name": "Canchas3",
+  "description": "Descubrí complejos deportivos, consultá disponibilidad y reservá tu cancha de fútbol en pocos pasos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

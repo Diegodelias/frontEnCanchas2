@@ -1,0 +1,133 @@
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { AlertCircle, ArrowLeft, Loader2, Video } from 'lucide-react';
+import { VideoPlayer } from '../components/player/VideoPlayer';
+import { Button } from '../components/ui/Button';
+import { ROUTES } from '../routes/paths';
+import { matchesService } from '../services/matchesService';
+import { playsService } from '../services/playsService';
+import { Match } from '../types/match';
+import { SavedPlay } from '../types/play';
+
+interface PlayerPageProps {
+  mode: 'match' | 'play';
+}
+
+export const PlayerPage: React.FC<PlayerPageProps> = ({ mode }) => {
+  const navigate = useNavigate();
+  const { matchId, playId } = useParams<{ matchId?: string; playId?: string }>();
+
+  const [match, setMatch] = useState<Match | null>(null);
+  const [highlightedPlay, setHighlightedPlay] = useState<SavedPlay | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadData() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        if (mode === 'play' && playId) {
+          const play = await playsService.getPlayById(playId);
+          if (!play) {
+            if (!cancelled) setErrorMessage('La jugada solicitada no existe o fue eliminada.');
+            return;
+          }
+          const loadedMatch = await matchesService.getMatchById(play.matchId);
+          if (!cancelled) {
+            setHighlightedPlay(play);
+            setMatch(loadedMatch || {
+              id: play.matchId,
+              title: play.title,
+              clubId: 'estacion-norte',
+              clubName: play.clubName,
+              courtId: 'en-f5-1',
+              courtName: play.courtName,
+              dayId: 'hoy',
+              dateLabel: play.dateLabel,
+              timeSlot: play.timeSlot,
+              status: 'available',
+              videoSrc: '/assets/aistudio/ref_6fe9ff42.mp4',
+              poster: '',
+              duration: 60,
+              recordedAt: play.createdAt,
+            });
+          }
+        } else if (mode === 'match' && matchId) {
+          const loadedMatch = await matchesService.getMatchById(matchId);
+          if (!loadedMatch) {
+            if (!cancelled) setErrorMessage('El partido solicitado no se encuentra registrado.');
+            return;
+          }
+          if (!cancelled) {
+            setMatch(loadedMatch);
+            setHighlightedPlay(null);
+          }
+        }
+      } catch (err: any) {
+        if (!cancelled) {
+          setErrorMessage(err?.message || 'Error al cargar los datos del partido.');
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, matchId, playId]);
+
+  if (isLoading) {
+    return (
+      <div className="w-full h-[100dvh] bg-pitch text-pitch-ink flex flex-col items-center justify-center p-6 text-center">
+        <Loader2 className="w-10 h-10 text-volt animate-spin mb-4" aria-hidden="true" />
+        <h2 className="font-display text-2xl font-bold text-pitch-ink">
+          Cargando grabación...
+        </h2>
+        <p className="mt-1 text-sm text-pitch-muted">
+          Conectando con la cámara del complejo deportivo
+        </p>
+      </div>
+    );
+  }
+
+  if (errorMessage || !match) {
+    return (
+      <div className="w-full h-[100dvh] bg-pitch text-pitch-ink flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-14 h-14 rounded-2xl bg-alert/20 text-alert flex items-center justify-center mb-4">
+          <AlertCircle className="w-8 h-8" aria-hidden="true" />
+        </div>
+        <h2 className="font-display text-2xl sm:text-3xl font-bold text-pitch-ink">
+          No pudimos abrir la grabación
+        </h2>
+        <p className="mt-2 text-sm text-pitch-muted max-w-md">
+          {errorMessage || 'El enlace puede haber cambiado o el partido ya no está disponible.'}
+        </p>
+        <div className="mt-6 flex items-center gap-3">
+          <Button
+            variant="volt"
+            onClick={() => navigate(ROUTES.HOME)}
+          >
+            <ArrowLeft className="w-4 h-4 shrink-0" aria-hidden="true" />
+            <span>Volver a la página principal</span>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <VideoPlayer
+      match={match}
+      highlightedPlay={highlightedPlay}
+    />
+  );
+};
