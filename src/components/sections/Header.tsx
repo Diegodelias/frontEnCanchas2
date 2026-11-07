@@ -43,12 +43,12 @@ export const Header: React.FC<HeaderProps> = ({
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [loginView, setLoginView] = useState<LoginView>('player');
 
-  // La guardia de /panel-club redirige acá con { openLogin: 'admin' }: se abre el formulario de admin
-  // y se limpia el estado, para que volver atrás o recargar no lo vuelva a abrir.
+  // Las guardias de /panel-club y /perfil redirigen acá con { openLogin: 'admin' | 'player' }: se abre el
+  // ingreso en esa vista y se limpia el estado, para que volver atrás o recargar no lo vuelva a abrir.
   const openLoginRequest = (location.state as { openLogin?: string } | null)?.openLogin;
   useEffect(() => {
-    if (openLoginRequest !== 'admin') return;
-    setLoginView('admin');
+    if (openLoginRequest !== 'admin' && openLoginRequest !== 'player') return;
+    setLoginView(openLoginRequest);
     setLoginModalOpen(true);
     navigate(
       { pathname: location.pathname, search: location.search, hash: location.hash },

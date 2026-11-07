@@ -34,8 +34,8 @@ export const PlaysPanel: React.FC<PlaysPanelProps> = ({
   onTriggerSavePlay,
   matchId,
 }) => {
-  const { authMode, user, sendMagicLink, setAuthMode } = useAuth();
-  const { savedPlays, deletePlay, updatePlay, assignAllPlaysToUser } = usePlays();
+  const { authMode, user, sendMagicLink } = useAuth();
+  const { savedPlays, deletePlay, updatePlay } = usePlays();
   const { showToast } = useToast();
 
   const [playToDelete, setPlayToDelete] = useState<SavedPlay | null>(null);
@@ -93,15 +93,20 @@ export const PlaysPanel: React.FC<PlaysPanelProps> = ({
 
     setIsSendingEmail(true);
     try {
-      await sendMagicLink(guestEmail);
-      setAuthMode('registered');
-      await assignAllPlaysToUser();
+      const res = await sendMagicLink(guestEmail);
       setEmailSentSuccess(true);
       showToast({
         type: 'success',
-        title: '¡Enlace mágico enviado!',
-        message: `Enviamos el acceso a ${guestEmail}. Tus jugadas ya están sincronizadas.`,
-        durationMs: 4500,
+        title: 'Revisá tu mail',
+        message: res.message,
+        durationMs: 5500,
+      });
+    } catch (err) {
+      showToast({
+        type: 'error',
+        title: 'No pudimos enviar el link',
+        message: err instanceof Error ? err.message : 'Probá de nuevo en un momento.',
+        durationMs: 5000,
       });
     } finally {
       setIsSendingEmail(false);
@@ -243,6 +248,14 @@ export const PlaysPanel: React.FC<PlaysPanelProps> = ({
               </form>
               <p className="text-[11px] text-white/60 text-center">
                 Te mandamos un link para entrar.
+              </p>
+            </div>
+          ) : authMode === 'guest' ? (
+            /* Link pedido: la cuenta todavía no está abierta hasta que se confirme el link del mail. */
+            <div className="px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white/90 space-y-1">
+              <p className="font-bold">Revisá tu mail</p>
+              <p className="text-white/70">
+                Abrí el link en este navegador (vence en 15 minutos) y tus jugadas quedan guardadas en tu perfil.
               </p>
             </div>
           ) : (

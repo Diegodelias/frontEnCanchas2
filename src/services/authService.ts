@@ -14,7 +14,8 @@ let activeUser: UserProfile = { ...DEMO_REGISTERED_USER };
 interface ApiUser {
   id: string;
   email: string;
-  name: string;
+  /** null en los jugadores, que se crean solo con el mail. */
+  name: string | null;
   role: 'player' | 'club_admin';
   clubId: string | null;
 }
@@ -41,20 +42,52 @@ function initials(name: string): string {
     .join('');
 }
 
+/** Nombre a mostrar de un jugador sin nombre: la parte del mail anterior a la arroba. */
+export function shortEmailName(email: string): string {
+  return email.split('@')[0] || email;
+}
+
 function toAdminProfile(apiUser: ApiUser): UserProfile {
   const club = MOCK_COMPLEXES.find((c) => c.id === apiUser.clubId);
+  const name = apiUser.name ?? shortEmailName(apiUser.email);
   return {
     id: apiUser.id,
-    name: apiUser.name,
+    name,
     email: apiUser.email,
-    avatar: initials(apiUser.name),
+    avatar: initials(name),
     role: 'club_admin',
     roleLabel: 'Administrador',
     clubId: apiUser.clubId ?? undefined,
     clubName: club?.name,
     joinedAt: '',
     savedMatchIds: [],
+    isRealSession: true,
   };
+}
+
+function toPlayerProfile(apiUser: ApiUser): UserProfile {
+  const name = apiUser.name ?? shortEmailName(apiUser.email);
+  return {
+    id: apiUser.id,
+    name,
+    email: apiUser.email,
+    avatar: initials(name),
+    role: 'player',
+    roleLabel: 'Jugador',
+    joinedAt: '',
+    // Los partidos guardados siguen simulados: quedan fuera de este change.
+    savedMatchIds: [],
+    isRealSession: true,
+  };
+}
+
+function toProfile(apiUser: ApiUser): UserProfile {
+  return apiUser.role === 'club_admin' ? toAdminProfile(apiUser) : toPlayerProfile(apiUser);
+}
+
+async function readError(res: Response, fallback: string): Promise<AuthError> {
+  const body = (await res.json().catch(() => null)) as { error?: { code?: string; message?: string } } | null;
+  return new AuthError(body?.error?.code ?? 'unknown_error', body?.error?.message ?? fallback);
 }
 
 async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
@@ -116,13 +149,13 @@ export const authService = {
   },
 
   /**
-   * Sesión actual del backend. Hoy solo existen sesiones de admin; sin sesión devuelve null.
+   * Sesión actual del backend (admin o jugador); sin sesión devuelve null.
    */
   async fetchSession(): Promise<UserProfile | null> {
     const res = await apiFetch('/api/auth/me');
     if (!res.ok) return null;
     const { user } = (await res.json()) as { user: ApiUser | null };
-    return user && user.role === 'club_admin' ? toAdminProfile(user) : null;
+    return user ? toProfile(user) : null;
   },
 
   /**
@@ -133,23 +166,37 @@ export const authService = {
   },
 
   /**
-   * Envía un enlace de acceso al email del usuario.
+   * Pide el link de acceso al backend. La respuesta es la misma tenga o no cuenta el mail,
+   * así que no dice nada sobre si el mail está registrado. Lanza `AuthError` con el mensaje a mostrar.
    */
   async sendMagicLink(
     email: string
   ): Promise<{ success: boolean; message: string; email: string }> {
-    await sleep(SIMULATED_LATENCY_MS);
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email.trim())) {
-      throw new Error('Ingresá un correo electrónico válido');
+    const res = await apiFetch('/api/auth/player/request-link', {
+      method: 'POST',
+      body: JSON.stringify({ email: email.trim() }),
+    });
+    if (!res.ok) {
+      throw await readError(res, 'No pudimos enviar el link. Probá de nuevo en un momento.');
     }
+    const { message } = (await res.json()) as { message: string };
+    return { success: true, message, email: email.trim() };
+  },
 
-    return {
-      success: true,
-      message: 'Revisá tu email. Te enviamos un enlace de acceso seguro a Canchas3.',
-      email: email.trim(),
-    };
+  /**
+   * Confirma el link de acceso y abre la sesión del jugador (cookie del backend).
+   * Lanza `AuthError` con código `link_used` o `link_expired` si el link ya no sirve.
+   */
+  async confirmLink(token: string): Promise<UserProfile> {
+    const res = await apiFetch('/api/auth/player/confirm', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    });
+    if (!res.ok) {
+      throw await readError(res, 'No pudimos iniciar la sesión. Pedí un link nuevo.');
+    }
+    const { user } = (await res.json()) as { user: ApiUser };
+    return toProfile(user);
   },
 
   /**

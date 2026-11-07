@@ -5,6 +5,7 @@ import { MvpConfigProvider } from './context/MvpConfigContext';
 import { PlaysProvider } from './context/PlaysContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
+import { AccessPage } from './pages/AccessPage';
 import { ClubAdminPage } from './pages/ClubAdminPage';
 import { CourtQrPage } from './pages/CourtQrPage';
 import { LandingPage } from './pages/LandingPage';
@@ -31,6 +32,7 @@ export function App() {
                     <Route path={ROUTES.LIVE_STREAM} element={<LivePlayerPage />} />
                     <Route path={ROUTES.MATCH} element={<PlayerPage mode="match" />} />
                     <Route path={ROUTES.PLAY} element={<PlayerPage mode="play" />} />
+                    <Route path={ROUTES.ACCESS} element={<AccessPage />} />
                     <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
                     <Route path={ROUTES.CLUB_ADMIN} element={<ClubAdminPage />} />
                     <Route path="/admin" element={<Navigate to={ROUTES.CLUB_ADMIN} replace />} />

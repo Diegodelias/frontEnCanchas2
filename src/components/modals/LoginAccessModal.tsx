@@ -1,6 +1,6 @@
 import React, { useEffect, useId, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Building2, KeyRound, Lock, Mail, UserCheck, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Building2, CheckCircle2, KeyRound, Lock, Mail, UserCheck, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { DEMO_REGISTERED_USER } from '../../data/mockUsers';
@@ -33,6 +33,8 @@ export const LoginAccessModal: React.FC<LoginAccessModalProps> = ({
   const [view, setView] = useState<LoginView>(initialView);
   const [emailInput, setEmailInput] = useState('');
   const [isSendingMagicLink, setIsSendingMagicLink] = useState(false);
+  const [linkMessage, setLinkMessage] = useState<string | null>(null);
+  const [linkError, setLinkError] = useState<string | null>(null);
 
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
@@ -45,6 +47,8 @@ export const LoginAccessModal: React.FC<LoginAccessModalProps> = ({
       setView(initialView);
       setAdminPassword('');
       setAdminError(null);
+      setLinkMessage(null);
+      setLinkError(null);
     }
   }, [isOpen, initialView]);
 
@@ -89,26 +93,16 @@ export const LoginAccessModal: React.FC<LoginAccessModalProps> = ({
 
   const handleMagicLinkSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!emailInput.trim()) return;
+    if (!emailInput.trim() || isSendingMagicLink) return;
 
+    setLinkError(null);
     setIsSendingMagicLink(true);
     try {
+      // El mail pide un link: la sesión se abre recién cuando el jugador lo confirma en /acceso.
       const res = await sendMagicLink(emailInput);
-      onClose();
-      showToast({
-        title: 'Enlace enviado',
-        message: res.message,
-        type: 'success',
-      });
-      // Default to player profile
-      await switchRole('player');
-      navigate(ROUTES.PROFILE);
-    } catch (err: any) {
-      showToast({
-        title: 'Error de acceso',
-        message: err.message || 'No se pudo enviar el enlace',
-        type: 'error',
-      });
+      setLinkMessage(res.message);
+    } catch (err) {
+      setLinkError(err instanceof Error ? err.message : 'No pudimos enviar el link. Probá de nuevo.');
     } finally {
       setIsSendingMagicLink(false);
     }
@@ -271,6 +265,17 @@ export const LoginAccessModal: React.FC<LoginAccessModalProps> = ({
             </div>
 
             {/* Email form */}
+            {linkMessage ? (
+              <div className="p-4 rounded-xl bg-turf-soft border border-turf/25 flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-turf shrink-0 mt-0.5" aria-hidden="true" />
+                <div>
+                  <h3 className="font-display text-base font-bold text-ink">Revisá tu mail</h3>
+                  <p role="status" className="mt-1 text-sm text-ink-muted leading-relaxed">
+                    {linkMessage}
+                  </p>
+                </div>
+              </div>
+            ) : (
             <form onSubmit={handleMagicLinkSubmit} className="space-y-3">
               <div className="flex flex-col sm:flex-row gap-2">
                 <div className="relative flex-1">
@@ -295,7 +300,13 @@ export const LoginAccessModal: React.FC<LoginAccessModalProps> = ({
                   <span>{isSendingMagicLink ? 'Enviando...' : 'Continuar'}</span>
                 </Button>
               </div>
+              {linkError && (
+                <p role="alert" className="text-sm text-red-600 dark:text-red-400 leading-relaxed">
+                  {linkError}
+                </p>
+              )}
             </form>
+            )}
 
             <div className="mt-5 pt-4 border-t border-line text-center">
               <button

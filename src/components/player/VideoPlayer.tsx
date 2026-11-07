@@ -22,6 +22,7 @@ import { ROUTES } from '../../routes/paths';
 import { Match } from '../../types/match';
 import { SavedPlay, SavePlayInput } from '../../types/play';
 import { formatVideoTime } from '../../utils/sharing';
+import { pendingPlayService } from '../../services/pendingPlayService';
 import { AccessEmailModal } from '../auth/AccessEmailModal';
 import { PlaysPanel } from '../plays/PlaysPanel';
 import { SaveButtonVisualState, SavePlayButton } from '../plays/SavePlayButton';
@@ -232,17 +233,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   // --- SAVE PLAY FLOW (Prompt 5 + Beelup Auth Gate) ---
   const handleTriggerSavePlay = () => {
     // Si el usuario no tiene cuenta iniciada (invitado/público), solicitarle crear cuenta para guardar
-    if (authMode === 'guest' || !user) {
-      setIsAccessModalOpen(true);
-      showToast({
-        type: 'info',
-        title: 'Creá tu cuenta para guardar jugadas',
-        message: 'Acceso gratuito con tu email para guardar clips de 20s y compartirlos.',
-        durationMs: 4000,
-      });
-      return;
-    }
-
     // Crucial: Video KEEPS PLAYING (no pausing)
     const timestampSec = Math.floor(currentTime);
     const formatted = formatVideoTime(timestampSec);
@@ -258,6 +248,19 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       thumbnailUrl: match.poster || '/assets/aistudio/ref_6fe9ff42.mp4',
       videoSrc: match.videoSrc || '/assets/aistudio/ref_6fe9ff42.mp4',
     };
+
+    if (authMode === 'guest' || !user) {
+      // El momento marcado queda pendiente en este navegador (30 minutos) y se guarda al ingresar con el link.
+      pendingPlayService.save(moment);
+      setIsAccessModalOpen(true);
+      showToast({
+        type: 'info',
+        title: 'Creá tu cuenta para guardar jugadas',
+        message: 'Acceso gratuito con tu email para guardar clips de 20s y compartirlos.',
+        durationMs: 4000,
+      });
+      return;
+    }
 
     setMarkedMoment(moment);
     setSaveButtonState('marked');

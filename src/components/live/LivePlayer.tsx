@@ -20,6 +20,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { usePlays } from '../../context/PlaysContext';
 import { useToast } from '../../context/ToastContext';
+import { pendingPlayService } from '../../services/pendingPlayService';
 import { ROUTES } from '../../routes/paths';
 import { Match } from '../../types/match';
 import { LiveCamera, LiveCameraStatus } from '../../types/liveCamera';
@@ -264,17 +265,6 @@ export const LivePlayer: React.FC<LivePlayerProps> = ({
   // --- LIVE PLAY CAPTURE FLOW (Prompt 5 + Beelup Auth Gate) ---
   const handleTriggerSavePlay = () => {
     // Si el usuario no tiene cuenta iniciada (invitado/público), solicitarle crear cuenta para guardar
-    if (authMode === 'guest' || !user) {
-      setIsAccessModalOpen(true);
-      showToast({
-        type: 'info',
-        title: 'Creá tu cuenta para guardar jugadas',
-        message: 'Acceso gratuito con tu email para guardar clips en vivo de 20s y compartirlos.',
-        durationMs: 4000,
-      });
-      return;
-    }
-
     const currentVideoTime = videoRef.current?.currentTime ?? 10;
     const moment = {
       timestamp: Math.floor(currentVideoTime),
@@ -288,6 +278,19 @@ export const LivePlayer: React.FC<LivePlayerProps> = ({
       thumbnailUrl: camera.posterUrl,
       videoSrc: camera.videoUrl,
     };
+
+    if (authMode === 'guest' || !user) {
+      // El momento marcado queda pendiente en este navegador (30 minutos) y se guarda al ingresar con el link.
+      pendingPlayService.save(moment);
+      setIsAccessModalOpen(true);
+      showToast({
+        type: 'info',
+        title: 'Creá tu cuenta para guardar jugadas',
+        message: 'Acceso gratuito con tu email para guardar clips en vivo de 20s y compartirlos.',
+        durationMs: 4000,
+      });
+      return;
+    }
 
     setMarkedMoment(moment);
     setSaveButtonState('marked');

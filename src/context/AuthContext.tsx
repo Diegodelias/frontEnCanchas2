@@ -16,6 +16,8 @@ interface AuthContextValue {
   loginAsDemoUser: () => Promise<void>;
   /** Ingreso real de admin; lanza `AuthError` con el mensaje a mostrar si falla. */
   loginAdmin: (email: string, password: string) => Promise<UserProfile>;
+  /** Confirma el link de acceso del mail y abre la sesión real del jugador; lanza `AuthError` si el link no sirve. */
+  confirmLink: (token: string) => Promise<UserProfile>;
   logout: () => Promise<void>;
 }
 
@@ -33,7 +35,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setAuthModeState(profile ? 'registered' : 'guest');
   };
 
-  // Al montar: si el backend tiene una sesión de admin, se carga; si no, se arranca como invitado.
+  // Al montar: si el backend tiene una sesión (de admin o de jugador), se carga; si no, se arranca como invitado.
   useEffect(() => {
     let cancelled = false;
     authService
@@ -49,9 +51,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  /** Cierra la sesión del backend si el usuario actual es un admin real. */
-  const endAdminSession = async () => {
-    if (user?.role === 'club_admin') {
+  /** Cierra la sesión del backend si el usuario actual es una sesión real (admin o jugador). */
+  const endRealSession = async () => {
+    if (user?.isRealSession) {
       await authService.logout().catch(() => undefined);
     }
   };
@@ -59,7 +61,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const switchRole = async (role: 'player' | 'guest') => {
     setIsLoading(true);
     try {
-      await endAdminSession();
+      await endRealSession();
       applyUser(await authService.switchRole(role));
     } finally {
       setIsLoading(false);
@@ -75,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     void (async () => {
       setIsLoading(true);
       try {
-        await endAdminSession();
+        await endRealSession();
         applyUser(await authService.getCurrentUser('registered'));
       } finally {
         setIsLoading(false);
@@ -101,8 +103,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return profile;
   };
 
+  const confirmLink = async (token: string) => {
+    const profile = await authService.confirmLink(token);
+    applyUser(profile);
+    return profile;
+  };
+
   const logout = async () => {
-    await endAdminSession();
+    await endRealSession();
     applyUser(null);
   };
 
@@ -119,6 +127,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         sendMagicLink,
         loginAsDemoUser,
         loginAdmin,
+        confirmLink,
         logout,
       }}
     >

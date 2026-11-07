@@ -122,7 +122,10 @@ export const AccessEmailModal: React.FC<AccessEmailModalProps> = ({
                   {successMessage}
                 </p>
                 <p className="mt-2 text-xs font-mono text-turf-ink font-semibold">
-                  Enviado a: {email}
+                  Link pedido para: {email}
+                </p>
+                <p className="mt-2 text-xs text-ink-muted leading-relaxed">
+                  Abrí el link en este mismo navegador y tu jugada se guarda sola en tu perfil.
                 </p>
               </div>
             </div>
