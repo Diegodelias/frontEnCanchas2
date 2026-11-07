@@ -35,11 +35,11 @@ export const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({
           </Button>
         </div>
 
-        <div className="mt-10 grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-line border-t border-b border-line">
+        <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-7 divide-y sm:divide-y-0 lg:divide-x divide-line border-t border-b border-line">
           {HOW_IT_WORKS_STEPS.map((step) => (
             <article
               key={step.number}
-              className="py-8 md:py-9 md:px-7 first:md:pl-0 last:md:pr-0 flex flex-col"
+              className="py-8 sm:py-9 sm:px-5 lg:px-7 first:sm:pl-0 last:sm:pr-0 flex flex-col"
             >
               <StepImage src={step.imageSrc} alt={step.imageAlt} />
 
@@ -85,7 +85,7 @@ const StepImage: React.FC<{ src: string; alt: string }> = ({ src, alt }) => {
           width={1200}
           height={675}
           onError={() => setFailed(true)}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+          className="how-it-works-photo w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
         />
       )}
     </div>

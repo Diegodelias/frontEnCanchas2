@@ -32,6 +32,7 @@ export const MOCK_COMPLEXES: Complex[] = [
     rating: 4.9,
     minPrice: 28000,
     availabilitySummary: 'Turnos hoy desde las 18:00 hs',
+    imageUrl: '/assets/complejos/estacion-norte.jpg',
     visualVariant: 'multi-pitch',
     courts: [
       {
@@ -103,6 +104,7 @@ export const MOCK_COMPLEXES: Complex[] = [
     rating: 4.8,
     minPrice: 26000,
     availabilitySummary: 'Turnos hoy desde las 19:00 hs',
+    imageUrl: '/assets/complejos/la-cantera-villa-crespo.jpg',
     visualVariant: 'soccer-turf',
     courts: [
       {
@@ -164,6 +166,7 @@ export const MOCK_COMPLEXES: Complex[] = [
     rating: 4.9,
     minPrice: 31000,
     availabilitySummary: 'Turnos hoy desde las 17:30 hs',
+    imageUrl: '/assets/complejos/polideportivo-belgrano.jpg',
     visualVariant: 'indoor-pitch',
     courts: [
       {
@@ -225,6 +228,7 @@ export const MOCK_COMPLEXES: Complex[] = [
     rating: 4.7,
     minPrice: 27000,
     availabilitySummary: 'Turnos hoy desde las 18:00 hs',
+    imageUrl: '/assets/complejos/complejo-parque-sur.jpg',
     visualVariant: 'clubhouse-turf',
     courts: [
       {
@@ -280,6 +284,7 @@ export const MOCK_COMPLEXES: Complex[] = [
     rating: 4.8,
     minPrice: 30000,
     availabilitySummary: 'Turnos hoy desde las 19:00 hs',
+    imageUrl: '/assets/complejos/arena-nunez.jpg',
     visualVariant: 'night-stadium',
     courts: [
       {
@@ -351,6 +356,7 @@ export const MOCK_COMPLEXES: Complex[] = [
     rating: 4.9,
     minPrice: 29000,
     availabilitySummary: 'Turnos hoy desde las 18:00 hs',
+    imageUrl: '/assets/complejos/terraza-colegiales.jpg',
     visualVariant: 'rooftop-pitch',
     courts: [
       {

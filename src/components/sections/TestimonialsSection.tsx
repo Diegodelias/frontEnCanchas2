@@ -17,17 +17,23 @@ export const TestimonialsSection: React.FC = () => {
           </h2>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
           {EXAMPLE_TESTIMONIALS.map((item) => (
             <article
               key={item.id}
-              className="flex flex-col justify-between bg-surface border border-line rounded-xl p-6"
+              className="flex flex-col justify-between bg-surface border border-line rounded-xl p-6 sm:p-7"
             >
               <div>
                 <p className="text-xs font-medium text-ink-muted">
                   {item.sportContext}
                 </p>
-                <blockquote className="mt-3 text-sm sm:text-base text-ink leading-relaxed">
+                <span
+                  aria-hidden="true"
+                  className="mt-4 block font-display text-5xl leading-none text-turf/70"
+                >
+                  “
+                </span>
+                <blockquote className="-mt-1 text-sm sm:text-base text-ink leading-relaxed">
                   “{item.quote}”
                 </blockquote>
               </div>

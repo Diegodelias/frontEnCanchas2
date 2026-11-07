@@ -20,14 +20,18 @@ export const ComplexImagePlaceholder: React.FC<ComplexImagePlaceholderProps> = (
 
   if (imageUrl && !hasImageError) {
     return (
-      <div className="relative w-full aspect-[16/10] overflow-hidden bg-pitch">
+      <div
+        className="relative w-full aspect-[16/10] overflow-hidden bg-pitch"
+        role="img"
+        aria-label={`Imagen ilustrativa de una cancha de fútbol en ${zone} (${sports.join(', ')})`}
+      >
         <img
           src={imageUrl}
-          alt={`${name} — Complejo de fútbol en ${zone}`}
-          referrerPolicy="no-referrer"
+          alt=""
+          decoding="async"
           loading="lazy"
           onError={() => setHasImageError(true)}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+          className="complex-card-photo w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
         />
       </div>
     );

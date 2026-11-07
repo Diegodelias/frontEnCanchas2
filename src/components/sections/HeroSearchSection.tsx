@@ -92,21 +92,21 @@ export const HeroSearchSection: React.FC<HeroSearchSectionProps> = ({
       {/* Foreground Content */}
       <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
         <div className="max-w-3xl">
-          <p className="text-xs sm:text-sm font-semibold uppercase tracking-widest text-volt">
+          <p className="hero-kicker-enter text-xs sm:text-sm font-semibold uppercase tracking-widest text-volt">
             Canchas de fútbol · {activeCityName}
           </p>
 
-          <h1 className="mt-3 font-display text-4xl sm:text-6xl lg:text-[4.5rem] font-extrabold tracking-tight text-pitch-ink leading-[1.03]">
+          <h1 className="hero-title-enter mt-3 font-display text-4xl sm:text-6xl lg:text-[4.5rem] font-extrabold tracking-tight text-pitch-ink leading-[1.03]">
             {HERO_COPY.headline}
           </h1>
 
-          <p className="mt-4 text-base sm:text-xl text-pitch-ink/90 max-w-2xl leading-relaxed">
+          <p className="hero-lead-enter mt-4 text-base sm:text-xl text-pitch-ink/90 max-w-2xl leading-relaxed">
             {HERO_COPY.subtitle}
           </p>
         </div>
 
         {/* Protagonista Cascading Search Bar Reutilizado */}
-        <div id="buscador" className="mt-8 sm:mt-10">
+        <div id="buscador" className="hero-search-enter mt-8 sm:mt-10">
           <MatchCascadingSelector variant="hero" />
         </div>
       </div>

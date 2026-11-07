@@ -14,15 +14,26 @@ export function formatCurrencyArs(amount: number): string {
   return `$${amount.toLocaleString('es-AR')}`;
 }
 
+const DEFAULT_COURT_IMAGES: Record<string, string> = {
+  'estacion-norte': '/assets/complejos/estacion-norte.jpg',
+  'la-cantera-crespo': '/assets/complejos/la-cantera-villa-crespo.jpg',
+  'polideportivo-belgrano': '/assets/complejos/polideportivo-belgrano.jpg',
+  'parque-sur-caballito': '/assets/complejos/complejo-parque-sur.jpg',
+  'arena-nunez': '/assets/complejos/arena-nunez.jpg',
+  'terraza-colegiales': '/assets/complejos/terraza-colegiales.jpg',
+};
+
 export const ComplexCard: React.FC<ComplexCardProps> = ({
   complex,
   matchedHint,
   onOpenBooking,
 }) => {
+  const imageUrl = complex.imageUrl ?? DEFAULT_COURT_IMAGES[complex.id];
+
   return (
-    <article className="group flex flex-col bg-surface border border-line rounded-xl overflow-hidden transition-colors duration-150 hover:border-line-strong">
+    <article className="complex-card group flex flex-col bg-surface border border-line rounded-xl overflow-hidden transition-colors duration-200 hover:border-line-strong">
       <ComplexImagePlaceholder
-        imageUrl={complex.imageUrl}
+        imageUrl={imageUrl}
         name={complex.name}
         zone={complex.zone}
         sports={complex.sports}
