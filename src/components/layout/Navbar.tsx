@@ -142,17 +142,6 @@ export const Navbar: React.FC = () => {
                       </Link>
                     )}
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setUserDropdownOpen(false);
-                        setLoginModalOpen(true);
-                      }}
-                      className="w-full text-left px-3 py-2 rounded-lg flex items-center gap-2 text-ink-muted hover:text-ink hover:bg-surface-muted transition-colors cursor-pointer"
-                    >
-                      <span>Cambiar de perfil / cuenta</span>
-                    </button>
-
                     <div className="pt-1 border-t border-line">
                       <button
                         type="button"
@@ -261,16 +250,6 @@ export const Navbar: React.FC = () => {
                 <div className="p-3 rounded-xl bg-canvas border border-line flex items-center justify-between">
                   <div className="text-xs font-semibold text-ink">
                     <p>{user.name}</p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        setLoginModalOpen(true);
-                      }}
-                      className="text-turf hover:underline text-[11px]"
-                    >
-                      Cambiar de perfil
-                    </button>
                   </div>
                   <button
                     type="button"

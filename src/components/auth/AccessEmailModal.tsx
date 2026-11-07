@@ -1,20 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { AlertCircle, CheckCircle2, Mail, Sparkles, X } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Mail, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../ui/Button';
 
 interface AccessEmailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccessRegistered?: () => void;
 }
 
 export const AccessEmailModal: React.FC<AccessEmailModalProps> = ({
   isOpen,
   onClose,
-  onSuccessRegistered,
 }) => {
-  const { sendMagicLink, loginAsDemoUser } = useAuth();
+  const { sendMagicLink } = useAuth();
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,15 +57,6 @@ export const AccessEmailModal: React.FC<AccessEmailModalProps> = ({
       setError(err?.message || 'Ocurrió un error al enviar el enlace. Probá de nuevo.');
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleSimulateInstantLogin = async () => {
-    await loginAsDemoUser();
-    if (onSuccessRegistered) {
-      onSuccessRegistered();
-    } else {
-      onClose();
     }
   };
 
@@ -130,18 +119,7 @@ export const AccessEmailModal: React.FC<AccessEmailModalProps> = ({
               </div>
             </div>
 
-            <div className="pt-2 border-t border-line space-y-2.5">
-              <p className="text-xs text-ink-muted">
-                Para acelerar la evaluación del demo, podés activar el acceso con un clic:
-              </p>
-              <Button
-                variant="volt"
-                fullWidth
-                onClick={handleSimulateInstantLogin}
-              >
-                <Sparkles className="w-4 h-4 shrink-0" aria-hidden="true" />
-                <span>Simular ingreso automático y ver jugada</span>
-              </Button>
+            <div className="pt-2 border-t border-line">
               <Button
                 variant="secondary"
                 fullWidth

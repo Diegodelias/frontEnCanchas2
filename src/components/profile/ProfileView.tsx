@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   Calendar,
   Check,
-  ChevronDown,
   Edit2,
   Film,
   MapPin,
@@ -11,7 +10,6 @@ import {
   Plus,
   Share2,
   Trash2,
-  User,
   Video,
   Zap,
 } from 'lucide-react';
@@ -29,7 +27,7 @@ import { Button } from '../ui/Button';
 
 export const ProfileView: React.FC = () => {
   const navigate = useNavigate();
-  const { user, authMode, setAuthMode } = useAuth();
+  const { user, authMode } = useAuth();
   const { savedPlays, savedMatchIds, deletePlay, updatePlay, toggleSaveMatch } = usePlays();
   const { showToast } = useToast();
 
@@ -165,13 +163,13 @@ export const ProfileView: React.FC = () => {
       <div className="bg-surface border border-line rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xs">
         <div className="flex items-center gap-4 sm:gap-5">
           <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-pitch text-volt font-display text-2xl sm:text-3xl font-extrabold flex items-center justify-center border border-pitch-line shrink-0">
-            {user?.avatar || 'MR'}
+            {user?.avatar}
           </div>
 
           <div>
             <div className="flex items-center gap-2">
               <h1 className="font-display text-2xl sm:text-4xl font-extrabold tracking-tight text-ink">
-                {user?.name || 'Usuario invitado'}
+                {user?.name}
               </h1>
               {authMode === 'registered' && (
                 <span className="inline-flex items-center gap-1 text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-turf-soft text-turf-ink">
@@ -182,7 +180,7 @@ export const ProfileView: React.FC = () => {
             </div>
 
             <p className="mt-1 text-sm text-ink-muted">
-              {user?.email || 'Sin sesión activa (Modo Invitado · Guardado local)'}
+              {user?.email}
             </p>
 
             <div className="mt-2.5 flex items-center gap-3 text-xs font-mono text-ink-muted">
@@ -205,25 +203,6 @@ export const ProfileView: React.FC = () => {
             <Plus className="w-4 h-4 shrink-0" aria-hidden="true" />
             <span>Buscar partido</span>
           </Button>
-
-          {authMode === 'guest' ? (
-            <Button
-              variant="secondary"
-              size="md"
-              onClick={() => setAuthMode('registered')}
-            >
-              <User className="w-4 h-4 shrink-0" aria-hidden="true" />
-              <span>Simular usuario registrado</span>
-            </Button>
-          ) : (
-            <Button
-              variant="secondary"
-              size="md"
-              onClick={() => setAuthMode('guest')}
-            >
-              <span>Cambiar a invitado</span>
-            </Button>
-          )}
         </div>
       </div>
 
@@ -259,42 +238,11 @@ export const ProfileView: React.FC = () => {
       {/* TAB 1: Mis Jugadas (Primary content, matching reference 8_cac3471b.png) */}
       {activeTab === 'plays' && (
         <div className="space-y-6">
-          {/* Header Bar matching 8_cac3471b.png: "Mis jugadas" + quota badge */}
+          {/* Header Bar: "Mis jugadas" */}
           <div className="flex items-center justify-between gap-3">
             <h2 className="font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-ink">
               Mis jugadas
             </h2>
-            <div className="px-3 py-1 rounded-full bg-surface border border-line flex items-center gap-1.5 text-xs font-semibold shadow-xs">
-              <span className="font-mono text-ink-muted">
-                {savedPlays.length} de 20
-              </span>
-              <span aria-hidden="true" className="text-ink-muted">·</span>
-              <span className="font-bold text-[#f59e0b] hover:underline cursor-pointer">
-                Plus &rsaquo;
-              </span>
-            </div>
-          </div>
-
-          {/* Expandable Notification Banner matching 8_cac3471b.png */}
-          <div className="rounded-xl bg-surface border border-line overflow-hidden shadow-xs">
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('matches');
-              }}
-              className="w-full px-4 py-3 text-left flex items-center justify-between gap-3 text-xs sm:text-sm font-semibold text-ink hover:bg-surface-muted transition-colors cursor-pointer"
-            >
-              <div className="flex items-center gap-2.5 truncate">
-                <span className="w-6 h-6 rounded-full bg-[#f59e0b] text-black flex items-center justify-center shrink-0">
-                  <Play className="w-3 h-3 fill-current ml-0.5" aria-hidden="true" />
-                </span>
-                <span className="truncate">
-                  <strong>{savedMatchIds.length || 5} partidos para ver</strong>
-                  <span className="text-ink-muted font-normal ml-1">· uno vence en 3 días</span>
-                </span>
-              </div>
-              <ChevronDown className="w-4 h-4 text-ink-muted shrink-0" aria-hidden="true" />
-            </button>
           </div>
 
           {savedPlays.length === 0 ? (

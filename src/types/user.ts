@@ -13,6 +13,4 @@ export interface UserProfile {
   clubName?: string;
   joinedAt: string;
   savedMatchIds: string[];
-  /** true si viene de una sesión del backend; el jugador de ejemplo (modo demo) no lo lleva. */
-  isRealSession?: boolean;
 }

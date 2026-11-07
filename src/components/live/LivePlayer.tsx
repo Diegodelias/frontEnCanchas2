@@ -835,10 +835,6 @@ export const LivePlayer: React.FC<LivePlayerProps> = ({
       <AccessEmailModal
         isOpen={isAccessModalOpen}
         onClose={() => setIsAccessModalOpen(false)}
-        onSuccessRegistered={() => {
-          setIsAccessModalOpen(false);
-          handleTriggerSavePlay();
-        }}
       />
     </div>
   );

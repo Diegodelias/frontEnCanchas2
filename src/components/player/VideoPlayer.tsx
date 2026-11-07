@@ -635,10 +635,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       <AccessEmailModal
         isOpen={isAccessModalOpen}
         onClose={() => setIsAccessModalOpen(false)}
-        onSuccessRegistered={() => {
-          setIsAccessModalOpen(false);
-          handleTriggerSavePlay();
-        }}
       />
     </div>
   );

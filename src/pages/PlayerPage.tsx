@@ -3,9 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { AlertCircle, ArrowLeft, Loader2, Video } from 'lucide-react';
 import { VideoPlayer } from '../components/player/VideoPlayer';
 import { Button } from '../components/ui/Button';
+import { useAuth } from '../context/AuthContext';
 import { ROUTES } from '../routes/paths';
 import { matchesService } from '../services/matchesService';
-import { playsService } from '../services/playsService';
+import { playsApi } from '../services/playsApi';
 import { Match } from '../types/match';
 import { SavedPlay } from '../types/play';
 
@@ -15,6 +16,7 @@ interface PlayerPageProps {
 
 export const PlayerPage: React.FC<PlayerPageProps> = ({ mode }) => {
   const navigate = useNavigate();
+  const { user, isLoading: isAuthLoading } = useAuth();
   const { matchId, playId } = useParams<{ matchId?: string; playId?: string }>();
 
   const [match, setMatch] = useState<Match | null>(null);
@@ -26,12 +28,16 @@ export const PlayerPage: React.FC<PlayerPageProps> = ({ mode }) => {
     let cancelled = false;
 
     async function loadData() {
+      // Una jugada se abre desde la cuenta del jugador: hay que saber primero si hay sesión.
+      if (mode === 'play' && isAuthLoading) return;
       setIsLoading(true);
       setErrorMessage(null);
 
       try {
         if (mode === 'play' && playId) {
-          const play = await playsService.getPlayById(playId);
+          // Sin sesión, o si no es del jugador, es lo mismo que si no existiera.
+          const plays = user?.role === 'player' ? await playsApi.list(user.id).catch(() => []) : [];
+          const play = plays.find((p) => p.id === playId) ?? null;
           if (!play) {
             if (!cancelled) setErrorMessage('La jugada solicitada no existe o fue eliminada.');
             return;
@@ -83,7 +89,7 @@ export const PlayerPage: React.FC<PlayerPageProps> = ({ mode }) => {
     return () => {
       cancelled = true;
     };
-  }, [mode, matchId, playId]);
+  }, [mode, matchId, playId, user, isAuthLoading]);
 
   if (isLoading) {
     return (

@@ -9,6 +9,7 @@ import {
   Sparkles,
   X,
 } from 'lucide-react';
+import { usePlays } from '../../context/PlaysContext';
 import { useToast } from '../../context/ToastContext';
 import {
   CAPTURE_TOTAL_SECONDS,
@@ -54,6 +55,7 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
   onClose,
 }) => {
   const { showToast } = useToast();
+  const { savePlay } = usePlays();
   const sheetRef = useRef<HTMLDivElement | null>(null);
 
   const [captureMode, setCaptureMode] = useState<CaptureMode>('video');
@@ -151,11 +153,8 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
         videoSrc: momentData.videoSrc,
       };
 
-      // Trigger context save
-      const play = await (async () => {
-        const { playsService } = await import('../../services/playsService');
-        return await playsService.savePlay(input);
-      })();
+      // Se guarda en la cuenta del jugador (backend), no en el navegador.
+      const play = await savePlay(input);
 
       setSavedPlayResult(play);
       setProcessingStatus('ready');

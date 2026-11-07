@@ -188,17 +188,6 @@ export const Header: React.FC<HeaderProps> = ({
                       </Link>
                     )}
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setUserDropdownOpen(false);
-                        setLoginModalOpen(true);
-                      }}
-                      className="w-full text-left px-3 py-2 rounded-lg flex items-center gap-2 text-ink-muted hover:text-ink hover:bg-surface-muted transition-colors cursor-pointer"
-                    >
-                      <span>Cambiar de perfil / cuenta</span>
-                    </button>
-
                     <div className="pt-1 border-t border-line">
                       <button
                         type="button"

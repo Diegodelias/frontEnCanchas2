@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { authService } from '../services/authService';
 import { pendingPlayService } from '../services/pendingPlayService';
 import { PlaysApiError, playsApi } from '../services/playsApi';
-import { playsService } from '../services/playsService';
 import { SavedPlay, SavePlayInput } from '../types/play';
 import { useAuth } from './AuthContext';
+
+/** Clave donde la versión anterior guardaba las jugadas en el navegador; ya no se usa y se borra. */
+const LEGACY_PLAYS_STORAGE_KEY = 'canchas3-saved-plays';
 
 /** Qué pasó con la jugada que un invitado dejó pendiente antes de ingresar. */
 export type ResumePendingResult =
@@ -17,13 +18,12 @@ export interface PlaysContextValue {
   savedPlays: SavedPlay[];
   savedMatchIds: string[];
   isLoading: boolean;
-  savePlay: (input: SavePlayInput, options?: { forceError?: boolean }) => Promise<SavedPlay>;
+  savePlay: (input: SavePlayInput) => Promise<SavedPlay>;
   updatePlay: (playId: string, updates: Partial<SavedPlay>) => Promise<SavedPlay | null>;
   deletePlay: (playId: string) => Promise<boolean>;
   toggleSaveMatch: (matchId: string) => Promise<boolean>;
   isMatchSaved: (matchId: string) => boolean;
   refreshPlays: () => Promise<void>;
-  assignAllPlaysToUser: () => Promise<void>;
   /**
    * Guarda en la cuenta, recién ingresada, la jugada que el invitado dejó pendiente en este navegador.
    * No depende del usuario del render: se llama justo después de confirmar el link.
@@ -33,50 +33,53 @@ export interface PlaysContextValue {
 
 const PlaysContext = createContext<PlaysContextValue | undefined>(undefined);
 
+/**
+ * Las jugadas viven en el backend, en la cuenta del jugador. Un invitado o un admin no tienen jugadas.
+ */
 export const PlaysProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const [savedPlays, setSavedPlays] = useState<SavedPlay[]>([]);
+  // Los partidos guardados siguen fuera del backend y no hay forma de guardar un partido: queda vacío.
   const [savedMatchIds, setSavedMatchIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Solo se aplica la lista del último pedido: una respuesta atrasada no pisa a una más nueva.
   const latestFetch = useRef(0);
 
-  // Con sesión real las jugadas viven en el backend; el jugador de ejemplo sigue con el almacenamiento local.
-  const isRealPlayer = Boolean(user?.isRealSession && user.role === 'player');
+  const isPlayer = user?.role === 'player';
 
-  const fetchPlaysAndMatches = async () => {
+  // Las jugadas guardadas en el navegador por la versión anterior no se importan: se borran.
+  useEffect(() => {
+    try {
+      window.localStorage.removeItem(LEGACY_PLAYS_STORAGE_KEY);
+    } catch {
+      // sin almacenamiento local no hay nada que borrar
+    }
+  }, []);
+
+  const fetchPlays = async () => {
     const seq = ++latestFetch.current;
+    if (!isPlayer) {
+      setSavedPlays([]);
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     try {
-      if (isRealPlayer) {
-        // Un jugador real arranca sin jugadas: ni las de ejemplo ni las del almacenamiento local viejo.
-        const plays = await playsApi.list(user?.id).catch(() => [] as SavedPlay[]);
-        if (seq !== latestFetch.current) return;
-        setSavedPlays(plays);
-        setSavedMatchIds(user?.savedMatchIds ?? []);
-      } else {
-        const plays = await playsService.getSavedPlays(user?.id);
-        if (seq !== latestFetch.current) return;
-        setSavedPlays(plays);
-        setSavedMatchIds(user?.savedMatchIds || ['match-en-f5-1900', 'match-lc-f5-1900']);
-      }
+      const plays = await playsApi.list(user?.id).catch(() => [] as SavedPlay[]);
+      if (seq !== latestFetch.current) return;
+      setSavedPlays(plays);
     } finally {
       if (seq === latestFetch.current) setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchPlaysAndMatches();
+    fetchPlays();
   }, [user]);
 
-  const savePlay = async (
-    input: SavePlayInput,
-    options?: { forceError?: boolean }
-  ): Promise<SavedPlay> => {
-    const play = isRealPlayer
-      ? await playsApi.create(input, user?.id)
-      : await playsService.savePlay(input, user?.id, options);
+  const savePlay = async (input: SavePlayInput): Promise<SavedPlay> => {
+    const play = await playsApi.create(input, user?.id);
     setSavedPlays((prev) => [play, ...prev.filter((p) => p.id !== play.id)]);
     return play;
   };
@@ -85,9 +88,7 @@ export const PlaysProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     playId: string,
     updates: Partial<SavedPlay>
   ): Promise<SavedPlay | null> => {
-    const updated = isRealPlayer
-      ? await playsApi.update(playId, updates, user?.id)
-      : await playsService.updatePlay(playId, updates);
+    const updated = await playsApi.update(playId, updates, user?.id);
     if (updated) {
       setSavedPlays((prev) => prev.map((p) => (p.id === playId ? updated : p)));
     }
@@ -95,25 +96,16 @@ export const PlaysProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const deletePlay = async (playId: string): Promise<boolean> => {
-    const success = isRealPlayer
-      ? await playsApi.remove(playId)
-      : await playsService.deletePlay(playId);
+    const success = await playsApi.remove(playId);
     if (success) {
       setSavedPlays((prev) => prev.filter((p) => p.id !== playId));
     }
     return success;
   };
 
-  const assignAllPlaysToUser = async (): Promise<void> => {
-    // Las jugadas de un jugador real ya son suyas desde que se guardan; esto es solo del modo demo.
-    if (!user || isRealPlayer) return;
-    await playsService.assignPlaysToUser(user.id);
-    await fetchPlaysAndMatches();
-  };
-
   const toggleSaveMatch = async (matchId: string): Promise<boolean> => {
-    const { saved, ids } = await authService.toggleSavedMatch(matchId);
-    setSavedMatchIds(ids);
+    const saved = !savedMatchIds.includes(matchId);
+    setSavedMatchIds((prev) => (saved ? [matchId, ...prev] : prev.filter((id) => id !== matchId)));
     return saved;
   };
 
@@ -159,8 +151,7 @@ export const PlaysProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         deletePlay,
         toggleSaveMatch,
         isMatchSaved,
-        refreshPlays: fetchPlaysAndMatches,
-        assignAllPlaysToUser,
+        refreshPlays: fetchPlays,
         resumePendingPlay,
       }}
     >

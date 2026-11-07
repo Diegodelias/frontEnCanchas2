@@ -1,14 +1,5 @@
 import { MOCK_COMPLEXES } from '../data/mockComplexes';
-import { DEMO_REGISTERED_USER } from '../data/mockUsers';
-import { AuthMode, UserProfile } from '../types/user';
-
-const SIMULATED_LATENCY_MS = 60;
-
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-let activeUser: UserProfile = { ...DEMO_REGISTERED_USER };
+import { UserProfile } from '../types/user';
 
 /** Usuario tal como lo devuelve la API (`/api/auth/*`). */
 interface ApiUser {
@@ -61,7 +52,6 @@ function toAdminProfile(apiUser: ApiUser): UserProfile {
     clubName: club?.name,
     joinedAt: '',
     savedMatchIds: [],
-    isRealSession: true,
   };
 }
 
@@ -75,9 +65,8 @@ function toPlayerProfile(apiUser: ApiUser): UserProfile {
     role: 'player',
     roleLabel: 'Jugador',
     joinedAt: '',
-    // Los partidos guardados siguen simulados: quedan fuera de este change.
+    // Los partidos guardados siguen fuera del backend: no hay forma de guardar un partido todavía.
     savedMatchIds: [],
-    isRealSession: true,
   };
 }
 
@@ -102,28 +91,8 @@ async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
   }
 }
 
+/** Todo el acceso es real: lo que devuelve este servicio sale siempre de una sesión del backend. */
 export const authService = {
-  /**
-   * Obtiene el perfil del usuario actual según el modo de autenticación.
-   */
-  async getCurrentUser(mode: AuthMode): Promise<UserProfile | null> {
-    await sleep(SIMULATED_LATENCY_MS);
-    if (mode === 'guest') return null;
-    return { ...activeUser };
-  },
-
-  /**
-   * Cambia al jugador demo o a invitado. El admin solo entra con `loginAdmin`.
-   */
-  async switchRole(role: 'player' | 'guest'): Promise<UserProfile | null> {
-    await sleep(SIMULATED_LATENCY_MS);
-    if (role === 'guest') {
-      return null;
-    }
-    activeUser = { ...DEMO_REGISTERED_USER };
-    return { ...activeUser };
-  },
-
   /**
    * Ingreso de admin de club con mail y contraseña. El backend deja la cookie de sesión.
    * Lanza `AuthError` con el mensaje del backend si falla.
@@ -134,18 +103,40 @@ export const authService = {
       body: JSON.stringify({ email: email.trim(), password }),
     });
     if (!res.ok) {
-      const body = (await res.json().catch(() => null)) as
-        | { error?: { code?: string; message?: string } }
-        | null;
-      const code = body?.error?.code ?? 'unknown_error';
-      const message =
-        res.status === 400
-          ? 'Ingresá tu mail y tu contraseña.'
-          : body?.error?.message ?? 'No pudimos iniciar la sesión. Probá de nuevo.';
-      throw new AuthError(code, message);
+      const error = await readError(res, 'No pudimos iniciar la sesión. Probá de nuevo.');
+      throw res.status === 400 ? new AuthError(error.code, 'Ingresá tu mail y tu contraseña.') : error;
     }
     const { user } = (await res.json()) as { user: ApiUser };
     return toAdminProfile(user);
+  },
+
+  /**
+   * Pide el link para elegir una contraseña nueva (admin). La respuesta es la misma sea cual sea el mail,
+   * así que no dice nada sobre quién tiene cuenta. Lanza `AuthError` con el mensaje a mostrar.
+   */
+  async requestPasswordReset(email: string): Promise<{ message: string }> {
+    const res = await apiFetch('/api/auth/admin/request-reset', {
+      method: 'POST',
+      body: JSON.stringify({ email: email.trim() }),
+    });
+    if (!res.ok) {
+      throw await readError(res, 'No pudimos enviar el link. Probá de nuevo en un momento.');
+    }
+    return (await res.json()) as { message: string };
+  },
+
+  /**
+   * Cambia la contraseña con el link del mail. No abre sesión: el admin ingresa con la contraseña nueva.
+   * Lanza `AuthError` con código `link_used` o `link_expired` si el link ya no sirve.
+   */
+  async resetPassword(token: string, password: string): Promise<void> {
+    const res = await apiFetch('/api/auth/admin/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, password }),
+    });
+    if (!res.ok) {
+      throw await readError(res, 'No pudimos cambiar la contraseña. Pedí un link nuevo.');
+    }
   },
 
   /**
@@ -197,34 +188,5 @@ export const authService = {
     }
     const { user } = (await res.json()) as { user: ApiUser };
     return toProfile(user);
-  },
-
-  /**
-   * Alterna el guardado de un partido para el usuario registrado.
-   */
-  async toggleSavedMatch(matchId: string): Promise<{ saved: boolean; ids: string[] }> {
-    await sleep(SIMULATED_LATENCY_MS);
-    const exists = activeUser.savedMatchIds.includes(matchId);
-    if (exists) {
-      activeUser.savedMatchIds = activeUser.savedMatchIds.filter((id) => id !== matchId);
-    } else {
-      activeUser.savedMatchIds = [matchId, ...activeUser.savedMatchIds];
-    }
-    return {
-      saved: !exists,
-      ids: [...activeUser.savedMatchIds],
-    };
-  },
-
-  /**
-   * Inicia sesión con email.
-   */
-  async loginWithEmail(email: string): Promise<UserProfile> {
-    await sleep(SIMULATED_LATENCY_MS);
-    activeUser = {
-      ...DEMO_REGISTERED_USER,
-      email: email.trim(),
-    };
-    return { ...activeUser };
   },
 };

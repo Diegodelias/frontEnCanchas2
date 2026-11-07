@@ -9,6 +9,7 @@ export const ROUTES = {
   PLAY: '/jugada/:playId',
   PROFILE: '/perfil',
   ACCESS: '/acceso',
+  RESET_PASSWORD: '/recuperar',
   LIVE: '/en-vivo',
   LIVE_STREAM: '/en-vivo/:cameraId',
   CLUB_ADMIN: '/panel-club',
