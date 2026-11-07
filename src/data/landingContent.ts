@@ -19,21 +19,24 @@ export const HOW_IT_WORKS_STEPS: StepItem[] = [
     title: 'Buscá tu partido o cancha',
     description:
       'Seleccioná tu complejo deportivo, la cancha, el día y el horario en el que jugaste tu partido.',
-    visualType: 'discover',
+    imageSrc: '/assets/como-funciona/paso-1-buscar.webp',
+    imageAlt: 'Un jugador consulta su teléfono junto a una cancha de fútbol 5 al atardecer.',
   },
   {
     number: '02',
     title: 'Reviví la grabación en HD',
     description:
       'Accedé al video transmitido por cámaras inteligentes instaladas en el complejo sin camarógrafo.',
-    visualType: 'schedule',
+    imageSrc: '/assets/como-funciona/paso-2-grabacion.webp',
+    imageAlt: 'Un jugador mira en una tablet la repetición de un partido junto a la cancha.',
   },
   {
     number: '03',
     title: 'Marcá tu jugada y compartila',
     description:
       'Con un toque recortás los mejores 20 segundos de tu gol o atajada para descargar y compartir en WhatsApp o Instagram.',
-    visualType: 'play',
+    imageSrc: '/assets/como-funciona/paso-3-jugada.webp',
+    imageAlt: 'Tres compañeros de fútbol comparten una jugada en un teléfono después del partido.',
   },
 ];
 

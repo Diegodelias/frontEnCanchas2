@@ -61,7 +61,8 @@ export interface StepItem {
   number: string;
   title: string;
   description: string;
-  visualType: 'discover' | 'schedule' | 'play';
+  imageSrc: string;
+  imageAlt: string;
 }
 
 export interface BenefitItem {
