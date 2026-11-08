@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   Building2,
   Calendar,
+  CalendarDays,
   Camera,
   CheckCircle2,
   Clock,
@@ -26,6 +27,7 @@ import {
   Users,
   Video,
 } from 'lucide-react';
+import { BookingsList } from '../components/club/BookingsList';
 import { CourtsManager } from '../components/club/CourtsManager';
 import { ownClubCourtsApi } from '../components/club/courtsApi';
 import { useMyCourts } from '../components/club/useMyCourts';
@@ -34,6 +36,7 @@ import { Button } from '../components/ui/Button';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { MOCK_MATCHES } from '../data/mockMatches';
+import { bookingsApi } from '../services/bookingsApi';
 import { buildLiveStreamPath, buildMatchPath, buildQrScanPath, ROUTES } from '../routes/paths';
 
 export const ClubAdminPage: React.FC = () => {
@@ -66,7 +69,7 @@ export const ClubAdminPage: React.FC = () => {
     }
   }, [isLoading, isClubAdmin, user, activeRole, navigate, showToast]);
 
-  const [activeTab, setActiveTab] = useState<'courts' | 'cameras' | 'matches' | 'settings' | 'metrics'>('courts');
+  const [activeTab, setActiveTab] = useState<'courts' | 'bookings' | 'cameras' | 'matches' | 'settings' | 'metrics'>('courts');
   const [qrModalCourtId, setQrModalCourtId] = useState<string | null>(null);
 
   // Settings form state
@@ -260,6 +263,19 @@ export const ClubAdminPage: React.FC = () => {
 
             <button
               type="button"
+              onClick={() => setActiveTab('bookings')}
+              className={`pb-3 px-3 text-sm font-semibold transition-colors cursor-pointer border-b-2 flex items-center gap-2 whitespace-nowrap ${
+                activeTab === 'bookings'
+                  ? 'border-turf text-turf-ink'
+                  : 'border-transparent text-ink-muted hover:text-ink'
+              }`}
+            >
+              <CalendarDays className="w-4 h-4" />
+              <span>Reservas</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => setActiveTab('cameras')}
               className={`pb-3 px-3 text-sm font-semibold transition-colors cursor-pointer border-b-2 flex items-center gap-2 whitespace-nowrap ${
                 activeTab === 'cameras'
@@ -321,6 +337,9 @@ export const ClubAdminPage: React.FC = () => {
               onCourtsChange={setCourts}
             />
           )}
+
+          {/* Reservas de las canchas del club (datos reales del backend, solo lectura) */}
+          {activeTab === 'bookings' && <BookingsList load={bookingsApi.fetchOwnBookings} />}
 
           {/* TAB 2: Canchas y Cámaras IP */}
           {activeTab === 'cameras' && (

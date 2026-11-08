@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Building2, LayoutGrid, Users } from 'lucide-react';
+import { ArrowLeft, Building2, CalendarDays, LayoutGrid, Users } from 'lucide-react';
+import { bookingsApi } from '../../services/bookingsApi';
 import { ApiCourt } from '../../services/clubsApi';
 import { platformApi, PlatformClub } from '../../services/platformApi';
+import { BookingsList } from '../club/BookingsList';
 import { CourtsManager } from '../club/CourtsManager';
 import { platformCourtsApi } from '../club/courtsApi';
 import { MyCourtsStatus } from '../club/useMyCourts';
@@ -18,7 +20,7 @@ export const ClubDetail: React.FC<ClubDetailProps> = ({ club, onBack }) => {
   const [courtsStatus, setCourtsStatus] = useState<MyCourtsStatus>('loading');
   const [attempt, setAttempt] = useState(0);
   const latest = useRef(0);
-  const [tab, setTab] = useState<'courts' | 'admins'>('courts');
+  const [tab, setTab] = useState<'courts' | 'bookings' | 'admins'>('courts');
   // Cantidad de admins vigentes: la informa la pestaña de admins cuando la carga.
   const [adminsCount, setAdminsCount] = useState<number | null>(null);
 
@@ -80,6 +82,7 @@ export const ClubDetail: React.FC<ClubDetailProps> = ({ club, onBack }) => {
         {(
           [
             { id: 'courts', label: `Canchas${courtsStatus === 'ready' ? ` (${courts.length})` : ''}`, icon: LayoutGrid },
+            { id: 'bookings', label: 'Reservas', icon: CalendarDays },
             { id: 'admins', label: `Admins${adminsCount === null ? '' : ` (${adminsCount})`}`, icon: Users },
           ] as const
         ).map(({ id, label, icon: Icon }) => (
@@ -107,6 +110,10 @@ export const ClubDetail: React.FC<ClubDetailProps> = ({ club, onBack }) => {
           onRetry={retryCourts}
           onCourtsChange={setCourts}
         />
+      )}
+
+      {tab === 'bookings' && (
+        <BookingsList load={() => bookingsApi.fetchPlatformBookings(club.id)} clubLabel={club.name} />
       )}
 
       {tab === 'admins' && <ClubAdminsManager clubId={club.id} clubName={club.name} onCountChange={setAdminsCount} />}

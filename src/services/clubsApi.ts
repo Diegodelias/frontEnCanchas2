@@ -7,6 +7,8 @@ export interface ApiCourt {
   sport: SportType;
   price: number;
   active?: boolean;
+  /** Solo en el listado del panel: false si la cancha no tiene horarios cargados (y por lo tanto no tiene turnos). */
+  hasSchedule?: boolean;
   /** Solo en el listado público; nula si la cancha no tiene imagen. */
   imageUrl?: string | null;
 }

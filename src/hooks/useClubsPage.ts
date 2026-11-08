@@ -46,8 +46,7 @@ export function useClubsPage({ page, city, sport }: ClubsPageQuery) {
       .fetchClubsPage({ page, limit: CLUBS_PER_PAGE, city, sport })
       .then((result) => {
         if (seq !== latest.current) return;
-        const now = new Date();
-        setComplexes(result.clubs.map((club) => toComplex(club, now)));
+        setComplexes(result.clubs.map((club) => toComplex(club)));
         setTotal(result.total);
         setTotalPages(result.totalPages);
         setStatus('ready');

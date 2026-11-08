@@ -67,17 +67,7 @@ export const FeaturedComplexesSection: React.FC<
     if (!activeSearch || activeSearch.complexId !== complex.id) return undefined;
 
     const court = complex.courts.find((c) => c.id === activeSearch.courtId);
-    const day = court?.availabilityByDay.find(
-      (d) => d.id === activeSearch.dayId
-    );
-    const slot = day?.slots.find((s) => s.id === activeSearch.slotId);
 
-    if (court && day && slot) {
-      return `Turno seleccionado: ${court.name} · ${day.label} ${slot.time} hs`;
-    }
-    if (court && day) {
-      return `Consulta: ${court.name} · ${day.label}`;
-    }
     if (court) {
       return `Cancha seleccionada: ${court.name}`;
     }

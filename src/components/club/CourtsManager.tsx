@@ -1,10 +1,11 @@
 import React, { useId, useState } from 'react';
-import { AlertTriangle, Pencil, Plus, Power, RotateCcw, Trash2 } from 'lucide-react';
+import { AlertTriangle, CalendarClock, Pencil, Plus, Power, RotateCcw, Trash2 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import { ApiCourt, CourtInput } from '../../services/clubsApi';
 import { SportType } from '../../types/canchas';
 import { Button } from '../ui/Button';
 import { formatCurrencyArs } from '../ui/ComplexCard';
+import { CourtScheduleEditor } from './CourtScheduleEditor';
 import { CourtsApi } from './courtsApi';
 import { MyCourtsStatus } from './useMyCourts';
 
@@ -48,6 +49,8 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({
   // `confirmingId` es la cancha cuya confirmación de borrado está abierta; `deletingId`, la que se está borrando.
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  // La cancha cuyo editor de horario está abierto.
+  const [schedulingId, setSchedulingId] = useState<string | null>(null);
 
   const resetForm = () => {
     setEditing(null);
@@ -78,11 +81,11 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({
     try {
       if (editing) {
         const updated = await api.update(editing.id, input);
-        onCourtsChange(courts.map((court) => (court.id === updated.id ? updated : court)));
+        onCourtsChange(courts.map((court) => (court.id === updated.id ? { ...court, ...updated } : court)));
         showToast({ title: 'Cancha actualizada', message: `Guardamos los cambios de «${updated.name}».`, type: 'success' });
       } else {
         const created = await api.create(input);
-        onCourtsChange([...courts, created]);
+        onCourtsChange([...courts, { ...created, hasSchedule: false }]);
         showToast({ title: 'Cancha creada', message: `«${created.name}» ya se muestra en el sitio.`, type: 'success' });
       }
       resetForm();
@@ -98,7 +101,7 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({
     setTogglingId(court.id);
     try {
       const updated = await api.update(court.id, { active: !court.active });
-      onCourtsChange(courts.map((c) => (c.id === updated.id ? updated : c)));
+      onCourtsChange(courts.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)));
       showToast({
         title: updated.active ? 'Cancha activada' : 'Cancha desactivada',
         message: updated.active
@@ -199,7 +202,8 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({
               </thead>
               <tbody className="divide-y divide-line">
                 {courts.map((court) => (
-                  <tr key={court.id} className={court.active ? '' : 'opacity-70'}>
+                  <React.Fragment key={court.id}>
+                  <tr className={court.active ? '' : 'opacity-70'}>
                     <td className="py-3 px-4 font-semibold text-ink">{court.name}</td>
                     <td className="py-3 px-4 text-ink-muted whitespace-nowrap">{court.sport}</td>
                     <td className="py-3 px-4 font-mono tabular-nums text-ink whitespace-nowrap">{formatCurrencyArs(court.price)}</td>
@@ -211,6 +215,11 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({
                       >
                         {court.active ? 'Activa' : 'Desactivada'}
                       </span>
+                      {court.hasSchedule === false && (
+                        <span className="ml-1.5 inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-400">
+                          Sin horarios
+                        </span>
+                      )}
                     </td>
                     <td className="py-3 px-4">
                       {confirmingId === court.id ? (
@@ -249,6 +258,16 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({
                         </button>
                         <button
                           type="button"
+                          onClick={() => setSchedulingId(schedulingId === court.id ? null : court.id)}
+                          aria-expanded={schedulingId === court.id}
+                          aria-label={`Horarios de ${court.name}`}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-line text-xs font-semibold text-ink hover:bg-surface-muted transition-colors cursor-pointer"
+                        >
+                          <CalendarClock className="w-3.5 h-3.5" aria-hidden="true" />
+                          <span>Horarios</span>
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => handleToggle(court)}
                           disabled={togglingId === court.id}
                           aria-label={`${court.active ? 'Desactivar' : 'Activar'} ${court.name}`}
@@ -270,6 +289,22 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({
                       )}
                     </td>
                   </tr>
+                  {schedulingId === court.id && (
+                    <tr className="bg-canvas">
+                      <td colSpan={5}>
+                        <CourtScheduleEditor
+                          courtName={court.name}
+                          load={() => api.loadSchedule(court.id)}
+                          save={(days) => api.saveSchedule(court.id, days)}
+                          onSaved={(days) =>
+                            onCourtsChange(courts.map((c) => (c.id === court.id ? { ...c, hasSchedule: days.length > 0 } : c)))
+                          }
+                          onClose={() => setSchedulingId(null)}
+                        />
+                      </td>
+                    </tr>
+                  )}
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>

@@ -8,25 +8,12 @@ export type CourtVisualVariant =
   | 'clubhouse-turf'
   | 'night-stadium';
 
-export interface TimeSlot {
-  id: string;
-  time: string;
-  price: number;
-}
-
-export interface DayAvailability {
-  id: string;
-  label: string;
-  slots: TimeSlot[];
-}
-
 export interface Court {
   id: string;
   name: string;
   sport: SportType;
   /** Precio por turno de la cancha, en pesos. */
   price: number;
-  availabilityByDay: DayAvailability[];
 }
 
 export interface Complex {
@@ -49,8 +36,6 @@ export interface Complex {
 export interface SearchSelection {
   complexId: string;
   courtId: string;
-  dayId: string;
-  slotId: string;
 }
 
 export interface CityOption {
