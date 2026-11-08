@@ -6,7 +6,8 @@ interface ApiUser {
   email: string;
   /** null en los jugadores, que se crean solo con el mail. */
   name: string | null;
-  role: 'player' | 'club_admin';
+  role: 'player' | 'club_admin' | 'superadmin';
+  /** null en los jugadores y en el superadmin. */
   clubId: string | null;
 }
 
@@ -52,6 +53,20 @@ function toAdminProfile(apiUser: ApiUser): UserProfile {
   };
 }
 
+function toSuperadminProfile(apiUser: ApiUser): UserProfile {
+  const name = apiUser.name ?? shortEmailName(apiUser.email);
+  return {
+    id: apiUser.id,
+    name,
+    email: apiUser.email,
+    avatar: initials(name),
+    role: 'superadmin',
+    roleLabel: 'Superadmin',
+    joinedAt: '',
+    savedMatchIds: [],
+  };
+}
+
 function toPlayerProfile(apiUser: ApiUser): UserProfile {
   const name = apiUser.name ?? shortEmailName(apiUser.email);
   return {
@@ -68,6 +83,7 @@ function toPlayerProfile(apiUser: ApiUser): UserProfile {
 }
 
 function toProfile(apiUser: ApiUser): UserProfile {
+  if (apiUser.role === 'superadmin') return toSuperadminProfile(apiUser);
   return apiUser.role === 'club_admin' ? toAdminProfile(apiUser) : toPlayerProfile(apiUser);
 }
 
@@ -91,7 +107,7 @@ async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
 /** Todo el acceso es real: lo que devuelve este servicio sale siempre de una sesión del backend. */
 export const authService = {
   /**
-   * Ingreso de admin de club con mail y contraseña. El backend deja la cookie de sesión.
+   * Ingreso de admin (de club o superadmin) con mail y contraseña. El backend deja la cookie de sesión.
    * Lanza `AuthError` con el mensaje del backend si falla.
    */
   async loginAdmin(email: string, password: string): Promise<UserProfile> {
@@ -104,7 +120,7 @@ export const authService = {
       throw res.status === 400 ? new AuthError(error.code, 'Ingresá tu mail y tu contraseña.') : error;
     }
     const { user } = (await res.json()) as { user: ApiUser };
-    return toAdminProfile(user);
+    return toProfile(user);
   },
 
   /**
@@ -134,6 +150,34 @@ export const authService = {
     if (!res.ok) {
       throw await readError(res, 'No pudimos cambiar la contraseña. Pedí un link nuevo.');
     }
+  },
+
+  /**
+   * Datos de una invitación de admin para mostrar en la página («Elegí tu contraseña» con el nombre del club).
+   * No consume el link. Lanza `AuthError` con código `link_used` o `link_expired` si ya no sirve.
+   */
+  async fetchInvitation(token: string): Promise<{ clubName: string; adminName: string | null }> {
+    const res = await apiFetch(`/api/auth/admin/invitation?token=${encodeURIComponent(token)}`);
+    if (!res.ok) {
+      throw await readError(res, 'No pudimos verificar la invitación. Probá de nuevo.');
+    }
+    return (await res.json()) as { clubName: string; adminName: string | null };
+  },
+
+  /**
+   * Acepta la invitación: fija la contraseña del admin y abre su sesión (cookie del backend).
+   * Lanza `AuthError` con código `link_used` o `link_expired` si el link ya no sirve, o con el error de validación.
+   */
+  async acceptInvite(token: string, password: string): Promise<UserProfile> {
+    const res = await apiFetch('/api/auth/admin/accept-invite', {
+      method: 'POST',
+      body: JSON.stringify({ token, password }),
+    });
+    if (!res.ok) {
+      throw await readError(res, 'No pudimos guardar tu contraseña. Probá de nuevo.');
+    }
+    const { user } = (await res.json()) as { user: ApiUser };
+    return toProfile(user);
   },
 
   /**

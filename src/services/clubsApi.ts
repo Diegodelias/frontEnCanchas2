@@ -11,13 +11,15 @@ export interface ApiCourt {
   imageUrl?: string | null;
 }
 
-/** Datos de un club, que el admin solo puede ver (no editar). */
+/** Datos de un club, que el admin de club solo puede ver (no editar). */
 export interface ApiClubInfo {
   id: string;
   name: string;
   zone: string;
   city: string;
   address: string;
+  /** false si el superadmin desactivó el club: no se muestra en el sitio. Solo viene en las rutas del admin. */
+  active?: boolean;
 }
 
 /** Club del listado público, con sus canchas activas. */
@@ -61,7 +63,7 @@ export class ClubsApiError extends Error {
   }
 }
 
-async function request(path: string, init?: RequestInit): Promise<Response> {
+export async function request(path: string, init?: RequestInit): Promise<Response> {
   let res: Response;
   try {
     res = await fetch(path, {

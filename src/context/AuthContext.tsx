@@ -14,6 +14,8 @@ interface AuthContextValue {
   loginAdmin: (email: string, password: string) => Promise<UserProfile>;
   /** Confirma el link de acceso del mail y abre la sesión real del jugador; lanza `AuthError` si el link no sirve. */
   confirmLink: (token: string) => Promise<UserProfile>;
+  /** Acepta la invitación de un admin: elige su contraseña y queda con la sesión abierta; lanza `AuthError` si falla. */
+  acceptInvite: (token: string, password: string) => Promise<UserProfile>;
   logout: () => Promise<void>;
 }
 
@@ -62,6 +64,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return profile;
   };
 
+  const acceptInvite = async (token: string, password: string) => {
+    const profile = await authService.acceptInvite(token, password);
+    setUser(profile);
+    return profile;
+  };
+
   const logout = async () => {
     if (user) {
       await authService.logout().catch(() => undefined);
@@ -79,6 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         sendMagicLink,
         loginAdmin,
         confirmLink,
+        acceptInvite,
         logout,
       }}
     >

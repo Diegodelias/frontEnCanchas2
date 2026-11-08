@@ -1,4 +1,4 @@
-export type UserRole = 'player' | 'club_admin';
+export type UserRole = 'player' | 'club_admin' | 'superadmin';
 
 export type AuthMode = 'registered' | 'guest';
 

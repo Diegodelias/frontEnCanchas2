@@ -12,6 +12,7 @@ import { LiveCamerasPage } from './pages/LiveCamerasPage';
 import { LivePlayerPage } from './pages/LivePlayerPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { PlayerPage } from './pages/PlayerPage';
+import { PlatformAdminPage } from './pages/PlatformAdminPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { ROUTES } from './routes/paths';
@@ -33,8 +34,10 @@ export function App() {
                     <Route path={ROUTES.PLAY} element={<PlayerPage mode="play" />} />
                     <Route path={ROUTES.ACCESS} element={<AccessPage />} />
                     <Route path={ROUTES.RESET_PASSWORD} element={<ResetPasswordPage />} />
+                    <Route path={ROUTES.ADMIN_INVITATION} element={<ResetPasswordPage mode="invite" />} />
                     <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
                     <Route path={ROUTES.CLUB_ADMIN} element={<ClubAdminPage />} />
+                    <Route path={ROUTES.PLATFORM_ADMIN} element={<PlatformAdminPage />} />
                     <Route path="/admin" element={<Navigate to={ROUTES.CLUB_ADMIN} replace />} />
                     <Route path={ROUTES.QR_SCAN} element={<CourtQrPage />} />
                     <Route path="*" element={<NotFoundPage />} />

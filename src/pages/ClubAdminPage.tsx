@@ -27,6 +27,7 @@ import {
   Video,
 } from 'lucide-react';
 import { CourtsManager } from '../components/club/CourtsManager';
+import { ownClubCourtsApi } from '../components/club/courtsApi';
 import { useMyCourts } from '../components/club/useMyCourts';
 import { Navbar } from '../components/layout/Navbar';
 import { Button } from '../components/ui/Button';
@@ -50,7 +51,10 @@ export const ClubAdminPage: React.FC = () => {
   useEffect(() => {
     if (isLoading || isClubAdmin || redirected.current) return;
     redirected.current = true;
-    if (user && activeRole === 'player') {
+    if (user && activeRole === 'superadmin') {
+      // El superadmin no tiene club: su panel es el de la plataforma.
+      navigate(ROUTES.PLATFORM_ADMIN, { replace: true });
+    } else if (user && activeRole === 'player') {
       showToast({
         title: 'Panel solo para administradores',
         message: 'El panel del club es para administradores de club. Seguís con tu perfil de jugador.',
@@ -140,6 +144,20 @@ export const ClubAdminPage: React.FC = () => {
 
       <main className="flex-1 py-8 sm:py-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          {/* Aviso: el superadmin desactivó el club. Sigue pudiendo gestionar sus canchas, pero no se muestra en el sitio. */}
+          {club && club.active === false && (
+            <div
+              role="status"
+              className="p-3.5 rounded-xl border border-amber-500/40 bg-amber-500/10 flex items-start gap-2.5 text-sm text-ink"
+            >
+              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" aria-hidden="true" />
+              <span>
+                Tu club está desactivado y no se muestra en el sitio. Podés seguir gestionando tus canchas; para
+                reactivarlo, consultá con la plataforma.
+              </span>
+            </div>
+          )}
+
           {/* Header Panel */}
           <div className="p-6 rounded-2xl bg-surface border border-line flex flex-col md:flex-row md:items-center justify-between gap-5">
             <div>
@@ -296,6 +314,7 @@ export const ClubAdminPage: React.FC = () => {
           {/* TAB 1: Canchas del club (datos reales del backend) */}
           {activeTab === 'courts' && (
             <CourtsManager
+              api={ownClubCourtsApi}
               courts={courts}
               status={courtsStatus}
               onRetry={reloadCourts}

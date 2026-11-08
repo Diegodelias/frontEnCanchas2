@@ -1,10 +1,11 @@
 import React, { useId, useState } from 'react';
 import { AlertTriangle, Pencil, Plus, Power, RotateCcw, Trash2 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
-import { ApiCourt, clubsApi, CourtInput } from '../../services/clubsApi';
+import { ApiCourt, CourtInput } from '../../services/clubsApi';
 import { SportType } from '../../types/canchas';
 import { Button } from '../ui/Button';
 import { formatCurrencyArs } from '../ui/ComplexCard';
+import { CourtsApi } from './courtsApi';
 import { MyCourtsStatus } from './useMyCourts';
 
 const SPORTS: SportType[] = ['Fútbol 5', 'Fútbol 7', 'Fútbol 8', 'Fútbol 11'];
@@ -17,10 +18,22 @@ interface CourtsManagerProps {
   status: MyCourtsStatus;
   onRetry: () => void;
   onCourtsChange: (courts: ApiCourt[]) => void;
+  /** Con qué API se escriben las canchas: la del propio club (admin de club) o la de un club elegido (superadmin). */
+  api: CourtsApi;
+  /** Cómo se llama al club en los textos: «tu club» para su admin, o el nombre del club para el superadmin. */
+  clubLabel?: string;
 }
 
-/** Gestión de las canchas del club: lista, formulario de alta y edición, y activar o desactivar. */
-export const CourtsManager: React.FC<CourtsManagerProps> = ({ courts, status, onRetry, onCourtsChange }) => {
+/** Gestión de las canchas de un club: lista, formulario de alta y edición, activar o desactivar y borrar. */
+export const CourtsManager: React.FC<CourtsManagerProps> = ({
+  courts,
+  status,
+  onRetry,
+  onCourtsChange,
+  api,
+  clubLabel = 'tu club',
+}) => {
+  const isOwnClub = clubLabel === 'tu club';
   const { showToast } = useToast();
   const errorId = useId();
 
@@ -64,11 +77,11 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({ courts, status, on
     const input: CourtInput = { name, sport, price: priceText.trim() === '' ? NaN : Number(priceText) };
     try {
       if (editing) {
-        const updated = await clubsApi.updateCourt(editing.id, input);
+        const updated = await api.update(editing.id, input);
         onCourtsChange(courts.map((court) => (court.id === updated.id ? updated : court)));
         showToast({ title: 'Cancha actualizada', message: `Guardamos los cambios de «${updated.name}».`, type: 'success' });
       } else {
-        const created = await clubsApi.createCourt(input);
+        const created = await api.create(input);
         onCourtsChange([...courts, created]);
         showToast({ title: 'Cancha creada', message: `«${created.name}» ya se muestra en el sitio.`, type: 'success' });
       }
@@ -84,7 +97,7 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({ courts, status, on
     if (togglingId) return;
     setTogglingId(court.id);
     try {
-      const updated = await clubsApi.updateCourt(court.id, { active: !court.active });
+      const updated = await api.update(court.id, { active: !court.active });
       onCourtsChange(courts.map((c) => (c.id === updated.id ? updated : c)));
       showToast({
         title: updated.active ? 'Cancha activada' : 'Cancha desactivada',
@@ -108,7 +121,7 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({ courts, status, on
     if (deletingId) return;
     setDeletingId(court.id);
     try {
-      await clubsApi.deleteCourt(court.id);
+      await api.remove(court.id);
       onCourtsChange(courts.filter((c) => c.id !== court.id));
       if (editing?.id === court.id) resetForm();
       setConfirmingId(null);
@@ -128,7 +141,7 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({ courts, status, on
   if (status === 'loading') {
     return (
       <div className="p-8 rounded-xl bg-surface border border-line text-sm text-ink-muted" role="status">
-        Cargando las canchas de tu club...
+        Cargando las canchas de {clubLabel}...
       </div>
     );
   }
@@ -136,7 +149,7 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({ courts, status, on
   if (status === 'error') {
     return (
       <div role="alert" className="p-8 rounded-xl bg-surface border border-line text-center space-y-4">
-        <p className="text-sm text-ink">No pudimos cargar las canchas de tu club. Revisá tu conexión y probá de nuevo.</p>
+        <p className="text-sm text-ink">No pudimos cargar las canchas de {clubLabel}. Revisá tu conexión y probá de nuevo.</p>
         <Button variant="volt" size="sm" onClick={onRetry}>
           <RotateCcw className="w-4 h-4 shrink-0" aria-hidden="true" />
           <span>Reintentar</span>
@@ -148,9 +161,11 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({ courts, status, on
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="font-display text-xl sm:text-2xl font-bold text-ink">Canchas de tu club</h2>
+        <h2 className="font-display text-xl sm:text-2xl font-bold text-ink">Canchas de {clubLabel}</h2>
         <p className="text-xs sm:text-sm text-ink-muted">
-          Creá y editá tus canchas. Lo que cargues se muestra en el sitio; una cancha desactivada deja de mostrarse y la podés reactivar, y una borrada no se puede recuperar.
+          {isOwnClub ? 'Creá y editá tus canchas.' : `Creá y editá las canchas de ${clubLabel}.`} Lo que cargues se
+          muestra en el sitio; una cancha desactivada deja de mostrarse y la podés reactivar, y una borrada no se puede
+          recuperar.
         </p>
       </div>
 
@@ -160,7 +175,7 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({ courts, status, on
           className="p-3.5 rounded-xl border border-amber-500/40 bg-amber-500/10 flex items-start gap-2.5 text-sm text-ink"
         >
           <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" aria-hidden="true" />
-          <span>Sin canchas activas, tu club no se muestra en el sitio.</span>
+          <span>Sin canchas activas, {clubLabel} no se muestra en el sitio.</span>
         </div>
       )}
 

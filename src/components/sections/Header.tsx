@@ -151,7 +151,7 @@ export const Header: React.FC<HeaderProps> = ({
                   </span>
                   <span>{user.name.split(' ')[0]}</span>
                   <span className="font-mono text-[10px] text-turf-ink bg-turf-soft px-1.5 py-0.5 rounded">
-                    {activeRole === 'club_admin' ? 'Administrador' : 'Jugador'}
+                    {user.roleLabel ?? (activeRole === 'club_admin' ? 'Administrador' : 'Jugador')}
                   </span>
                   <ChevronDown className="w-3 h-3 text-ink-muted" />
                 </button>
@@ -185,6 +185,17 @@ export const Header: React.FC<HeaderProps> = ({
                       >
                         <Building2 className="w-4 h-4 text-turf" />
                         <span>Panel de Administración</span>
+                      </Link>
+                    )}
+
+                    {activeRole === 'superadmin' && (
+                      <Link
+                        to={ROUTES.PLATFORM_ADMIN}
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="w-full px-3 py-2 rounded-lg flex items-center gap-2 text-ink hover:bg-surface-muted transition-colors"
+                      >
+                        <Building2 className="w-4 h-4 text-turf" />
+                        <span>Panel de la plataforma</span>
                       </Link>
                     )}
 
@@ -347,6 +358,16 @@ export const Header: React.FC<HeaderProps> = ({
                         className="text-xs text-turf font-bold hover:underline"
                       >
                         Ir a Panel de Administración →
+                      </Link>
+                    )}
+
+                    {activeRole === 'superadmin' && (
+                      <Link
+                        to={ROUTES.PLATFORM_ADMIN}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="text-xs text-turf font-bold hover:underline"
+                      >
+                        Ir al panel de la plataforma →
                       </Link>
                     )}
                   </div>

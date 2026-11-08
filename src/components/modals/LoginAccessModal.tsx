@@ -78,14 +78,18 @@ export const LoginAccessModal: React.FC<LoginAccessModalProps> = ({
       const profile = await loginAdmin(adminEmail, adminPassword);
       setAdminPassword('');
       onClose();
+      const isSuperadmin = profile.role === 'superadmin';
       showToast({
         title: 'Sesión iniciada',
-        message: profile.clubName
-          ? `Entraste al panel de ${profile.clubName}.`
-          : 'Entraste al panel de tu club.',
+        message: isSuperadmin
+          ? 'Entraste al panel de la plataforma.'
+          : profile.clubName
+            ? `Entraste al panel de ${profile.clubName}.`
+            : 'Entraste al panel de tu club.',
         type: 'success',
       });
-      navigate(ROUTES.CLUB_ADMIN);
+      // Cada rol entra a su propio panel.
+      navigate(isSuperadmin ? ROUTES.PLATFORM_ADMIN : ROUTES.CLUB_ADMIN);
     } catch (err) {
       setAdminError(
         err instanceof AuthError ? err.message : 'No pudimos iniciar la sesión. Probá de nuevo.'
