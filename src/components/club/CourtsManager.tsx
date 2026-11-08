@@ -1,5 +1,5 @@
 import React, { useId, useState } from 'react';
-import { AlertTriangle, Pencil, Plus, Power, RotateCcw } from 'lucide-react';
+import { AlertTriangle, Pencil, Plus, Power, RotateCcw, Trash2 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import { ApiCourt, clubsApi, CourtInput } from '../../services/clubsApi';
 import { SportType } from '../../types/canchas';
@@ -32,6 +32,9 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({ courts, status, on
   const [formError, setFormError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  // `confirmingId` es la cancha cuya confirmación de borrado está abierta; `deletingId`, la que se está borrando.
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const resetForm = () => {
     setEditing(null);
@@ -101,6 +104,27 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({ courts, status, on
     }
   };
 
+  const handleDelete = async (court: ApiCourt) => {
+    if (deletingId) return;
+    setDeletingId(court.id);
+    try {
+      await clubsApi.deleteCourt(court.id);
+      onCourtsChange(courts.filter((c) => c.id !== court.id));
+      if (editing?.id === court.id) resetForm();
+      setConfirmingId(null);
+      showToast({ title: 'Cancha borrada', message: `«${court.name}» ya no se muestra en el sitio.`, type: 'success' });
+    } catch (err) {
+      // La cancha sigue en la lista y la confirmación queda abierta para reintentar o cancelar.
+      showToast({
+        title: 'No pudimos borrar la cancha',
+        message: err instanceof Error ? err.message : 'Probá de nuevo.',
+        type: 'error',
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   if (status === 'loading') {
     return (
       <div className="p-8 rounded-xl bg-surface border border-line text-sm text-ink-muted" role="status">
@@ -126,7 +150,7 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({ courts, status, on
       <div>
         <h2 className="font-display text-xl sm:text-2xl font-bold text-ink">Canchas de tu club</h2>
         <p className="text-xs sm:text-sm text-ink-muted">
-          Creá y editá tus canchas. Lo que cargues se muestra en el sitio; una cancha desactivada deja de mostrarse y la podés reactivar.
+          Creá y editá tus canchas. Lo que cargues se muestra en el sitio; una cancha desactivada deja de mostrarse y la podés reactivar, y una borrada no se puede recuperar.
         </p>
       </div>
 
@@ -174,6 +198,30 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({ courts, status, on
                       </span>
                     </td>
                     <td className="py-3 px-4">
+                      {confirmingId === court.id ? (
+                        <div role="alertdialog" aria-label={`Confirmar el borrado de ${court.name}`} className="flex flex-wrap items-center justify-end gap-2">
+                          <span className="text-xs text-ink">
+                            ¿Borrar «{court.name}»? No se puede deshacer.
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(court)}
+                            disabled={deletingId === court.id}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-red-600/60 bg-red-600/10 text-xs font-semibold text-red-700 hover:bg-red-600/20 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                            <span>{deletingId === court.id ? 'Borrando...' : 'Borrar'}</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setConfirmingId(null)}
+                            disabled={deletingId === court.id}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-line text-xs font-semibold text-ink hover:bg-surface-muted transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      ) : (
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           type="button"
@@ -194,7 +242,17 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({ courts, status, on
                           <Power className="w-3.5 h-3.5" aria-hidden="true" />
                           <span>{court.active ? 'Desactivar' : 'Activar'}</span>
                         </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmingId(court.id)}
+                          aria-label={`Borrar ${court.name}`}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-line text-xs font-semibold text-red-700 hover:bg-red-600/10 transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                          <span>Borrar</span>
+                        </button>
                       </div>
+                      )}
                     </td>
                   </tr>
                 ))}

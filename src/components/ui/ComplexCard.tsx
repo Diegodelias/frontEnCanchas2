@@ -8,6 +8,7 @@ interface ComplexCardProps {
   complex: Complex;
   matchedHint?: string;
   onOpenBooking: (complex: Complex, mode: 'schedule' | 'book') => void;
+  onOpenCourts: (complex: Complex) => void;
 }
 
 export function formatCurrencyArs(amount: number): string {
@@ -18,6 +19,7 @@ export const ComplexCard: React.FC<ComplexCardProps> = ({
   complex,
   matchedHint,
   onOpenBooking,
+  onOpenCourts,
 }) => {
   return (
     <article className="complex-card group flex flex-col bg-surface border border-line rounded-xl overflow-hidden transition-colors duration-200 hover:border-line-strong">
@@ -47,6 +49,15 @@ export const ComplexCard: React.FC<ComplexCardProps> = ({
             <span className="truncate">{complex.availabilitySummary}</span>
           </span>
         </div>
+
+        <button
+          type="button"
+          onClick={() => onOpenCourts(complex)}
+          aria-label={`Ver las canchas de ${complex.name}`}
+          className="mt-2 self-start text-sm font-semibold text-turf-ink hover:underline underline-offset-4 cursor-pointer"
+        >
+          Ver canchas
+        </button>
 
         {matchedHint && (
           <p className="mt-2.5 text-xs font-medium text-turf-ink">

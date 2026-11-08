@@ -1,6 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import { ComplexesProvider } from './context/ComplexesContext';
 import { MvpConfigProvider } from './context/MvpConfigContext';
 import { PlaysProvider } from './context/PlaysContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -22,7 +21,6 @@ export function App() {
     <ThemeProvider>
       <BrowserRouter>
         <AuthProvider>
-          <ComplexesProvider>
             <MvpConfigProvider>
               <PlaysProvider>
                 <ToastProvider>
@@ -44,7 +42,6 @@ export function App() {
                 </ToastProvider>
               </PlaysProvider>
             </MvpConfigProvider>
-          </ComplexesProvider>
         </AuthProvider>
       </BrowserRouter>
     </ThemeProvider>

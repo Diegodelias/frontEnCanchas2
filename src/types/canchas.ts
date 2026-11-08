@@ -24,6 +24,8 @@ export interface Court {
   id: string;
   name: string;
   sport: SportType;
+  /** Precio por turno de la cancha, en pesos. */
+  price: number;
   availabilityByDay: DayAvailability[];
 }
 

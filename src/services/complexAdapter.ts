@@ -50,9 +50,13 @@ export function toComplex(club: ApiClub, now: Date = new Date()): Complex {
     id: court.id,
     name: court.name,
     sport: court.sport,
+    price: court.price,
     availabilityByDay: buildTurnGrid(court.id, court.price, now),
   }));
-  const { imageUrl, visualVariant } = visualsForClub(club.id);
+  const visuals = visualsForClub(club.id);
+  // La imagen propia del club, si la trae, va antes que la de siempre; sin ninguna, la tarjeta usa el placeholder.
+  const imageUrl = club.imageUrl ?? visuals.imageUrl;
+  const { visualVariant } = visuals;
 
   return {
     id: club.id,

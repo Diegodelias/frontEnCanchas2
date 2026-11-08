@@ -15,7 +15,7 @@ import { buildMatchPath } from '../../routes/paths';
 import { matchesService } from '../../services/matchesService';
 import { Match } from '../../types/match';
 import { Button } from '../ui/Button';
-import { useComplexes } from '../../context/ComplexesContext';
+import { useClubsById } from '../../hooks/useClubsById';
 
 interface MatchCascadingSelectorProps {
   variant?: 'hero' | 'page';
@@ -43,8 +43,6 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
   className = '',
 }) => {
   const navigate = useNavigate();
-  const { complexes } = useComplexes();
-
   const [clubId, setClubId] = useState<string>(initialClubId);
   const [courtId, setCourtId] = useState<string>(initialCourtId);
   const [dayId, setDayId] = useState<string>(initialDayId);
@@ -92,6 +90,10 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
     () => Array.from(new Map(playableMatches.map((match) => [match.clubId, match])).values()),
     [playableMatches]
   );
+
+  // Nombre y zona de cada club con grabaciones: se piden de a uno al backend (sin cargar el listado completo).
+  const clubIds = useMemo(() => availableClubs.map((match) => match.clubId), [availableClubs]);
+  const complexes = useClubsById(clubIds);
 
   const matchesForClub = useMemo(
     () => playableMatches.filter((match) => match.clubId === clubId),
@@ -371,7 +373,7 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
                   : 'Elegí un complejo'}
               </option>
               {availableClubs.map((match) => {
-                const complex = complexes.find((item) => item.id === match.clubId);
+                const complex = complexes.get(match.clubId);
                 return (
                 <option key={match.clubId} value={match.clubId} className="bg-[#121c15] text-white">
                   {complex ? `${complex.name} (${complex.zone})` : match.clubName}

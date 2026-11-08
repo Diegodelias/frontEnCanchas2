@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { BookingModal } from '../components/modals/BookingModal';
+import { ClubCourtsModal } from '../components/modals/ClubCourtsModal';
 import { OwnerInquiryModal } from '../components/modals/OwnerInquiryModal';
 import { PlaceholderInfoModal } from '../components/modals/PlaceholderInfoModal';
 import { ComplexOwnersSection } from '../components/sections/ComplexOwnersSection';
@@ -17,22 +18,28 @@ import { PlayerBenefitsSection } from '../components/sections/PlayerBenefitsSect
 import { TestimonialsSection } from '../components/sections/TestimonialsSection';
 import { PLACEHOLDER_MODALS } from '../data/landingContent';
 import { CITIES } from '../data/cities';
-import { useComplexes } from '../context/ComplexesContext';
-import { ROUTES } from '../routes/paths';
-import { Complex, PlaceholderModalInfo, SearchSelection } from '../types/canchas';
+import { useClubsPage } from '../hooks/useClubsPage';
+import { Complex, PlaceholderModalInfo, SearchSelection, SportType } from '../types/canchas';
 
 export const LandingPage: React.FC = () => {
-  const navigate = useNavigate();
   const location = useLocation();
-  const { complexes, status, reload, refresh } = useComplexes();
-
   const [selectedCityId, setSelectedCityId] = useState<string>(
     CITIES[0]?.id ?? 'buenos-aires'
   );
   const [sportFilter, setSportFilter] = useState<SportFilterOption>('Todos');
   const [activeSearch, setActiveSearch] = useState<SearchSelection | null>(null);
+  const [page, setPage] = useState<number>(1);
 
+  // Los clubes llegan ya filtrados por ciudad y deporte y paginados desde el backend.
+  const { complexes, totalPages, status, reload } = useClubsPage({
+    page,
+    city: selectedCityId,
+    sport: sportFilter === 'Todos' ? undefined : (sportFilter as SportType),
+  });
+
+  const [courtsComplex, setCourtsComplex] = useState<Complex | null>(null);
   const [bookingComplex, setBookingComplex] = useState<Complex | null>(null);
+  const [bookingCourtId, setBookingCourtId] = useState<string | null>(null);
   const [ownerModalOpen, setOwnerModalOpen] = useState<boolean>(false);
   const [placeholderModal, setPlaceholderModal] =
     useState<PlaceholderModalInfo | null>(null);
@@ -42,20 +49,25 @@ export const LandingPage: React.FC = () => {
     [selectedCityId]
   );
 
-  const cityComplexes = useMemo(
-    () => complexes.filter((c) => c.city === selectedCityId),
-    [complexes, selectedCityId]
+  const visibleComplexes = useMemo(
+    () => (activeSearch ? complexes.filter((c) => c.id === activeSearch.complexId) : complexes),
+    [complexes, activeSearch]
   );
 
-  const visibleComplexes = useMemo(() => {
-    if (activeSearch) {
-      return cityComplexes.filter((c) => c.id === activeSearch.complexId);
+  // Si la página pedida quedó fuera de rango (por ejemplo, porque se borraron canchas), se vuelve a la última.
+  useEffect(() => {
+    if (status === 'ready' && complexes.length === 0 && totalPages > 0 && page > totalPages) {
+      setPage(totalPages);
     }
-    if (sportFilter === 'Todos') {
-      return cityComplexes;
-    }
-    return cityComplexes.filter((c) => c.sports.includes(sportFilter));
-  }, [cityComplexes, activeSearch, sportFilter]);
+  }, [status, complexes.length, totalPages, page]);
+
+  // Selección con la que abre el modal de reserva: la cancha elegida en «Ver canchas» o la del buscador.
+  // Se memoiza porque el modal reinicia su formulario cada vez que cambia esta referencia.
+  const bookingInitialSelection = useMemo<Partial<SearchSelection> | undefined>(() => {
+    if (bookingCourtId) return { courtId: bookingCourtId };
+    if (activeSearch && bookingComplex?.id === activeSearch.complexId) return activeSearch;
+    return undefined;
+  }, [bookingCourtId, activeSearch, bookingComplex]);
 
   const scrollToElement = (elementId: string) => {
     const el = document.getElementById(elementId);
@@ -70,12 +82,6 @@ export const LandingPage: React.FC = () => {
       });
     }
   };
-
-  // Al volver a la landing se piden de nuevo los complejos: así se ve un cambio que hizo un admin
-  // (sin mostrar carga si ya hay datos).
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
 
   // If arriving at /#complejos or other hash, scroll smoothly to it
   useEffect(() => {
@@ -92,6 +98,7 @@ export const LandingPage: React.FC = () => {
     setSelectedCityId(nextCityId);
     setActiveSearch(null);
     setSportFilter('Todos');
+    setPage(1);
   };
 
   return (
@@ -108,8 +115,6 @@ export const LandingPage: React.FC = () => {
         {/* 2. Hero + Buscador en cascada integrado */}
         <HeroSearchSection
           activeCityName={activeCity?.name ?? 'Buenos Aires'}
-          onLiveCta={() => navigate(ROUTES.LIVE)}
-          onReserveCta={() => scrollToElement('complejos')}
         />
 
         {/* 3. Complejos destacados */}
@@ -117,16 +122,30 @@ export const LandingPage: React.FC = () => {
           complexes={visibleComplexes}
           activeCityName={activeCity?.name ?? 'Buenos Aires'}
           sportFilter={sportFilter}
-          onSportFilterChange={(tab) => setSportFilter(tab)}
+          onSportFilterChange={(tab) => {
+            setSportFilter(tab);
+            setPage(1);
+          }}
           activeSearch={activeSearch}
           onClearSearch={() => setActiveSearch(null)}
           onResetToDefaultCity={() => {
             setSelectedCityId('buenos-aires');
             setActiveSearch(null);
             setSportFilter('Todos');
+            setPage(1);
           }}
           onOpenOwnerModal={() => setOwnerModalOpen(true)}
-          onOpenBooking={(complex) => setBookingComplex(complex)}
+          onOpenBooking={(complex) => {
+            setBookingCourtId(null);
+            setBookingComplex(complex);
+          }}
+          onOpenCourts={(complex) => setCourtsComplex(complex)}
+          page={page}
+          totalPages={totalPages}
+          onPageChange={(next) => {
+            setPage(next);
+            scrollToElement('complejos');
+          }}
           isLoading={status === 'loading'}
           loadError={status === 'error'}
           onRetry={reload}
@@ -158,14 +177,23 @@ export const LandingPage: React.FC = () => {
       />
 
       {/* Modales */}
+      <ClubCourtsModal
+        complex={courtsComplex}
+        onClose={() => setCourtsComplex(null)}
+        onViewSchedule={(complex, courtId) => {
+          setCourtsComplex(null);
+          setBookingCourtId(courtId);
+          setBookingComplex(complex);
+        }}
+      />
+
       <BookingModal
         complex={bookingComplex}
-        initialSelection={
-          activeSearch && bookingComplex?.id === activeSearch.complexId
-            ? activeSearch
-            : undefined
-        }
-        onClose={() => setBookingComplex(null)}
+        initialSelection={bookingInitialSelection}
+        onClose={() => {
+          setBookingComplex(null);
+          setBookingCourtId(null);
+        }}
       />
 
       <OwnerInquiryModal

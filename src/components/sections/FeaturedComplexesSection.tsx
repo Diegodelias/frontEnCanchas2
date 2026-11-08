@@ -8,6 +8,7 @@ import { LiveCourtCard } from '../live/LiveCourtCard';
 import { Button } from '../ui/Button';
 import { ComplexCard } from '../ui/ComplexCard';
 import { ComplexCardSkeleton } from '../ui/ComplexCardSkeleton';
+import { Pagination } from '../ui/Pagination';
 
 export type SportFilterOption = 'Todos' | SportType;
 
@@ -21,6 +22,11 @@ interface FeaturedComplexesSectionProps {
   onResetToDefaultCity: () => void;
   onOpenOwnerModal: () => void;
   onOpenBooking: (complex: Complex, mode: 'schedule' | 'book') => void;
+  onOpenCourts: (complex: Complex) => void;
+  /** Página actual (desde 1) y total de páginas del listado ya filtrado. */
+  page: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
   isLoading: boolean;
   /** true si no se pudo obtener el listado de complejos del backend. */
   loadError: boolean;
@@ -46,6 +52,10 @@ export const FeaturedComplexesSection: React.FC<
   onResetToDefaultCity,
   onOpenOwnerModal,
   onOpenBooking,
+  onOpenCourts,
+  page,
+  totalPages,
+  onPageChange,
   isLoading,
   loadError,
   onRetry,
@@ -187,16 +197,25 @@ export const FeaturedComplexesSection: React.FC<
             </div>
           </div>
         ) : (
-          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
-            {complexes.map((complex) => (
-              <ComplexCard
-                key={complex.id}
-                complex={complex}
-                matchedHint={buildMatchedHint(complex)}
-                onOpenBooking={onOpenBooking}
-              />
-            ))}
-          </div>
+          <>
+            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
+              {complexes.map((complex) => (
+                <ComplexCard
+                  key={complex.id}
+                  complex={complex}
+                  matchedHint={buildMatchedHint(complex)}
+                  onOpenBooking={onOpenBooking}
+                  onOpenCourts={onOpenCourts}
+                />
+              ))}
+            </div>
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={onPageChange}
+              label="Páginas de complejos"
+            />
+          </>
         )}
 
         {/* Acceso secundario claramente diferenciado: Mirá la cancha en vivo */}
