@@ -4,9 +4,10 @@ import { Building2 } from 'lucide-react';
 import { Navbar } from '../components/layout/Navbar';
 import { ClubDetail } from '../components/platform/ClubDetail';
 import { ClubsList } from '../components/platform/ClubsList';
+import { CreatePlayerForm } from '../components/ui/CreatePlayerForm';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { PlatformClub } from '../services/platformApi';
+import { platformApi, PlatformClub } from '../services/platformApi';
 import { ROUTES } from '../routes/paths';
 
 /**
@@ -69,6 +70,8 @@ export const PlatformAdminPage: React.FC = () => {
               Creá clubes, gestioná sus canchas e invitá a sus administradores.
             </p>
           </div>
+
+          {!selected && <CreatePlayerForm create={platformApi.createPlayer} />}
 
           {selected ? (
             <ClubDetail club={selected} onBack={() => setSelected(null)} />

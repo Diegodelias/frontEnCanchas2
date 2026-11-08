@@ -88,7 +88,29 @@ export async function request(path: string, init?: RequestInit): Promise<Respons
   return res;
 }
 
+/** Datos para crear un jugador desde un panel: solo el mail, y si además se le manda el acceso por mail. */
+export interface CreatePlayerInput {
+  email: string;
+  sendEmail: boolean;
+}
+
+export interface CreatePlayerResult {
+  player: { id: string; email: string };
+  /** Link de un solo uso, vigente 72 horas, para entregar al jugador. */
+  link: string;
+  /** false si la cuenta ya existía (solo el superadmin puede pedir un link nuevo para un jugador existente). */
+  created: boolean;
+  /** null si no se pidió el mail; false si se pidió y no se pudo enviar (la cuenta y el link siguen válidos). */
+  emailSent: boolean | null;
+}
+
 export const clubsApi = {
+  /** Crea un jugador por mail como admin de club y devuelve el link de acceso para entregarle. */
+  async createPlayer(input: CreatePlayerInput): Promise<CreatePlayerResult> {
+    const res = await request('/api/club/players', { method: 'POST', body: JSON.stringify(input) });
+    return (await res.json()) as CreatePlayerResult;
+  },
+
   /** Una página de clubes con sus canchas activas, filtrada por ciudad y deporte. Público: no pide sesión. */
   async fetchClubsPage(query: ClubsPageQuery): Promise<ApiClubsPage> {
     const params = new URLSearchParams({ page: String(query.page) });

@@ -34,9 +34,11 @@ import { ownClubCourtsApi } from '../components/club/courtsApi';
 import { useMyCourts } from '../components/club/useMyCourts';
 import { Navbar } from '../components/layout/Navbar';
 import { Button } from '../components/ui/Button';
+import { CreatePlayerForm } from '../components/ui/CreatePlayerForm';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { bookingsApi } from '../services/bookingsApi';
+import { clubsApi } from '../services/clubsApi';
 import { buildLiveStreamPath, buildMatchPath, buildQrScanPath, ROUTES } from '../routes/paths';
 
 export const ClubAdminPage: React.FC = () => {
@@ -69,7 +71,7 @@ export const ClubAdminPage: React.FC = () => {
     }
   }, [isLoading, isClubAdmin, user, activeRole, navigate, showToast]);
 
-  const [activeTab, setActiveTab] = useState<'courts' | 'bookings' | 'cameras' | 'matches' | 'settings' | 'metrics'>('courts');
+  const [activeTab, setActiveTab] = useState<'courts' | 'bookings' | 'cameras' | 'matches' | 'players' | 'settings' | 'metrics'>('courts');
   const [qrModalCourtId, setQrModalCourtId] = useState<string | null>(null);
 
   // Settings form state
@@ -303,6 +305,19 @@ export const ClubAdminPage: React.FC = () => {
 
             <button
               type="button"
+              onClick={() => setActiveTab('players')}
+              className={`pb-3 px-3 text-sm font-semibold transition-colors cursor-pointer border-b-2 flex items-center gap-2 whitespace-nowrap ${
+                activeTab === 'players'
+                  ? 'border-turf text-turf-ink'
+                  : 'border-transparent text-ink-muted hover:text-ink'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              <span>Jugadores</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => setActiveTab('settings')}
               className={`pb-3 px-3 text-sm font-semibold transition-colors cursor-pointer border-b-2 flex items-center gap-2 whitespace-nowrap ${
                 activeTab === 'settings'
@@ -341,6 +356,9 @@ export const ClubAdminPage: React.FC = () => {
 
           {/* Reservas de las canchas del club (datos reales del backend, solo lectura) */}
           {activeTab === 'bookings' && <BookingsList load={bookingsApi.fetchOwnBookings} />}
+
+          {/* Alta de jugadores: devuelve un link de acceso para entregar sin depender del mail */}
+          {activeTab === 'players' && <CreatePlayerForm create={clubsApi.createPlayer} />}
 
           {/* TAB 2: Canchas y Cámaras IP */}
           {activeTab === 'cameras' && (

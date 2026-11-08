@@ -1,4 +1,4 @@
-import { ApiCourt, CourtInput, request } from './clubsApi';
+import { ApiCourt, CourtInput, CreatePlayerInput, CreatePlayerResult, request } from './clubsApi';
 
 /** Club tal como lo ve el superadmin: con su estado y los conteos de canchas activas y admins vigentes. */
 export interface PlatformClub {
@@ -53,6 +53,12 @@ const json = (body: unknown): RequestInit => ({ body: JSON.stringify(body) });
 
 /** API del panel de la plataforma (`/api/platform/...`), solo para el superadmin con sesión. */
 export const platformApi = {
+  /** Crea un jugador por mail como superadmin (o saca un link nuevo para uno existente) y devuelve el link. */
+  async createPlayer(input: CreatePlayerInput): Promise<CreatePlayerResult> {
+    const res = await request('/api/platform/players', { method: 'POST', ...json(input) });
+    return (await res.json()) as CreatePlayerResult;
+  },
+
   async listClubs(query: { q?: string; page: number; limit?: number }): Promise<PlatformClubsPage> {
     const params = new URLSearchParams({ page: String(query.page) });
     if (query.limit) params.set('limit', String(query.limit));
