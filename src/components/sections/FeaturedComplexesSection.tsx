@@ -229,7 +229,7 @@ export const FeaturedComplexesSection: React.FC<
                 to={ROUTES.LIVE}
                 className="text-xs sm:text-sm font-semibold text-turf hover:text-turf-hover transition-colors whitespace-nowrap self-start sm:self-auto"
               >
-                Ver todas las cámaras ({MOCK_LIVE_CAMERAS.length}) →
+                Ver cámara en vivo →
               </Link>
             </div>
 

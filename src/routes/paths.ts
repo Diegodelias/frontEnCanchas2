@@ -15,12 +15,7 @@ export const ROUTES = {
   CLUB_ADMIN: '/panel-club',
   PLATFORM_ADMIN: '/panel-plataforma',
   ADMIN_INVITATION: '/invitacion',
-  QR_SCAN: '/qr/:courtId',
 } as const;
-
-export function buildQrScanPath(courtId: string): string {
-  return `/qr/${encodeURIComponent(courtId)}`;
-}
 
 export function buildMatchPath(matchId: string): string {
   return `/partido/${encodeURIComponent(matchId)}`;

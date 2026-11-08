@@ -6,7 +6,6 @@ import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
 import { AccessPage } from './pages/AccessPage';
 import { ClubAdminPage } from './pages/ClubAdminPage';
-import { CourtQrPage } from './pages/CourtQrPage';
 import { LandingPage } from './pages/LandingPage';
 import { LiveCamerasPage } from './pages/LiveCamerasPage';
 import { LivePlayerPage } from './pages/LivePlayerPage';
@@ -39,7 +38,6 @@ export function App() {
                     <Route path={ROUTES.CLUB_ADMIN} element={<ClubAdminPage />} />
                     <Route path={ROUTES.PLATFORM_ADMIN} element={<PlatformAdminPage />} />
                     <Route path="/admin" element={<Navigate to={ROUTES.CLUB_ADMIN} replace />} />
-                    <Route path={ROUTES.QR_SCAN} element={<CourtQrPage />} />
                     <Route path="*" element={<NotFoundPage />} />
                   </Routes>
                 </ToastProvider>

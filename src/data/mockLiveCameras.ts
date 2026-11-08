@@ -1,7 +1,5 @@
 import { LiveCamera } from '../types/liveCamera';
 
-export const LIVE_VIDEO_SOURCE = '/assets/live-demo.mp4';
-
 /** Aclaración de la cámara en vivo real: es una cámara de demostración y puede cortarse. */
 export const LIVE_DEMO_NOTICE = 'Cámara en vivo de demostración · puede cortarse';
 
@@ -35,51 +33,14 @@ export const MOCK_LIVE_CAMERAS: LiveCamera[] = [
     isDemo: false,
     visualVariant: 'soccer-turf',
   },
-  {
-    id: 'la-cantera-crespo-c1',
-    clubId: 'la-cantera-crespo',
-    clubName: 'La Cantera Villa Crespo',
-    courtName: 'Cancha A · Fútbol 5 Techada',
-    sport: 'Fútbol 5',
-    location: 'Villa Crespo, CABA',
-    status: 'connecting',
-    videoUrl: LIVE_VIDEO_SOURCE,
-    posterUrl: DEFAULT_LIVE_POSTER,
-    lastUpdated: '2026-11-06T08:22:00Z',
-    isDemo: true,
-    visualVariant: 'indoor-pitch',
-  },
-  {
-    id: 'arena-nunez-c2',
-    clubId: 'arena-nunez',
-    clubName: 'Arena Núñez Deportivo',
-    courtName: 'Cancha 2 · Fútbol 8',
-    sport: 'Fútbol 8',
-    location: 'Núñez, CABA',
-    status: 'no_signal',
-    videoUrl: LIVE_VIDEO_SOURCE,
-    posterUrl: DEFAULT_LIVE_POSTER,
-    lastUpdated: '2026-11-06T08:12:00Z', // 13 minutos atrás
-    isDemo: true,
-    visualVariant: 'night-stadium',
-  },
-  {
-    id: 'polideportivo-belgrano-c1',
-    clubId: 'polideportivo-belgrano',
-    clubName: 'Polideportivo Belgrano',
-    courtName: 'Cancha 1 · Fútbol 5 Cubierta',
-    sport: 'Fútbol 5',
-    location: 'Belgrano, CABA',
-    status: 'unavailable',
-    videoUrl: LIVE_VIDEO_SOURCE,
-    posterUrl: DEFAULT_LIVE_POSTER,
-    lastUpdated: '2026-11-06T05:00:00Z',
-    isDemo: true,
-    visualVariant: 'clubhouse-turf',
-  },
 ];
 
-/** true si el club tiene la cámara en vivo real (la que se sirve por el backend): lleva la aclaración de demostración. */
+/** La cámara en vivo real del club (la que se sirve por el backend), o null si no tiene. */
+export function realLiveCameraOf(clubId: string): LiveCamera | null {
+  return MOCK_LIVE_CAMERAS.find((camera) => camera.clubId === clubId && !camera.isDemo) ?? null;
+}
+
+/** true si el club tiene la cámara en vivo real: lleva la aclaración de demostración. */
 export function clubHasRealLiveCamera(clubId: string): boolean {
-  return MOCK_LIVE_CAMERAS.some((camera) => camera.clubId === clubId && !camera.isDemo);
+  return realLiveCameraOf(clubId) !== null;
 }

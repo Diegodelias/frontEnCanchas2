@@ -64,6 +64,8 @@ export const LivePlayer: React.FC<LivePlayerProps> = ({
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [controlsVisible, setControlsVisible] = useState<boolean>(true);
   const [isSwitcherOpen, setIsSwitcherOpen] = useState<boolean>(false);
+  // El selector de cámaras solo se ofrece si hay otra cámara a la que cambiar.
+  const hasOtherCameras = allCameras.length > 1;
 
   // Playback loading and autoplay blocked states
   const [isVideoLoading, setIsVideoLoading] = useState<boolean>(true);
@@ -438,14 +440,16 @@ export const LivePlayer: React.FC<LivePlayerProps> = ({
                   <RotateCcw className="w-4 h-4 shrink-0" aria-hidden="true" />
                   <span>Reintentar conexión</span>
                 </Button>
-                <Button
-                  variant="darkSecondary"
-                  size="md"
-                  onClick={() => setIsSwitcherOpen(true)}
-                >
-                  <Camera className="w-4 h-4 shrink-0" aria-hidden="true" />
-                  <span>Cambiar de cámara</span>
-                </Button>
+                {hasOtherCameras && (
+                  <Button
+                    variant="darkSecondary"
+                    size="md"
+                    onClick={() => setIsSwitcherOpen(true)}
+                  >
+                    <Camera className="w-4 h-4 shrink-0" aria-hidden="true" />
+                    <span>Cambiar de cámara</span>
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -561,14 +565,16 @@ export const LivePlayer: React.FC<LivePlayerProps> = ({
                   <RotateCcw className="w-4 h-4 shrink-0" aria-hidden="true" />
                   <span>Reintentar señal</span>
                 </Button>
-                <Button
-                  variant="darkSecondary"
-                  size="md"
-                  onClick={() => setIsSwitcherOpen(true)}
-                >
-                  <Camera className="w-4 h-4 shrink-0" aria-hidden="true" />
-                  <span>Elegir otra cámara</span>
-                </Button>
+                {hasOtherCameras && (
+                  <Button
+                    variant="darkSecondary"
+                    size="md"
+                    onClick={() => setIsSwitcherOpen(true)}
+                  >
+                    <Camera className="w-4 h-4 shrink-0" aria-hidden="true" />
+                    <span>Elegir otra cámara</span>
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -586,14 +592,16 @@ export const LivePlayer: React.FC<LivePlayerProps> = ({
                 Esta cámara se encuentra apagada o fuera de servicio por mantenimiento del club.
               </p>
               <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
-                <Button
-                  variant="volt"
-                  size="md"
-                  onClick={() => setIsSwitcherOpen(true)}
-                >
-                  <Camera className="w-4 h-4 shrink-0" aria-hidden="true" />
-                  <span>Elegir otra cámara</span>
-                </Button>
+                {hasOtherCameras && (
+                  <Button
+                    variant="volt"
+                    size="md"
+                    onClick={() => setIsSwitcherOpen(true)}
+                  >
+                    <Camera className="w-4 h-4 shrink-0" aria-hidden="true" />
+                    <span>Elegir otra cámara</span>
+                  </Button>
+                )}
                 <Button
                   variant="darkSecondary"
                   size="md"
@@ -665,15 +673,17 @@ export const LivePlayer: React.FC<LivePlayerProps> = ({
               </span>
             </button>
 
-            <Button
-              variant="darkSecondary"
-              size="sm"
-              onClick={() => setIsSwitcherOpen(true)}
-              className="text-xs font-semibold"
-            >
-              <Camera className="w-3.5 h-3.5 text-volt" aria-hidden="true" />
-              <span>Cambiar de cámara</span>
-            </Button>
+            {hasOtherCameras && (
+              <Button
+                variant="darkSecondary"
+                size="sm"
+                onClick={() => setIsSwitcherOpen(true)}
+                className="text-xs font-semibold"
+              >
+                <Camera className="w-3.5 h-3.5 text-volt" aria-hidden="true" />
+                <span>Cambiar de cámara</span>
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -790,13 +800,15 @@ export const LivePlayer: React.FC<LivePlayerProps> = ({
       </div>
 
       {/* CAMERA SWITCHER DRAWER/SIDEBAR */}
-      <CameraSwitcher
-        isOpen={isSwitcherOpen}
-        onClose={() => setIsSwitcherOpen(false)}
-        cameras={allCameras}
-        currentCameraId={camera.id}
-        onSelectCamera={onSelectCamera}
-      />
+      {hasOtherCameras && (
+        <CameraSwitcher
+          isOpen={isSwitcherOpen}
+          onClose={() => setIsSwitcherOpen(false)}
+          cameras={allCameras}
+          currentCameraId={camera.id}
+          onSelectCamera={onSelectCamera}
+        />
+      )}
 
       {/* Save Play Sheet / Bottom Sheet (Prompt 5) */}
       <SavePlaySheet
