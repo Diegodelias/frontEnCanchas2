@@ -1,15 +1,13 @@
 import { MOCK_LIVE_CAMERAS } from '../data/mockLiveCameras';
-import { MOCK_MATCHES } from '../data/mockMatches';
 import {
   CAPTURE_POST_SECONDS,
   CAPTURE_PRE_SECONDS,
-  CAPTURE_TOTAL_SECONDS,
   PlayCategory,
   SavedPlay,
   SavePlayInput,
 } from '../types/play';
-
-export const DEFAULT_PLAY_MEDIA = '/assets/aistudio/ref_6fe9ff42.mp4';
+import { formatRecordingDate } from './recordingAdapter';
+import { ApiRecording } from './recordingsApi';
 
 /** Jugada tal como la guarda y devuelve el backend (`/api/plays`). */
 export interface ApiPlay {
@@ -20,7 +18,12 @@ export interface ApiPlay {
   captureMode: 'video' | 'voice_commentary';
   timestamp: number;
   isLiveMoment: boolean;
+  /** Fragmento de la jugada en segundos del video; null en una jugada en vivo. */
+  clipStart: number | null;
+  clipEnd: number | null;
   createdAt: string;
+  /** La grabación de la jugada, o null si es una jugada en vivo o su grabación ya no existe. */
+  recording: ApiRecording | null;
 }
 
 export function formatSecondsToMMSS(seconds: number): string {
@@ -44,24 +47,26 @@ interface PlayContext {
   courtName: string;
   dateLabel: string;
   timeSlot: string;
-  thumbnailUrl: string;
-  videoSrc: string;
+  thumbnailUrl?: string;
+  videoSrc?: string;
+  /** true si la jugada no tiene un video que reproducir: su grabación ya no existe o todavía no está disponible. */
+  recordingUnavailable: boolean;
 }
 
 /**
- * Datos del club, la cancha, el horario y el video de una jugada. El backend no los guarda: salen del
- * partido (o de la cámara, en una jugada en vivo) a partir de `matchId`, que siguen siendo datos de ejemplo.
+ * Datos del club, la cancha, el horario y el video de una jugada. Salen de su grabación (`play.recording`, que trae
+ * el backend) o, en una jugada en vivo, de la cámara. Sin ninguna de las dos, la jugada se muestra como «Grabación
+ * no disponible», sin borrarla.
  */
-export function resolvePlayContext(matchId: string, createdAt: string): PlayContext {
-  const match = MOCK_MATCHES.find((m) => m.id === matchId);
-  if (match) {
+export function resolvePlayContext(matchId: string, createdAt: string, recording: ApiRecording | null): PlayContext {
+  if (recording) {
     return {
-      clubName: match.clubName,
-      courtName: match.courtName,
-      dateLabel: match.dateLabel,
-      timeSlot: match.timeSlot,
-      thumbnailUrl: match.poster || DEFAULT_PLAY_MEDIA,
-      videoSrc: match.videoSrc || DEFAULT_PLAY_MEDIA,
+      clubName: recording.club.name,
+      courtName: recording.court.name,
+      dateLabel: formatRecordingDate(recording.date),
+      timeSlot: recording.time,
+      videoSrc: recording.videoUrl ?? undefined,
+      recordingUnavailable: recording.videoUrl === null,
     };
   }
   const camera = MOCK_LIVE_CAMERAS.find((c) => c.id === matchId);
@@ -73,23 +78,25 @@ export function resolvePlayContext(matchId: string, createdAt: string): PlayCont
       timeSlot: new Date(createdAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
       thumbnailUrl: camera.posterUrl,
       videoSrc: camera.videoUrl,
+      recordingUnavailable: false,
     };
   }
-  // El partido o la cámara ya no existen: se muestra la jugada con datos genéricos.
   return {
-    clubName: 'Jugada guardada',
+    clubName: 'Grabación no disponible',
     courtName: '',
     dateLabel: '',
     timeSlot: '',
-    thumbnailUrl: DEFAULT_PLAY_MEDIA,
-    videoSrc: DEFAULT_PLAY_MEDIA,
+    recordingUnavailable: true,
   };
 }
 
 /** Arma la `SavedPlay` que usa la interfaz a partir de la jugada del backend. */
 export function toSavedPlay(play: ApiPlay, userId?: string): SavedPlay {
-  const context = resolvePlayContext(play.matchId, play.createdAt);
+  const context = resolvePlayContext(play.matchId, play.createdAt, play.recording);
   const timestamp = play.timestamp;
+  // El fragmento que guardó el backend; sin él (una jugada en vivo), el de siempre: 15 s antes y 5 s después.
+  const startTime = play.clipStart ?? Math.max(0, timestamp - CAPTURE_PRE_SECONDS);
+  const endTime = play.clipEnd ?? timestamp + CAPTURE_POST_SECONDS;
   return {
     id: play.id,
     matchId: play.matchId,
@@ -98,9 +105,9 @@ export function toSavedPlay(play: ApiPlay, userId?: string): SavedPlay {
     captureMode: play.captureMode,
     timestamp,
     timestampLabel: play.isLiveMoment ? 'Momento en vivo' : formatSecondsToMMSS(timestamp),
-    startTime: Math.max(0, timestamp - CAPTURE_PRE_SECONDS),
-    endTime: timestamp + CAPTURE_POST_SECONDS,
-    duration: CAPTURE_TOTAL_SECONDS,
+    startTime,
+    endTime,
+    duration: endTime - startTime,
     status: 'ready',
     ...context,
     createdAt: play.createdAt,

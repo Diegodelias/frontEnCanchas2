@@ -12,17 +12,19 @@ import {
 import { usePlays } from '../../context/PlaysContext';
 import { useToast } from '../../context/ToastContext';
 import {
-  CAPTURE_TOTAL_SECONDS,
   CaptureMode,
   PlayCategory,
   PlayProcessingStatus,
   SavedPlay,
   SavePlayInput,
 } from '../../types/play';
+import { ClipWindow, defaultClip } from '../../utils/clip';
 import { Button } from '../ui/Button';
 import { CaptureModeSelector } from './CaptureModeSelector';
+import { ClipRangeControl } from './ClipRangeControl';
 import { PlayCategorySelector } from './PlayCategorySelector';
 import { PlayProcessingState } from './PlayProcessingState';
+import { playDownloadBlock, useClipDownload } from './useClipDownload';
 
 interface SavePlaySheetProps {
   isOpen: boolean;
@@ -37,6 +39,8 @@ interface SavePlaySheetProps {
     isLiveMoment?: boolean;
     thumbnailUrl?: string;
     videoSrc?: string;
+    /** Duración real del video, si ya se conoce: el fragmento no se pasa del final. */
+    videoDuration?: number;
   } | null;
   onSaveConfirmed: (play: SavedPlay) => void;
   onSaveWithDefaultsAndClose: (input: SavePlayInput) => void;
@@ -64,7 +68,9 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
   const [processingStatus, setProcessingStatus] = useState<PlayProcessingStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [savedPlayResult, setSavedPlayResult] = useState<SavedPlay | null>(null);
-  const [isDownloading, setIsDownloading] = useState(false);
+  const { downloadingId, download } = useClipDownload();
+  // Fragmento de la jugada: se propone 15 s antes y 5 s después, y el jugador lo ajusta con los botones.
+  const [clip, setClip] = useState<ClipWindow>({ start: 0, end: 20 });
 
   // Reset form when opened for a new moment
   useEffect(() => {
@@ -75,6 +81,7 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
       setProcessingStatus('idle');
       setErrorMessage('');
       setSavedPlayResult(null);
+      if (momentData) setClip(defaultClip(momentData.timestamp, momentData.videoDuration));
     }
   }, [isOpen, momentData?.timestamp]);
 
@@ -114,6 +121,9 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
         isLiveMoment: momentData.isLiveMoment,
         thumbnailUrl: momentData.thumbnailUrl,
         videoSrc: momentData.videoSrc,
+        // El fragmento ajustado; una jugada en vivo no tiene.
+        clipStart: momentData.isLiveMoment ? undefined : clip.start,
+        clipEnd: momentData.isLiveMoment ? undefined : clip.end,
       };
       onSaveWithDefaultsAndClose(input);
     } else {
@@ -151,6 +161,9 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
         isLiveMoment: momentData.isLiveMoment,
         thumbnailUrl: momentData.thumbnailUrl,
         videoSrc: momentData.videoSrc,
+        // El fragmento ajustado; una jugada en vivo no tiene.
+        clipStart: momentData.isLiveMoment ? undefined : clip.start,
+        clipEnd: momentData.isLiveMoment ? undefined : clip.end,
       };
 
       // Se guarda en la cuenta del jugador (backend), no en el navegador.
@@ -163,7 +176,9 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
       showToast({
         type: 'success',
         title: '¡Jugada guardada!',
-        message: `Se guardaron ${CAPTURE_TOTAL_SECONDS} segundos en "${play.title}".`,
+        message: play.isLiveMoment
+          ? `Se guardó el momento en "${play.title}".`
+          : `Se guardaron ${play.duration} segundos en "${play.title}".`,
         durationMs: 4000,
       });
     } catch (err: any) {
@@ -178,25 +193,8 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
     }
   };
 
-  const handleSimulatedDownload = () => {
-    if (!savedPlayResult) return;
-    setIsDownloading(true);
-    showToast({
-      type: 'info',
-      title: 'Descarga simulada iniciada',
-      message: `Generando archivo MP4 de 20s para "${savedPlayResult.title}".`,
-      durationMs: 3000,
-    });
-    setTimeout(() => {
-      setIsDownloading(false);
-      showToast({
-        type: 'success',
-        title: 'Descarga simulada lista',
-        message: 'Archivo simulado preparado.',
-        durationMs: 2500,
-      });
-    }, 1500);
-  };
+  const downloadBlock = savedPlayResult ? playDownloadBlock(savedPlayResult) : null;
+  const isDownloading = savedPlayResult !== null && downloadingId === savedPlayResult.id;
 
   return (
     <div
@@ -303,12 +301,13 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
             <div className="flex items-center gap-2.5 pt-1">
               <button
                 type="button"
-                onClick={handleSimulatedDownload}
-                disabled={isDownloading}
-                className="flex-1 min-h-[42px] px-3 rounded-xl border border-line bg-surface hover:bg-surface-muted text-ink font-semibold text-xs sm:text-sm inline-flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50"
+                onClick={() => void download(savedPlayResult)}
+                disabled={isDownloading || downloadBlock !== null}
+                title={downloadBlock ?? 'Descargar el fragmento de la jugada'}
+                className="flex-1 min-h-[44px] px-3 rounded-xl border border-line bg-surface hover:bg-surface-muted text-ink font-semibold text-xs sm:text-sm transition-colors cursor-pointer inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Download className="w-4 h-4 shrink-0" aria-hidden="true" />
-                <span>{isDownloading ? 'Descargando...' : 'Descargar video (simulado)'}</span>
+                <span>{isDownloading ? 'Preparando el fragmento...' : 'Descargar video'}</span>
               </button>
 
               <button
@@ -359,13 +358,23 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
               />
             </div>
 
-            {/* Duración de la captura informativa */}
-            <div className="p-3 rounded-xl bg-surface-muted border border-line flex items-center gap-2.5 text-xs text-ink-muted">
-              <Clock className="w-4 h-4 text-turf shrink-0" aria-hidden="true" />
-              <span>
-                Se guardan <strong className="text-ink font-semibold">20 segundos</strong> alrededor de este momento (15s antes y 5s después).
-              </span>
-            </div>
+            {/* Fragmento de la jugada: se ajusta con botones grandes (también desde el celular) */}
+            {momentData.isLiveMoment ? (
+              <div className="p-3 rounded-xl bg-surface-muted border border-line flex items-center gap-2.5 text-xs text-ink-muted">
+                <Clock className="w-4 h-4 text-turf shrink-0" aria-hidden="true" />
+                <span>
+                  Se guarda este <strong className="text-ink font-semibold">momento en vivo</strong>. Las jugadas en vivo no
+                  se pueden descargar porque no hay una grabación.
+                </span>
+              </div>
+            ) : (
+              <ClipRangeControl
+                clip={clip}
+                timestamp={momentData.timestamp}
+                videoDuration={momentData.videoDuration}
+                onChange={setClip}
+              />
+            )}
 
             {/* Footer Buttons */}
             <div className="pt-2 flex items-center justify-between gap-3">

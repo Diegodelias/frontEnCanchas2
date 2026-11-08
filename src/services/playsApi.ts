@@ -54,6 +54,10 @@ export const playsApi = {
         captureMode: input.captureMode ?? 'video',
         timestamp: Math.max(0, Math.floor(input.timestamp)),
         isLiveMoment: Boolean(input.isLiveMoment),
+        // El fragmento ajustado; una jugada en vivo no lo tiene y sin él el servidor usa el de siempre.
+        ...(!input.isLiveMoment && input.clipStart !== undefined && input.clipEnd !== undefined
+          ? { clipStart: Math.floor(input.clipStart), clipEnd: Math.floor(input.clipEnd) }
+          : {}),
       }),
     });
     const { play } = (await res.json()) as { play: ApiPlay };
@@ -85,5 +89,29 @@ export const playsApi = {
       if (err instanceof PlaysApiError && err.status === 404) return false;
       throw err;
     }
+  },
+
+  /**
+   * Descarga el fragmento de una jugada: pide el mp4 (el servidor lo corta del video de la grabación, puede tardar unos
+   * segundos) y lo baja con el nombre que indica el servidor. Falla con el mensaje del servidor si está ocupado,
+   * si el corte tarda de más o si la jugada no se puede descargar.
+   */
+  async downloadClip(playId: string): Promise<string> {
+    const res = await request(`/api/plays/${encodeURIComponent(playId)}/clip`);
+    const blob = await res.blob();
+    const fileName = /filename="([^"]+)"/.exec(res.headers.get('Content-Disposition') ?? '')?.[1] ?? 'jugada.mp4';
+    const url = URL.createObjectURL(blob);
+    try {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } finally {
+      // El navegador ya tomó el archivo: se libera la copia en memoria un momento después.
+      setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    }
+    return fileName;
   },
 };

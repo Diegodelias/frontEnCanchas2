@@ -42,22 +42,27 @@ export const PlayerPage: React.FC<PlayerPageProps> = ({ mode }) => {
             if (!cancelled) setErrorMessage('La jugada solicitada no existe o fue eliminada.');
             return;
           }
+          // Una jugada cuya grabación ya no existe (o todavía no tiene video) no se reproduce.
+          if (play.recordingUnavailable) {
+            if (!cancelled) setErrorMessage('La grabación de esta jugada no está disponible.');
+            return;
+          }
           const loadedMatch = await matchesService.getMatchById(play.matchId);
           if (!cancelled) {
             setHighlightedPlay(play);
+            // Una jugada en vivo no tiene grabación: se reproduce con el video de la cámara que trae la jugada.
             setMatch(loadedMatch || {
               id: play.matchId,
               title: play.title,
-              clubId: 'estacion-norte',
+              clubId: '',
               clubName: play.clubName,
-              courtId: 'en-f5-1',
+              courtId: '',
               courtName: play.courtName,
-              dayId: 'hoy',
+              dayId: '',
               dateLabel: play.dateLabel,
               timeSlot: play.timeSlot,
               status: 'available',
-              videoSrc: '/assets/aistudio/ref_6fe9ff42.mp4',
-              poster: '',
+              videoSrc: play.videoSrc ?? null,
               duration: 60,
               recordedAt: play.createdAt,
             });

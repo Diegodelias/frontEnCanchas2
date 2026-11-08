@@ -125,7 +125,7 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
   );
 
   const availableSlots = useMemo(
-    () => Array.from(new Set(matchesForDay.map((match) => match.timeSlot))),
+    () => Array.from(new Set(matchesForDay.map((match) => match.timeSlot))).sort(),
     [matchesForDay]
   );
 
@@ -219,6 +219,38 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
     isLoadingRecordings,
     recordingsLoadError,
     onSelectionChange,
+  ]);
+
+  // Una selección que viene de la dirección (club, cancha, fecha u horario) y no existe entre las grabaciones reales
+  // se ignora, junto con lo que depende de ella, en vez de dejar el formulario con un valor que no se puede elegir.
+  useEffect(() => {
+    if (isLoadingRecordings || recordingsLoadError) return;
+    if (clubId && !availableClubs.some((match) => match.clubId === clubId)) {
+      setClubId('');
+      setCourtId('');
+      setDayId('');
+      setSlotId('');
+    } else if (courtId && !selectedCourt) {
+      setCourtId('');
+      setDayId('');
+      setSlotId('');
+    } else if (dayId && !selectedDay) {
+      setDayId('');
+      setSlotId('');
+    } else if (slotId && !availableSlots.includes(slotId)) {
+      setSlotId('');
+    }
+  }, [
+    isLoadingRecordings,
+    recordingsLoadError,
+    clubId,
+    courtId,
+    dayId,
+    slotId,
+    availableClubs,
+    selectedCourt,
+    selectedDay,
+    availableSlots,
   ]);
 
   const handleClubChange = (nextClubId: string) => {
@@ -635,8 +667,7 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
               <div>
                 <span className="block font-semibold">Video en procesamiento</span>
                 <span className="block text-ink-muted mt-0.5">
-                  {foundMatch.statusMessage ||
-                    'La cámara finalizó de grabar hace poco. El video estará listo en aproximadamente 15 minutos.'}
+                  La cámara finalizó de grabar hace poco. El video estará listo en unos minutos.
                 </span>
               </div>
             </div>
@@ -648,8 +679,7 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
               <div>
                 <span className="block font-semibold">Grabación no disponible</span>
                 <span className="block text-ink-muted mt-0.5">
-                  {foundMatch.statusMessage ||
-                    'Este turno no contó con cámara automática activa durante el horario seleccionado.'}
+                  Este turno no contó con cámara automática activa durante el horario seleccionado.
                 </span>
               </div>
             </div>

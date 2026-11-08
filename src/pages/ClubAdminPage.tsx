@@ -29,13 +29,13 @@ import {
 } from 'lucide-react';
 import { BookingsList } from '../components/club/BookingsList';
 import { CourtsManager } from '../components/club/CourtsManager';
+import { RecordingsList } from '../components/club/RecordingsList';
 import { ownClubCourtsApi } from '../components/club/courtsApi';
 import { useMyCourts } from '../components/club/useMyCourts';
 import { Navbar } from '../components/layout/Navbar';
 import { Button } from '../components/ui/Button';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { MOCK_MATCHES } from '../data/mockMatches';
 import { bookingsApi } from '../services/bookingsApi';
 import { buildLiveStreamPath, buildMatchPath, buildQrScanPath, ROUTES } from '../routes/paths';
 
@@ -116,7 +116,8 @@ export const ClubAdminPage: React.FC = () => {
     },
   ]);
 
-  const clubMatches = MOCK_MATCHES.filter((m) => m.clubId === clubId);
+  // Cantidad de grabaciones del club: la informa la pestaña cuando las carga.
+  const [recordingsCount, setRecordingsCount] = useState<number | null>(null);
 
   const handleSaveSettings = () => {
     setIsSavingSettings(true);
@@ -297,7 +298,7 @@ export const ClubAdminPage: React.FC = () => {
               }`}
             >
               <Video className="w-4 h-4" />
-              <span>Partidos del Complejo ({clubMatches.length})</span>
+              <span>Partidos del Complejo{recordingsCount === null ? '' : ` (${recordingsCount})`}</span>
             </button>
 
             <button
@@ -455,87 +456,8 @@ export const ClubAdminPage: React.FC = () => {
             </div>
           )}
 
-          {/* TAB 2: Partidos del Complejo */}
-          {activeTab === 'matches' && (
-            <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <h2 className="font-display text-xl sm:text-2xl font-bold text-ink">
-                    Historial de partidos grabados
-                  </h2>
-                  <p className="text-xs sm:text-sm text-ink-muted">
-                    Accedé a los videos almacenados, compartí links con capitanes y verificá descargas.
-                  </p>
-                </div>
-              </div>
-
-              <div className="overflow-x-auto rounded-xl border border-line bg-surface">
-                <table className="w-full text-left text-xs sm:text-sm">
-                  <thead className="bg-canvas border-b border-line text-ink-muted font-mono uppercase text-[11px]">
-                    <tr>
-                      <th className="py-3 px-4">Partido / Cancha</th>
-                      <th className="py-3 px-4">Fecha y Turno</th>
-                      <th className="py-3 px-4">Estado</th>
-                      <th className="py-3 px-4">Vistas</th>
-                      <th className="py-3 px-4">Jugadas</th>
-                      <th className="py-3 px-4 text-right">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-line">
-                    {clubMatches.map((m) => (
-                      <tr key={m.id} className="hover:bg-surface-muted/50 transition-colors">
-                        <td className="py-3.5 px-4">
-                          <p className="font-display font-bold text-ink">{m.title}</p>
-                          <p className="text-xs text-ink-muted">{m.courtName}</p>
-                        </td>
-                        <td className="py-3.5 px-4 font-mono text-ink-muted">
-                          <p className="text-ink font-semibold">{m.dateLabel}</p>
-                          <p className="text-xs">{m.timeSlot} hs</p>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <span className="inline-flex items-center gap-1 font-mono text-[11px] font-bold text-turf-ink px-2 py-0.5 rounded bg-turf-soft">
-                            <CheckCircle2 className="w-3 h-3" />
-                            HD DISPONIBLE
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 font-mono tabular-nums text-ink">
-                          84 reproducciones
-                        </td>
-                        <td className="py-3.5 px-4 font-mono tabular-nums text-volt-ink font-semibold">
-                          12 guardadas
-                        </td>
-                        <td className="py-3.5 px-4 text-right">
-                          <div className="inline-flex items-center gap-2">
-                            <Link to={buildMatchPath(m.id)}>
-                              <Button variant="volt" size="sm">
-                                <Play className="w-3 h-3 fill-current" />
-                                <span>Ver</span>
-                              </Button>
-                            </Link>
-
-                            <button
-                              type="button"
-                              onClick={() => {
-                                showToast({
-                                  title: 'Descarga iniciada',
-                                  message: `Descargando video MP4 de 1080p: ${m.title}`,
-                                  type: 'success',
-                                });
-                              }}
-                              title="Descargar archivo MP4 completo"
-                              className="p-2 rounded-lg border border-line hover:bg-surface-muted text-ink transition-colors cursor-pointer"
-                            >
-                              <Download className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
+          {/* Partidos del complejo: grabaciones reales del backend, solo lectura */}
+          {activeTab === 'matches' && <RecordingsList onCountChange={setRecordingsCount} />}
 
           {/* TAB 3: Reglas de Acceso y Tarifas */}
           {activeTab === 'settings' && (

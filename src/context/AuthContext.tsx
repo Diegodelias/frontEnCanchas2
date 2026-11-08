@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { authService } from '../services/authService';
+import { rememberedEmail } from '../services/rememberedEmail';
 import { AuthMode, UserProfile, UserRole } from '../types/user';
 
 interface AuthContextValue {
@@ -14,6 +15,8 @@ interface AuthContextValue {
   loginAdmin: (email: string, password: string) => Promise<UserProfile>;
   /** Confirma el link de acceso del mail y abre la sesión real del jugador; lanza `AuthError` si el link no sirve. */
   confirmLink: (token: string) => Promise<UserProfile>;
+  /** Ingresa con el código de 6 dígitos del mail; abre la sesión real del jugador; lanza `AuthError` si no sirve. */
+  confirmCode: (email: string, code: string) => Promise<UserProfile>;
   /** Acepta la invitación de un admin: elige su contraseña y queda con la sesión abierta; lanza `AuthError` si falla. */
   acceptInvite: (token: string, password: string) => Promise<UserProfile>;
   logout: () => Promise<void>;
@@ -60,6 +63,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const confirmLink = async (token: string) => {
     const profile = await authService.confirmLink(token);
+    // El mail se recuerda recién ahora, con el ingreso hecho: así no queda guardado un mail mal escrito.
+    rememberedEmail.save(profile.email);
+    setUser(profile);
+    return profile;
+  };
+
+  const confirmCode = async (email: string, code: string) => {
+    const profile = await authService.confirmCode(email, code);
+    rememberedEmail.save(profile.email);
     setUser(profile);
     return profile;
   };
@@ -87,6 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         sendMagicLink,
         loginAdmin,
         confirmLink,
+        confirmCode,
         acceptInvite,
         logout,
       }}

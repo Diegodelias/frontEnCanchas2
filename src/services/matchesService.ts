@@ -1,83 +1,31 @@
-import { MOCK_MATCHES } from '../data/mockMatches';
-import { Match, MatchFilterParams } from '../types/match';
+import { Match } from '../types/match';
+import { toMatch } from './recordingAdapter';
+import { recordingsApi } from './recordingsApi';
 
-const SIMULATED_LATENCY_MS = 120;
-
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function isPlayableMatch(match: Match): boolean {
-  return match.status === 'available' && Boolean(match.videoSrc?.trim());
-}
-
+/** Grabaciones de partidos, leídas del backend (`/api/recordings`). */
 export const matchesService = {
-  /**
-   * Obtiene solo partidos que tienen una grabación lista para reproducir.
-   */
+  /** Solo las grabaciones listas para reproducir. */
   async getPlayableMatches(): Promise<Match[]> {
-    await sleep(SIMULATED_LATENCY_MS);
-    return MOCK_MATCHES.filter(isPlayableMatch).map((match) => ({ ...match }));
+    return (await recordingsApi.listPlayable()).map(toMatch);
   },
 
-  /**
-   * Obtiene la lista de partidos con filtros opcionales.
-   */
-  async getMatches(params?: MatchFilterParams): Promise<Match[]> {
-    await sleep(SIMULATED_LATENCY_MS);
-
-    if (!params) return [...MOCK_MATCHES];
-
-    return MOCK_MATCHES.filter((m) => {
-      if (params.clubId && m.clubId !== params.clubId) return false;
-      if (params.courtId && m.courtId !== params.courtId) return false;
-      if (params.dayId && m.dayId !== params.dayId) return false;
-      if (params.slotId && !params.slotId.includes(m.timeSlot.replace(':', '')) && m.timeSlot !== params.slotId) {
-        return false;
-      }
-      return true;
-    });
-  },
-
-  /**
-   * Obtiene un partido por su ID.
-   */
+  /** Un partido por su id, en cualquier estado; null si no existe. */
   async getMatchById(id: string): Promise<Match | null> {
-    await sleep(SIMULATED_LATENCY_MS);
-    const found = MOCK_MATCHES.find((m) => m.id === id);
-    return found ? { ...found } : null;
+    const recording = await recordingsApi.get(id);
+    return recording ? toMatch(recording) : null;
   },
 
-  /**
-   * Busca el partido correspondiente a una selección de cascada.
-   */
-  async findMatchBySelection(
-    clubId: string,
-    courtId: string,
-    dayId: string,
-    timeSlot: string
-  ): Promise<Match | null> {
-    await sleep(SIMULATED_LATENCY_MS);
-
-    if (!clubId || !courtId || !dayId || !timeSlot) return null;
-
-    const match = MOCK_MATCHES.find(
-      (candidate) =>
-        isPlayableMatch(candidate) &&
-        candidate.clubId === clubId &&
-        candidate.courtId === courtId &&
-        candidate.dayId === dayId &&
-        candidate.timeSlot === timeSlot
-    );
-
-    return match ? { ...match } : null;
+  /** La grabación que coincide exactamente con club, cancha, fecha (`AAAA-MM-DD`) y horario (`HH:MM`). */
+  async findMatchBySelection(clubId: string, courtId: string, date: string, timeSlot: string): Promise<Match | null> {
+    if (!clubId || !courtId || !date || !timeSlot) return null;
+    const recordings = await recordingsApi.listPlayable({ clubId, courtId, date });
+    const found = recordings.find((recording) => recording.time === timeSlot);
+    return found ? toMatch(found) : null;
   },
 
-  /**
-   * Obtiene los partidos guardados según una lista de IDs.
-   */
+  /** Los partidos guardados de una lista de ids (los inexistentes se descartan). */
   async getSavedMatches(ids: string[]): Promise<Match[]> {
-    await sleep(SIMULATED_LATENCY_MS);
-    return MOCK_MATCHES.filter((m) => ids.includes(m.id));
+    const matches = await Promise.all(ids.map((id) => this.getMatchById(id).catch(() => null)));
+    return matches.filter((match): match is Match => match !== null);
   },
 };

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { AlertCircle, CheckCircle2, Mail, X } from 'lucide-react';
+import { AlertCircle, Mail, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useRememberedEmail } from '../../hooks/useRememberedEmail';
+import { PlayerCodePanel } from './PlayerCodePanel';
 import { Button } from '../ui/Button';
 
 interface AccessEmailModalProps {
@@ -13,6 +15,7 @@ export const AccessEmailModal: React.FC<AccessEmailModalProps> = ({
   onClose,
 }) => {
   const { sendMagicLink } = useAuth();
+  const { remembered, reload: reloadRemembered, forget: forgetRemembered } = useRememberedEmail();
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,11 +23,12 @@ export const AccessEmailModal: React.FC<AccessEmailModalProps> = ({
 
   useEffect(() => {
     if (!isOpen) return;
-    setEmail('');
+    // Viene con el último mail con el que el jugador ingresó (si el navegador lo recuerda).
+    setEmail(reloadRemembered());
     setError(null);
     setIsSubmitting(false);
     setSuccessMessage(null);
-  }, [isOpen]);
+  }, [isOpen, reloadRemembered]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -101,30 +105,20 @@ export const AccessEmailModal: React.FC<AccessEmailModalProps> = ({
 
         {successMessage ? (
           <div className="pt-5 space-y-4">
-            <div className="p-4 rounded-xl bg-turf-soft border border-turf/25 flex items-start gap-3">
-              <CheckCircle2 className="w-5 h-5 text-turf shrink-0 mt-0.5" aria-hidden="true" />
-              <div>
-                <h3 className="font-display text-lg font-bold text-ink">
-                  ¡Revisá tu email!
-                </h3>
-                <p className="mt-1 text-sm text-ink-muted leading-relaxed">
-                  {successMessage}
-                </p>
-                <p className="mt-2 text-xs font-mono text-turf-ink font-semibold">
-                  Link pedido para: {email}
-                </p>
-                <p className="mt-2 text-xs text-ink-muted leading-relaxed">
-                  Abrí el link en este mismo navegador y tu jugada se guarda sola en tu perfil.
-                </p>
-              </div>
-            </div>
+            <PlayerCodePanel
+              email={email.trim()}
+              message={successMessage}
+              onResend={async () => {
+                const res = await sendMagicLink(email.trim());
+                setSuccessMessage(res.message);
+                return res.message;
+              }}
+              onChangeEmail={() => setSuccessMessage(null)}
+              onSignedIn={onClose}
+            />
 
             <div className="pt-2 border-t border-line">
-              <Button
-                variant="secondary"
-                fullWidth
-                onClick={onClose}
-              >
+              <Button variant="secondary" fullWidth onClick={onClose}>
                 Continuar viendo el video
               </Button>
             </div>
@@ -132,7 +126,7 @@ export const AccessEmailModal: React.FC<AccessEmailModalProps> = ({
         ) : (
           <form onSubmit={handleSubmit} noValidate className="pt-5 space-y-4">
             <p className="text-sm text-ink-muted leading-relaxed">
-              Ingresá tu email y te enviaremos un enlace para acceder a tus partidos y jugadas desde cualquier dispositivo.
+              Ingresá tu email y te enviaremos un código y un enlace para acceder a tus partidos y jugadas desde cualquier dispositivo.
             </p>
 
             <div>
@@ -154,6 +148,18 @@ export const AccessEmailModal: React.FC<AccessEmailModalProps> = ({
                 placeholder="Ej. tu_nombre@gmail.com"
                 className="w-full min-h-[44px] px-3.5 py-2 rounded-lg bg-surface border border-line-strong text-sm text-ink placeholder:text-ink-muted/70 focus:outline-none"
               />
+              {remembered && email.trim() === remembered && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    forgetRemembered();
+                    setEmail('');
+                  }}
+                  className="mt-1.5 text-xs font-semibold text-turf-ink hover:underline underline-offset-4 cursor-pointer"
+                >
+                  No soy yo, usar otro mail
+                </button>
+              )}
               {error && (
                 <p className="mt-1.5 text-xs font-medium text-alert flex items-start gap-1">
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />

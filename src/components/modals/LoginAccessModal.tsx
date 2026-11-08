@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Building2, CheckCircle2, KeyRound, Lock, Mail, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useRememberedEmail } from '../../hooks/useRememberedEmail';
 import { ROUTES } from '../../routes/paths';
 import { AuthError, authService } from '../../services/authService';
+import { PlayerCodePanel } from '../auth/PlayerCodePanel';
 import { Button } from '../ui/Button';
 
 /** Vista con la que se puede abrir el modal. «Olvidé mi contraseña» es una vista interna del admin. */
@@ -33,6 +35,7 @@ export const LoginAccessModal: React.FC<LoginAccessModalProps> = ({
   const { sendMagicLink, loginAdmin } = useAuth();
   const { showToast } = useToast();
   const errorId = useId();
+  const { remembered, reload: reloadRemembered, forget: forgetRemembered } = useRememberedEmail();
 
   const [view, setView] = useState<View>(initialView);
 
@@ -40,6 +43,8 @@ export const LoginAccessModal: React.FC<LoginAccessModalProps> = ({
   const [emailInput, setEmailInput] = useState('');
   const [isSendingMagicLink, setIsSendingMagicLink] = useState(false);
   const [linkMessage, setLinkMessage] = useState<string | null>(null);
+  // Mail al que se pidió el ingreso (el que se muestra en «Revisá tu mail»).
+  const [sentTo, setSentTo] = useState('');
   const [linkError, setLinkError] = useState<string | null>(null);
 
   // Admin: mail y contraseña.
@@ -58,6 +63,8 @@ export const LoginAccessModal: React.FC<LoginAccessModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       setView(initialView);
+      // El formulario del jugador viene con el último mail con el que ingresó (si el navegador lo recuerda).
+      setEmailInput(reloadRemembered());
       setAdminPassword('');
       setAdminError(null);
       setLinkMessage(null);
@@ -65,7 +72,7 @@ export const LoginAccessModal: React.FC<LoginAccessModalProps> = ({
       setRecoverMessage(null);
       setRecoverError(null);
     }
-  }, [isOpen, initialView]);
+  }, [isOpen, initialView, reloadRemembered]);
 
   if (!isOpen) return null;
 
@@ -106,8 +113,9 @@ export const LoginAccessModal: React.FC<LoginAccessModalProps> = ({
     setLinkError(null);
     setIsSendingMagicLink(true);
     try {
-      // El mail pide un link: la sesión se abre recién cuando el jugador lo confirma en /acceso.
+      // El mail trae un link y un código: la sesión se abre recién cuando el jugador confirma uno de los dos.
       const res = await sendMagicLink(emailInput);
+      setSentTo(emailInput.trim());
       setLinkMessage(res.message);
     } catch (err) {
       setLinkError(err instanceof Error ? err.message : 'No pudimos enviar el link. Probá de nuevo.');
@@ -338,21 +346,26 @@ export const LoginAccessModal: React.FC<LoginAccessModalProps> = ({
                 Ingresar a Canchas3
               </h2>
               <p className="mt-1 text-xs sm:text-sm text-ink-muted leading-relaxed">
-                Ingresá tu correo y te enviamos un link para entrar. Sin contraseña.
+                Ingresá tu correo y te enviamos un código y un link para entrar. Sin contraseña.
               </p>
             </div>
 
             <div className="mt-6">
               {linkMessage ? (
-                <div className={SENT_BOX_CLASS}>
-                  <CheckCircle2 className="w-5 h-5 text-turf shrink-0 mt-0.5" aria-hidden="true" />
-                  <div>
-                    <h3 className="font-display text-base font-bold text-ink">Revisá tu mail</h3>
-                    <p role="status" className="mt-1 text-sm text-ink-muted leading-relaxed">
-                      {linkMessage}
-                    </p>
-                  </div>
-                </div>
+                <PlayerCodePanel
+                  email={sentTo}
+                  message={linkMessage}
+                  onResend={async () => {
+                    const res = await sendMagicLink(sentTo);
+                    setLinkMessage(res.message);
+                    return res.message;
+                  }}
+                  onChangeEmail={() => {
+                    setLinkMessage(null);
+                    setLinkError(null);
+                  }}
+                  onSignedIn={onClose}
+                />
               ) : (
                 <form onSubmit={handleMagicLinkSubmit} className="space-y-3">
                   <div className="flex flex-col sm:flex-row gap-2">
@@ -378,6 +391,18 @@ export const LoginAccessModal: React.FC<LoginAccessModalProps> = ({
                       <span>{isSendingMagicLink ? 'Enviando...' : 'Continuar'}</span>
                     </Button>
                   </div>
+                  {remembered && emailInput.trim() === remembered && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        forgetRemembered();
+                        setEmailInput('');
+                      }}
+                      className="text-xs font-semibold text-turf-ink hover:underline underline-offset-4 cursor-pointer"
+                    >
+                      No soy yo, usar otro mail
+                    </button>
+                  )}
                   {linkError && (
                     <p role="alert" className="text-sm text-red-600 dark:text-red-400 leading-relaxed">
                       {linkError}

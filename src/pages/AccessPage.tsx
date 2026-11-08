@@ -4,8 +4,7 @@ import { AlertCircle, CheckCircle2, Mail } from 'lucide-react';
 import { Navbar } from '../components/layout/Navbar';
 import { Button } from '../components/ui/Button';
 import { useAuth } from '../context/AuthContext';
-import { usePlays } from '../context/PlaysContext';
-import { useToast } from '../context/ToastContext';
+import { useAfterPlayerLogin } from '../hooks/useAfterPlayerLogin';
 import { ROUTES } from '../routes/paths';
 import { AuthError } from '../services/authService';
 
@@ -25,8 +24,7 @@ export const AccessPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { confirmLink, sendMagicLink } = useAuth();
-  const { resumePendingPlay } = usePlays();
-  const { showToast } = useToast();
+  const afterPlayerLogin = useAfterPlayerLogin();
   const errorId = useId();
 
   // El identificador se lee una sola vez y se saca de la barra de direcciones, para que no quede en el
@@ -63,29 +61,7 @@ export const AccessPage: React.FC = () => {
       return;
     }
 
-    const resumed = await resumePendingPlay();
-    if (resumed.status === 'saved') {
-      showToast({
-        type: 'success',
-        title: 'Jugada guardada',
-        message: `Guardamos «${resumed.title}» en tu perfil.`,
-        durationMs: 4500,
-      });
-    } else if (resumed.status === 'limit' || resumed.status === 'error') {
-      showToast({
-        type: 'error',
-        title: 'No pudimos guardar la jugada',
-        message: resumed.message,
-        durationMs: 5500,
-      });
-    } else {
-      showToast({
-        type: 'success',
-        title: 'Sesión iniciada',
-        message: 'Ya podés ver y guardar tus jugadas.',
-        durationMs: 3500,
-      });
-    }
+    await afterPlayerLogin();
     navigate(ROUTES.PROFILE, { replace: true });
   };
 

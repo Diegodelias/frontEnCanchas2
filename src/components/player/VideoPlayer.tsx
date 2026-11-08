@@ -35,6 +35,20 @@ interface VideoPlayerProps {
   highlightedPlay?: SavedPlay | null;
 }
 
+/** Qué decirle al usuario cuando una grabación no se puede reproducir (el estado sale del backend). */
+function unplayableMessage(status: Match['status']): string {
+  switch (status) {
+    case 'processing':
+      return 'La cámara terminó de grabar hace poco. El video se está procesando y estará disponible en unos minutos.';
+    case 'unavailable':
+      return 'Este turno no contó con cámara automática activa durante este horario.';
+    case 'error':
+      return 'Hubo un problema al procesar esta grabación. Probá de nuevo más tarde.';
+    default:
+      return 'Esta grabación todavía no tiene un video para reproducir.';
+  }
+}
+
 export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   match,
   highlightedPlay,
@@ -73,7 +87,15 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     timeSlot: string;
     thumbnailUrl?: string;
     videoSrc?: string;
+    videoDuration?: number;
   } | null>(null);
+
+  // Si el archivo de video falla al cargarse se avisa con «Reintentar»; `videoAttempt` vuelve a montar el <video>.
+  const [videoFailed, setVideoFailed] = useState<boolean>(false);
+  const [videoAttempt, setVideoAttempt] = useState<number>(0);
+  useEffect(() => {
+    setVideoFailed(false);
+  }, [match.id]);
 
   const [saveButtonState, setSaveButtonState] = useState<SaveButtonVisualState>('idle');
   const [lastSavedPlayId, setLastSavedPlayId] = useState<string | null>(null);
@@ -245,8 +267,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       courtName: match.courtName,
       dateLabel: match.dateLabel,
       timeSlot: match.timeSlot,
-      thumbnailUrl: match.poster || '/assets/aistudio/ref_6fe9ff42.mp4',
-      videoSrc: match.videoSrc || '/assets/aistudio/ref_6fe9ff42.mp4',
+      videoSrc: match.videoSrc ?? undefined,
+      // Duración real del video: el fragmento no se pasa del final.
+      videoDuration: duration,
     };
 
     if (authMode === 'guest' || !user) {
@@ -358,9 +381,12 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       {/* Video Element */}
       <div className="absolute inset-0 flex items-center justify-center bg-pitch overflow-hidden">
         {hasVideoSource ? (
+          <>
           <video
+            key={videoAttempt}
             ref={videoRef}
             src={match.videoSrc!}
+            onError={() => setVideoFailed(true)}
             autoPlay
             loop
             muted={isMuted}
@@ -370,6 +396,36 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             onClick={togglePlay}
             className="w-full h-full object-contain cursor-pointer"
           />
+          {videoFailed && (
+            <div
+              role="alert"
+              className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 text-center bg-pitch-surface"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-pitch-elevated border border-pitch-line flex items-center justify-center text-volt mb-4">
+                <Zap className="w-8 h-8" aria-hidden="true" />
+              </div>
+              <h2 className="font-display text-2xl font-bold text-pitch-ink">No pudimos cargar el video</h2>
+              <p className="mt-2 text-sm sm:text-base text-pitch-muted max-w-md">
+                Revisá tu conexión y probá de nuevo. Si sigue fallando, la grabación puede no estar disponible por ahora.
+              </p>
+              <div className="mt-6 flex items-center gap-3">
+                <Button
+                  variant="volt"
+                  size="md"
+                  onClick={() => {
+                    setVideoFailed(false);
+                    setVideoAttempt((n) => n + 1);
+                  }}
+                >
+                  Reintentar
+                </Button>
+                <Button variant="secondary" size="md" onClick={() => navigate(ROUTES.HOME)}>
+                  Volver a la página principal
+                </Button>
+              </div>
+            </div>
+          )}
+          </>
         ) : (
           <div className="relative w-full h-full flex flex-col items-center justify-center p-6 text-center bg-pitch-surface">
             <div className="w-16 h-16 rounded-2xl bg-pitch-elevated border border-pitch-line flex items-center justify-center text-volt mb-4">
@@ -379,7 +435,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
               {match.title}
             </h2>
             <p className="mt-2 text-sm sm:text-base text-pitch-muted max-w-md">
-              {match.statusMessage || 'La grabación automática no está disponible para este horario.'}
+              {unplayableMessage(match.status)}
             </p>
             <div className="mt-6 flex items-center gap-3">
               <Button

@@ -21,6 +21,7 @@ import { useAuth } from '../../context/AuthContext';
 import { usePlays } from '../../context/PlaysContext';
 import { useToast } from '../../context/ToastContext';
 import { pendingPlayService } from '../../services/pendingPlayService';
+import { LIVE_DEMO_NOTICE } from '../../data/mockLiveCameras';
 import { ROUTES } from '../../routes/paths';
 import { Match } from '../../types/match';
 import { LiveCamera, LiveCameraStatus } from '../../types/liveCamera';
@@ -368,7 +369,6 @@ export const LivePlayer: React.FC<LivePlayerProps> = ({
     timeSlot: 'En vivo',
     status: 'available',
     videoSrc: camera.videoUrl,
-    poster: camera.posterUrl,
     duration: 60,
     recordedAt: new Date().toISOString(),
   };
@@ -634,6 +634,9 @@ export const LivePlayer: React.FC<LivePlayerProps> = ({
               <h1 className="font-display text-lg sm:text-xl font-bold text-white tracking-tight truncate leading-tight mt-0.5">
                 {camera.courtName} · {camera.clubName}
               </h1>
+              {!camera.isDemo && (
+                <p className="mt-0.5 text-[11px] font-medium text-volt">{LIVE_DEMO_NOTICE}</p>
+              )}
             </div>
           </div>
 

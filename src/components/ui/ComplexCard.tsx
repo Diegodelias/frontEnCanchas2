@@ -1,5 +1,6 @@
 import React from 'react';
 import { Clock } from 'lucide-react';
+import { clubHasRealLiveCamera, LIVE_DEMO_NOTICE } from '../../data/mockLiveCameras';
 import { Complex } from '../../types/canchas';
 import { Button } from './Button';
 import { ComplexImagePlaceholder } from './ComplexImagePlaceholder';
@@ -49,6 +50,13 @@ export const ComplexCard: React.FC<ComplexCardProps> = ({
             <span className="truncate">{complex.availabilitySummary}</span>
           </span>
         </div>
+
+        {clubHasRealLiveCamera(complex.id) && (
+          <p className="mt-2 inline-flex items-center gap-1.5 self-start rounded-md bg-surface-muted px-2 py-1 text-[11px] font-medium text-ink-muted">
+            <span className="w-1.5 h-1.5 rounded-full bg-alert shrink-0" aria-hidden="true" />
+            <span>{LIVE_DEMO_NOTICE}</span>
+          </p>
+        )}
 
         <button
           type="button"

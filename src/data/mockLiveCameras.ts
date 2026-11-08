@@ -2,6 +2,9 @@ import { LiveCamera } from '../types/liveCamera';
 
 export const LIVE_VIDEO_SOURCE = '/assets/live-demo.mp4';
 
+/** Aclaración de la cámara en vivo real: es una cámara de demostración y puede cortarse. */
+export const LIVE_DEMO_NOTICE = 'Cámara en vivo de demostración · puede cortarse';
+
 const LIVE_POSTER_SVG = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" fill="none">
   <rect width="1280" height="720" fill="#09100c"/>
@@ -75,3 +78,8 @@ export const MOCK_LIVE_CAMERAS: LiveCamera[] = [
     visualVariant: 'clubhouse-turf',
   },
 ];
+
+/** true si el club tiene la cámara en vivo real (la que se sirve por el backend): lleva la aclaración de demostración. */
+export function clubHasRealLiveCamera(clubId: string): boolean {
+  return MOCK_LIVE_CAMERAS.some((camera) => camera.clubId === clubId && !camera.isDemo);
+}

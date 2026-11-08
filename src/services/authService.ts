@@ -230,4 +230,20 @@ export const authService = {
     const { user } = (await res.json()) as { user: ApiUser };
     return toProfile(user);
   },
+
+  /**
+   * Ingresa con el código de 6 dígitos del mail de acceso y abre la sesión del jugador (cookie del backend).
+   * Lanza `AuthError` con código `invalid_code` (equivocado, vencido o usado) o `too_many_code_attempts`.
+   */
+  async confirmCode(email: string, code: string): Promise<UserProfile> {
+    const res = await apiFetch('/api/auth/player/confirm-code', {
+      method: 'POST',
+      body: JSON.stringify({ email: email.trim(), code }),
+    });
+    if (!res.ok) {
+      throw await readError(res, 'No pudimos iniciar la sesión. Probá de nuevo o pedí un código nuevo.');
+    }
+    const { user } = (await res.json()) as { user: ApiUser };
+    return toProfile(user);
+  },
 };

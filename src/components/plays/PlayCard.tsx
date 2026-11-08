@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Download, Edit2, Eye, MoreHorizontal, Play, Share2, Trash2 } from 'lucide-react';
-import { useToast } from '../../context/ToastContext';
+import { Download, Edit2, Eye, Loader2, MoreHorizontal, Play, Share2, Trash2 } from 'lucide-react';
 import { SavedPlay } from '../../types/play';
+import { playDownloadBlock, useClipDownload } from './useClipDownload';
 
 interface PlayCardProps {
   play: SavedPlay;
@@ -22,29 +22,14 @@ export const PlayCard: React.FC<PlayCardProps> = ({
   layout = 'compact',
   indexNumber,
 }) => {
-  const { showToast } = useToast();
-  const [isDownloading, setIsDownloading] = useState(false);
+  const { downloadingId, download } = useClipDownload();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
-  const handleSimulatedDownload = (e?: React.MouseEvent) => {
+  const downloadBlock = playDownloadBlock(play);
+  const isDownloading = downloadingId === play.id;
+  const handleDownload = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    setIsDownloading(true);
-    showToast({
-      type: 'info',
-      title: 'Descarga simulada iniciada',
-      message: `Preparando archivo MP4 para "${play.title}" (20s).`,
-      durationMs: 3500,
-    });
-
-    setTimeout(() => {
-      setIsDownloading(false);
-      showToast({
-        type: 'success',
-        title: 'Descarga simulada completada',
-        message: 'En la versión final, este botón descargará el fragmento en alta calidad.',
-        durationMs: 3000,
-      });
-    }, 1800);
+    void download(play);
   };
 
   // Compact layout (used inside the player PlaysPanel - matches 7_fa7d0ba7.png)
@@ -108,13 +93,13 @@ export const PlayCard: React.FC<PlayCardProps> = ({
 
           <button
             type="button"
-            onClick={handleSimulatedDownload}
-            aria-label="Descargar jugada (simulada)"
-            title="Descargar"
-            disabled={isDownloading}
+            onClick={handleDownload}
+            aria-label={isDownloading ? 'Preparando el fragmento' : 'Descargar fragmento de la jugada'}
+            title={downloadBlock ?? 'Descargar fragmento'}
+            disabled={isDownloading || downloadBlock !== null}
             className="w-8 h-8 rounded-lg bg-black/40 hover:bg-black/70 border border-white/10 text-pitch-muted hover:text-pitch-ink flex items-center justify-center transition-colors cursor-pointer disabled:opacity-50"
           >
-            <Download className="w-4 h-4" aria-hidden="true" />
+            {isDownloading ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Download className="w-4 h-4" aria-hidden="true" />}
           </button>
 
           <button
@@ -185,11 +170,18 @@ export const PlayCard: React.FC<PlayCardProps> = ({
 
           {/* Unboxed clean metadata matching 8_cac3471b.png: "22 K Locos X El Futbol · 5/11" */}
           <div className="mt-1 flex items-center gap-1.5 text-xs text-ink-muted truncate">
-            <span className="font-semibold text-ink">{play.clubName}</span>
-            <span aria-hidden="true">·</span>
-            <span>{play.courtName}</span>
-            <span aria-hidden="true">·</span>
-            <span className="font-mono">{play.dateLabel}</span>
+            {play.recordingUnavailable && play.courtName === '' ? (
+              // Su grabación ya no existe: la jugada se conserva, pero no hay club ni cancha que mostrar.
+              <span className="font-semibold text-ink">Grabación no disponible</span>
+            ) : (
+              <>
+                <span className="font-semibold text-ink">{play.clubName}</span>
+                <span aria-hidden="true">·</span>
+                <span>{play.courtName}</span>
+                <span aria-hidden="true">·</span>
+                <span className="font-mono">{play.dateLabel}</span>
+              </>
+            )}
           </div>
         </div>
 
@@ -208,13 +200,13 @@ export const PlayCard: React.FC<PlayCardProps> = ({
           {/* Download button */}
           <button
             type="button"
-            onClick={handleSimulatedDownload}
-            disabled={isDownloading}
-            aria-label="Descargar jugada (simulada)"
-            title="Descargar video"
+            onClick={handleDownload}
+            disabled={isDownloading || downloadBlock !== null}
+            aria-label={isDownloading ? 'Preparando el fragmento' : 'Descargar fragmento de la jugada'}
+            title={downloadBlock ?? 'Descargar fragmento'}
             className="w-10 h-10 min-w-[40px] rounded-xl border border-line bg-surface hover:bg-surface-muted text-ink flex items-center justify-center transition-colors cursor-pointer disabled:opacity-50 shrink-0"
           >
-            <Download className="w-4 h-4" aria-hidden="true" />
+            {isDownloading ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Download className="w-4 h-4" aria-hidden="true" />}
           </button>
 
           {/* Options Menu button (...) */}
