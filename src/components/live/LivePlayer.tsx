@@ -15,22 +15,10 @@ import {
   VolumeX,
   Wifi,
   WifiOff,
-  Bookmark,
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import { usePlays } from '../../context/PlaysContext';
-import { useToast } from '../../context/ToastContext';
-import { pendingPlayService } from '../../services/pendingPlayService';
 import { LIVE_DEMO_NOTICE } from '../../data/mockLiveCameras';
 import { ROUTES } from '../../routes/paths';
-import { Match } from '../../types/match';
 import { LiveCamera, LiveCameraStatus } from '../../types/liveCamera';
-import { SavedPlay, SavePlayInput } from '../../types/play';
-import { AccessEmailModal } from '../auth/AccessEmailModal';
-import { PlaysPanel } from '../plays/PlaysPanel';
-import { SaveButtonVisualState, SavePlayButton } from '../plays/SavePlayButton';
-import { SavePlaySheet } from '../plays/SavePlaySheet';
-import { ShareModal } from '../sharing/ShareModal';
 import { Button } from '../ui/Button';
 import { CameraSwitcher } from './CameraSwitcher';
 import { LiveStatusBadge } from './LiveStatusBadge';
@@ -71,34 +59,6 @@ export const LivePlayer: React.FC<LivePlayerProps> = ({
   const [isVideoLoading, setIsVideoLoading] = useState<boolean>(true);
   const [autoplayBlocked, setAutoplayBlocked] = useState<boolean>(false);
   const [hasPlaybackError, setHasPlaybackError] = useState<boolean>(forceError);
-
-  // Play saving state (Prompt 5)
-  const { authMode, user } = useAuth();
-  const { savedPlays, savePlay, deletePlay } = usePlays();
-  const { showToast } = useToast();
-
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [activeSharePlay, setActiveSharePlay] = useState<SavedPlay | null>(null);
-  const [isPlaysPanelOpen, setIsPlaysPanelOpen] = useState(false);
-  const [isSaveSheetOpen, setIsSaveSheetOpen] = useState(false);
-  const [isAccessModalOpen, setIsAccessModalOpen] = useState(false);
-  const [saveButtonState, setSaveButtonState] = useState<SaveButtonVisualState>('idle');
-  const [lastSavedPlayId, setLastSavedPlayId] = useState<string | null>(null);
-
-  const [markedMoment, setMarkedMoment] = useState<{
-    timestamp: number;
-    timestampLabel: string;
-    matchId: string;
-    clubName: string;
-    courtName: string;
-    dateLabel: string;
-    timeSlot: string;
-    isLiveMoment?: boolean;
-    thumbnailUrl?: string;
-    videoSrc?: string;
-  } | null>(null);
-
-  const cameraPlays = savedPlays.filter((p) => p.matchId === camera.id || p.isLiveMoment);
 
   const controlsTimeoutRef = useRef<number | null>(null);
 
@@ -263,116 +223,6 @@ export const LivePlayer: React.FC<LivePlayerProps> = ({
     } catch {
       // Ignored if browser rejects
     }
-  };
-
-  // --- LIVE PLAY CAPTURE FLOW (Prompt 5 + Beelup Auth Gate) ---
-  const handleTriggerSavePlay = () => {
-    // Si el usuario no tiene cuenta iniciada (invitado/público), solicitarle crear cuenta para guardar
-    const currentVideoTime = videoRef.current?.currentTime ?? 10;
-    const moment = {
-      timestamp: Math.floor(currentVideoTime),
-      timestampLabel: 'Momento en vivo',
-      matchId: camera.id,
-      clubName: camera.clubName,
-      courtName: camera.courtName,
-      dateLabel: 'En vivo · Ahora',
-      timeSlot: new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
-      isLiveMoment: true,
-      thumbnailUrl: camera.posterUrl,
-      videoSrc: camera.videoUrl,
-    };
-
-    if (authMode === 'guest' || !user) {
-      // El momento marcado queda pendiente en este navegador (30 minutos) y se guarda al ingresar con el link.
-      pendingPlayService.save(moment);
-      setIsAccessModalOpen(true);
-      showToast({
-        type: 'info',
-        title: 'Creá tu cuenta para guardar jugadas',
-        message: 'Acceso gratuito con tu email para guardar clips en vivo de 20s y compartirlos.',
-        durationMs: 4000,
-      });
-      return;
-    }
-
-    setMarkedMoment(moment);
-    setSaveButtonState('marked');
-
-    showToast({
-      type: 'info',
-      title: '¡Momento en vivo marcado!',
-      message: 'Registramos el momento. La transmisión sigue en vivo.',
-      action: {
-        label: 'Deshacer',
-        onClick: () => {
-          if (lastSavedPlayId) {
-            deletePlay(lastSavedPlayId);
-          }
-          setIsSaveSheetOpen(false);
-          setSaveButtonState('idle');
-          showToast({
-            type: 'info',
-            title: 'Jugada deshecha',
-            message: 'El momento en vivo fue cancelado.',
-            durationMs: 2500,
-          });
-        },
-      },
-      durationMs: 5000,
-    });
-
-    setIsSaveSheetOpen(true);
-  };
-
-  const handleSaveConfirmed = (play: SavedPlay) => {
-    setLastSavedPlayId(play.id);
-    setSaveButtonState('saved');
-    setTimeout(() => setSaveButtonState('idle'), 3500);
-  };
-
-  const handleSaveWithDefaultsAndClose = async (input: SavePlayInput) => {
-    try {
-      const play = await savePlay(input);
-      setLastSavedPlayId(play.id);
-      setIsSaveSheetOpen(false);
-      setSaveButtonState('saved');
-      showToast({
-        type: 'success',
-        title: 'Jugada en vivo guardada',
-        message: 'Guardamos 20s de la transmisión. Podés verla en tu lista de jugadas.',
-        durationMs: 4000,
-      });
-      setTimeout(() => setSaveButtonState('idle'), 3500);
-    } catch {
-      setIsSaveSheetOpen(false);
-      setSaveButtonState('error');
-      setTimeout(() => setSaveButtonState('idle'), 3500);
-    }
-  };
-
-  const handlePlaySelected = (play: SavedPlay) => {
-    navigate(ROUTES.PLAY.replace(':playId', play.id));
-  };
-
-  const handleShareSelected = (play: SavedPlay) => {
-    setActiveSharePlay(play);
-    setIsShareModalOpen(true);
-  };
-
-  const synthMatch: Match = {
-    id: camera.id,
-    title: `Transmisión en vivo — ${camera.courtName}`,
-    clubId: camera.clubId,
-    clubName: camera.clubName,
-    courtId: camera.id,
-    courtName: camera.courtName,
-    dayId: 'hoy',
-    dateLabel: 'Hoy · En vivo',
-    timeSlot: 'En vivo',
-    status: 'available',
-    videoSrc: camera.videoUrl,
-    duration: 60,
-    recordedAt: new Date().toISOString(),
   };
 
   const handleMouseMove = () => {
@@ -659,20 +509,6 @@ export const LivePlayer: React.FC<LivePlayerProps> = ({
               </span>
             </div>
 
-            {/* Plays Panel Toggle Button */}
-            <button
-              type="button"
-              onClick={() => setIsPlaysPanelOpen(true)}
-              aria-label={`Ver jugadas en vivo guardadas (${cameraPlays.length})`}
-              className="min-h-[38px] px-3 rounded-lg bg-black/60 hover:bg-black/80 border border-white/15 text-xs font-semibold text-white inline-flex items-center gap-2 transition-colors cursor-pointer"
-            >
-              <Bookmark className="w-4 h-4 text-volt" aria-hidden="true" />
-              <span className="hidden sm:inline">Jugadas</span>
-              <span className="px-1.5 py-0.2 rounded-full bg-volt text-volt-ink text-[11px] font-bold font-mono">
-                {cameraPlays.length}
-              </span>
-            </button>
-
             {hasOtherCameras && (
               <Button
                 variant="darkSecondary"
@@ -699,19 +535,6 @@ export const LivePlayer: React.FC<LivePlayerProps> = ({
           <Play className="w-7 h-7 fill-volt-ink translate-x-0.5" aria-hidden="true" />
         </button>
       )}
-
-      {/* FLOATING ACTION: Prominent Main Save Button (Prompt 5) */}
-      <div
-        className={`absolute bottom-20 sm:bottom-24 left-1/2 -translate-x-1/2 z-30 transition-all duration-300 pointer-events-auto ${
-          controlsVisible ? 'opacity-100 scale-100' : 'opacity-85 scale-95'
-        }`}
-      >
-        <SavePlayButton
-          status={saveButtonState}
-          onClick={handleTriggerSavePlay}
-          className="shadow-2xl"
-        />
-      </div>
 
       {/* BOTTOM CONTROLS OVERLAY (Minimal: play/pause, volume, audio badge, fullscreen) */}
       <div
@@ -809,48 +632,6 @@ export const LivePlayer: React.FC<LivePlayerProps> = ({
           onSelectCamera={onSelectCamera}
         />
       )}
-
-      {/* Save Play Sheet / Bottom Sheet (Prompt 5) */}
-      <SavePlaySheet
-        isOpen={isSaveSheetOpen}
-        momentData={markedMoment}
-        onSaveConfirmed={handleSaveConfirmed}
-        onSaveWithDefaultsAndClose={handleSaveWithDefaultsAndClose}
-        onViewPlay={handlePlaySelected}
-        onSharePlay={handleShareSelected}
-        onClose={() => {
-          setIsSaveSheetOpen(false);
-          setSaveButtonState('idle');
-        }}
-      />
-
-      {/* Plays Panel Sidebar Modal */}
-      <PlaysPanel
-        isOpen={isPlaysPanelOpen}
-        onClose={() => setIsPlaysPanelOpen(false)}
-        onPlaySelected={handlePlaySelected}
-        onShareSelected={handleShareSelected}
-        onTriggerSavePlay={handleTriggerSavePlay}
-        matchId={camera.id}
-      />
-
-      {/* Share Modal */}
-      <ShareModal
-        isOpen={isShareModalOpen}
-        onClose={() => {
-          setIsShareModalOpen(false);
-          setActiveSharePlay(null);
-        }}
-        match={synthMatch}
-        activePlay={activeSharePlay}
-        currentTimestamp={videoRef.current?.currentTime ?? 10}
-      />
-
-      {/* Access Email Modal for Guests */}
-      <AccessEmailModal
-        isOpen={isAccessModalOpen}
-        onClose={() => setIsAccessModalOpen(false)}
-      />
     </div>
   );
 };
