@@ -1,6 +1,6 @@
 import { request } from './clubsApi';
 
-/** Un turno libre: `startsAt` es el instante de inicio (es lo que se manda para reservar) y `time` la hora en Argentina. */
+/** Un turno: `startsAt` es el instante de inicio (es lo que se manda para reservar) y `time` la hora en Argentina. */
 export interface ApiSlot {
   startsAt: string;
   time: string;
@@ -9,7 +9,10 @@ export interface ApiSlot {
 export interface ApiSlotsResponse {
   court: { id: string; name: string; price: number };
   date: string;
+  /** Turnos libres. */
   slots: ApiSlot[];
+  /** Turnos que se ofrecerían pero ya están reservados: solo el horario, sin datos de quien reservó. */
+  booked: ApiSlot[];
 }
 
 /** Datos para reservar. Con sesión de jugador alcanza el turno; un invitado manda nombre y mail (teléfono opcional). */
@@ -45,7 +48,7 @@ export interface ScheduleDay {
   endHour: number;
 }
 
-/** Una reserva en la lista de solo lectura del club. */
+/** Una reserva en la lista del club. */
 export interface ApiBookingListItem {
   id: string;
   startsAt: string;
@@ -107,5 +110,15 @@ export const bookingsApi = {
   async fetchPlatformBookings(clubId: string): Promise<ApiBookingListItem[]> {
     const res = await request(`/api/platform/clubs/${enc(clubId)}/bookings`);
     return ((await res.json()) as { bookings: ApiBookingListItem[] }).bookings;
+  },
+
+  /** Elimina de forma definitiva una reserva del propio club (admin de club): el turno queda libre al instante. */
+  async deleteOwnBooking(bookingId: string): Promise<void> {
+    await request(`/api/club/bookings/${enc(bookingId)}`, { method: 'DELETE' });
+  },
+
+  /** Elimina de forma definitiva una reserva de un club (superadmin): el turno queda libre al instante. */
+  async deletePlatformBooking(clubId: string, bookingId: string): Promise<void> {
+    await request(`/api/platform/clubs/${enc(clubId)}/bookings/${enc(bookingId)}`, { method: 'DELETE' });
   },
 };

@@ -187,7 +187,7 @@ export const ClubAdminPage: React.FC = () => {
           )}
 
           {/* Reservas de las canchas del club (datos reales del backend, solo lectura) */}
-          {activeTab === 'bookings' && <BookingsList load={bookingsApi.fetchOwnBookings} />}
+          {activeTab === 'bookings' && <BookingsList load={bookingsApi.fetchOwnBookings} onDelete={(booking) => bookingsApi.deleteOwnBooking(booking.id)} />}
 
           {/* Alta de jugadores: devuelve un link de acceso para entregar sin depender del mail */}
           {activeTab === 'players' && <CreatePlayerForm create={clubsApi.createPlayer} />}

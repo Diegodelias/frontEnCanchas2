@@ -113,7 +113,11 @@ export const ClubDetail: React.FC<ClubDetailProps> = ({ club, onBack }) => {
       )}
 
       {tab === 'bookings' && (
-        <BookingsList load={() => bookingsApi.fetchPlatformBookings(club.id)} clubLabel={club.name} />
+        <BookingsList
+          load={() => bookingsApi.fetchPlatformBookings(club.id)}
+          onDelete={(booking) => bookingsApi.deletePlatformBooking(club.id, booking.id)}
+          clubLabel={club.name}
+        />
       )}
 
       {tab === 'admins' && <ClubAdminsManager clubId={club.id} clubName={club.name} onCountChange={setAdminsCount} />}

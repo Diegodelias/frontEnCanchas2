@@ -56,7 +56,7 @@ function longDay(date: string): string {
 type SlotsState =
   | { status: 'loading' }
   | { status: 'error'; message: string }
-  | { status: 'ready'; slots: ApiSlot[] };
+  | { status: 'ready'; slots: ApiSlot[]; booked: ApiSlot[] };
 
 interface FormErrors {
   slot?: string;
@@ -115,7 +115,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({ complex, initialSele
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [complex, onClose]);
 
-  // Turnos libres reales de la cancha y el día elegidos.
+  // Turnos reales de la cancha y el día elegidos: los libres y, aparte, los ya reservados.
   useEffect(() => {
     if (!complex || !selectedCourtId) return;
     const seq = ++latestSlots.current;
@@ -124,7 +124,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({ complex, initialSele
       .fetchSlots(selectedCourtId, selectedDate)
       .then((data) => {
         if (seq !== latestSlots.current) return;
-        setSlotsState({ status: 'ready', slots: data.slots });
+        setSlotsState({ status: 'ready', slots: data.slots, booked: data.booked ?? [] });
       })
       .catch((err: unknown) => {
         if (seq !== latestSlots.current) return;
@@ -143,6 +143,15 @@ export const BookingModal: React.FC<BookingModalProps> = ({ complex, initialSele
   const days = useMemo(() => Array.from({ length: DAYS_AHEAD + 1 }, (_, i) => addDays(today, i)), [today]);
 
   const selectedSlot = slotsState.status === 'ready' ? slotsState.slots.find((s) => s.startsAt === selectedStartsAt) : undefined;
+
+  // Libres y reservados juntos, en su lugar horario. Los reservados se muestran pero no se pueden elegir.
+  const gridSlots =
+    slotsState.status === 'ready'
+      ? [
+          ...slotsState.slots.map((slot) => ({ ...slot, booked: false })),
+          ...slotsState.booked.map((slot) => ({ ...slot, booked: true })),
+        ].sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime())
+      : [];
 
   const handleSelectCourt = useCallback((courtId: string) => {
     setSelectedCourtId(courtId);
@@ -407,7 +416,11 @@ export const BookingModal: React.FC<BookingModalProps> = ({ complex, initialSele
 
                 {slotsState.status === 'ready' && slotsState.slots.length === 0 && (
                   <div className="p-4 rounded-lg bg-warning-soft border border-warning/30 text-sm text-ink">
-                    <p className="font-medium">Sin turnos disponibles para {longDay(selectedDate).toLowerCase()}.</p>
+                    <p className="font-medium">
+                      {slotsState.booked.length > 0
+                        ? `Todos los turnos del ${longDay(selectedDate).toLowerCase()} están reservados.`
+                        : `Sin turnos disponibles para ${longDay(selectedDate).toLowerCase()}.`}
+                    </p>
                     {suggestion.status === 'found' ? (
                       <button
                         type="button"
@@ -431,9 +444,29 @@ export const BookingModal: React.FC<BookingModalProps> = ({ complex, initialSele
                   </div>
                 )}
 
-                {slotsState.status === 'ready' && slotsState.slots.length > 0 && (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {slotsState.slots.map((slot) => {
+                {slotsState.status === 'ready' && gridSlots.length > 0 && (
+                  <div className={`grid grid-cols-2 sm:grid-cols-3 gap-2 ${slotsState.slots.length === 0 ? 'mt-3' : ''}`}>
+                    {gridSlots.map((slot) => {
+                      if (slot.booked) {
+                        // Reservado: se ve en su lugar pero no se puede elegir (ni con el mouse ni con el teclado).
+                        return (
+                          <button
+                            key={slot.startsAt}
+                            type="button"
+                            disabled
+                            aria-label={`${slot.time} hs, reservado`}
+                            className="min-h-[48px] px-3 py-2 rounded-lg border border-dashed border-line bg-surface-muted text-left cursor-not-allowed opacity-70"
+                          >
+                            <span className="flex items-center gap-1.5 font-mono text-sm font-semibold tabular-nums text-ink-muted line-through">
+                              <Clock className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                              {slot.time} hs
+                            </span>
+                            <span className="block mt-0.5 font-mono text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                              Reservado
+                            </span>
+                          </button>
+                        );
+                      }
                       const selected = slot.startsAt === selectedStartsAt;
                       return (
                         <button
