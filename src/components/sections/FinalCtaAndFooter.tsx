@@ -60,8 +60,8 @@ export const FinalCtaAndFooter: React.FC<FinalCtaAndFooterProps> = ({
 
       {/* Quiet Footer (Strictly NO location selector) */}
       <footer className="bg-pitch text-pitch-ink dark-focus border-t border-pitch-line">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pb-10 border-b border-pitch-line">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16">
+          <div className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-6 sm:gap-y-8 pb-8 sm:pb-10 border-b border-pitch-line">
             <div>
               <a href="#inicio" aria-label={`Volver arriba — ${siteName}`}>
                 <BrandWordmark tone="dark" />
@@ -118,15 +118,6 @@ export const FinalCtaAndFooter: React.FC<FinalCtaAndFooterProps> = ({
                     onClick={() => onPlaceholderClick('contacto')}
                     className="text-pitch-ink/90 hover:text-volt transition-colors cursor-pointer"
                   >
-                    hola@canchas3.com.ar
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onPlaceholderClick('contacto')}
-                    className="text-pitch-ink/90 hover:text-volt transition-colors cursor-pointer"
-                  >
                     Escribinos
                   </button>
                 </li>
@@ -177,13 +168,8 @@ export const FinalCtaAndFooter: React.FC<FinalCtaAndFooterProps> = ({
               </ul>
             </div>
           </div>
-
-          <div className="pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-pitch-muted">
+          <div className="mt-5 pt-1 text-center text-xs text-pitch-muted">
             <p>© 2026 {siteName}. Todos los derechos reservados.</p>
-            <p>
-              Demostración interactiva sin almacenamiento de datos ni reservas
-              reales.
-            </p>
           </div>
         </div>
       </footer>
