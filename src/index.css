@@ -309,3 +309,31 @@
     transform: none !important;
   }
 }
+
+/* Logo color palette (closed set). Each key has a light and a dark variant; "-on-dark" is always the dark one, for
+   surfaces that are dark in both themes (the footer). Keys must match the backend and src/data/logoPalette.ts. */
+:root {
+  --c3-logo-verde: #156e39;
+  --c3-logo-azul: #1d4ed8;
+  --c3-logo-rojo: #c62828;
+  --c3-logo-naranja: #c2410c;
+  --c3-logo-violeta: #6d28d9;
+  --c3-logo-tinta: #0c1410;
+
+  --c3-logo-verde-on-dark: #22c55e;
+  --c3-logo-azul-on-dark: #60a5fa;
+  --c3-logo-rojo-on-dark: #f87171;
+  --c3-logo-naranja-on-dark: #fb923c;
+  --c3-logo-violeta-on-dark: #a78bfa;
+  --c3-logo-tinta-on-dark: #f2f7f3;
+}
+
+[data-theme='dark'],
+.dark {
+  --c3-logo-verde: var(--c3-logo-verde-on-dark);
+  --c3-logo-azul: var(--c3-logo-azul-on-dark);
+  --c3-logo-rojo: var(--c3-logo-rojo-on-dark);
+  --c3-logo-naranja: var(--c3-logo-naranja-on-dark);
+  --c3-logo-violeta: var(--c3-logo-violeta-on-dark);
+  --c3-logo-tinta: var(--c3-logo-tinta-on-dark);
+}

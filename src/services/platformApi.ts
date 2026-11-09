@@ -1,4 +1,6 @@
 import { ApiCourt, CourtInput, CreatePlayerInput, CreatePlayerResult, request } from './clubsApi';
+import type { LogoColor } from '../data/logoPalette';
+import type { SiteInfo } from './siteApi';
 
 /** Club tal como lo ve el superadmin: con su estado y los conteos de canchas activas y admins vigentes. */
 export interface PlatformClub {
@@ -53,10 +55,13 @@ const json = (body: unknown): RequestInit => ({ body: JSON.stringify(body) });
 
 /** API del panel de la plataforma (`/api/platform/...`), solo para el superadmin con sesión. */
 export const platformApi = {
-  /** Cambia el nombre del sitio (superadmin) y devuelve el nombre guardado, ya sin espacios al borde. */
-  async updateSiteName(name: string): Promise<string> {
-    const res = await request('/api/platform/site', { method: 'PUT', ...json({ name }) });
-    return ((await res.json()) as { name: string }).name;
+  /**
+   * Cambia el nombre del sitio y el color de su logo (superadmin) y devuelve lo guardado: el nombre ya sin espacios al
+   * borde y el color (null es el predeterminado).
+   */
+  async updateSite(input: { name: string; logoColor: LogoColor | null }): Promise<SiteInfo> {
+    const res = await request('/api/platform/site', { method: 'PUT', ...json(input) });
+    return (await res.json()) as SiteInfo;
   },
 
   /** Crea un jugador por mail como superadmin (o saca un link nuevo para uno existente) y devuelve el link. */
