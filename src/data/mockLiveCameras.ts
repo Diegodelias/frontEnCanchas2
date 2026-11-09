@@ -39,8 +39,3 @@ export const MOCK_LIVE_CAMERAS: LiveCamera[] = [
 export function realLiveCameraOf(clubId: string): LiveCamera | null {
   return MOCK_LIVE_CAMERAS.find((camera) => camera.clubId === clubId && !camera.isDemo) ?? null;
 }
-
-/** true si el club tiene la cámara en vivo real: lleva la aclaración de demostración. */
-export function clubHasRealLiveCamera(clubId: string): boolean {
-  return realLiveCameraOf(clubId) !== null;
-}
