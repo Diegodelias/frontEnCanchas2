@@ -1,4 +1,5 @@
 import { SavedPlay, SavePlayInput } from '../types/play';
+import type { PlayerQuotaInfo, PlayPayment, ResolvedPayment } from '../types/quota';
 import { ApiPlay, defaultPlayTitle, toSavedPlay } from './playContext';
 
 /** Error de la API de jugadas con el mensaje listo para mostrar. */
@@ -62,6 +63,24 @@ export const playsApi = {
     });
     const { play } = (await res.json()) as { play: ApiPlay };
     return toSavedPlay(play, userId);
+  },
+
+  /** El uso y el cupo del jugador con sesión y el paquete de jugadas extra vigente. */
+  async quota(): Promise<PlayerQuotaInfo> {
+    const res = await request('/api/plays/quota');
+    return (await res.json()) as PlayerQuotaInfo;
+  },
+
+  /** Inicia la compra (de demostración) del paquete: un intento pendiente con la cantidad y el precio vigentes. */
+  async startPackPurchase(): Promise<PlayPayment> {
+    const res = await request('/api/plays/pack-purchases', { method: 'POST' });
+    return ((await res.json()) as { payment: PlayPayment }).payment;
+  },
+
+  /** Aprueba o rechaza el intento (una sola vez): aprobar suma las jugadas del paquete al cupo. */
+  async resolvePackPurchase(paymentId: string, outcome: 'approve' | 'reject'): Promise<ResolvedPayment> {
+    const res = await request(`/api/plays/pack-purchases/${encodeURIComponent(paymentId)}/${outcome}`, { method: 'POST' });
+    return (await res.json()) as ResolvedPayment;
   },
 
   async update(playId: string, updates: Partial<SavedPlay>, userId?: string): Promise<SavedPlay | null> {

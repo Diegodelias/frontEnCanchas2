@@ -1,5 +1,6 @@
 import { ApiCourt, CourtInput, CreatePlayerInput, CreatePlayerResult, request } from './clubsApi';
 import type { LogoColor } from '../data/logoPalette';
+import type { PlayerQuota, PlaySettings } from '../types/quota';
 import type { SiteInfo } from './siteApi';
 
 /** Club tal como lo ve el superadmin: con su estado y los conteos de canchas activas y admins vigentes. */
@@ -62,6 +63,24 @@ export const platformApi = {
   async updateSite(input: { name: string; logoColor: LogoColor | null }): Promise<SiteInfo> {
     const res = await request('/api/platform/site', { method: 'PUT', ...json(input) });
     return (await res.json()) as SiteInfo;
+  },
+
+  /** El cupo gratuito de jugadas y el paquete extra vigentes (superadmin). */
+  async getPlaySettings(): Promise<PlaySettings> {
+    const res = await request('/api/platform/play-settings');
+    return (await res.json()) as PlaySettings;
+  },
+
+  /** Guarda el cupo y el paquete (superadmin) y devuelve lo vigente. Bajar el cupo no borra jugadas. */
+  async updatePlaySettings(input: PlaySettings): Promise<PlaySettings> {
+    const res = await request('/api/platform/play-settings', { method: 'PUT', ...json(input) });
+    return (await res.json()) as PlaySettings;
+  },
+
+  /** Suma jugadas extra al cupo de un jugador por su mail (superadmin) y devuelve el cupo que le queda. */
+  async grantExtraPlays(input: { email: string; plays: number }): Promise<{ player: { email: string }; quota: PlayerQuota }> {
+    const res = await request('/api/platform/players/extra-plays', { method: 'POST', ...json(input) });
+    return (await res.json()) as { player: { email: string }; quota: PlayerQuota };
   },
 
   /** Crea un jugador por mail como superadmin (o saca un link nuevo para uno existente) y devuelve el link. */

@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useRef, useState } from 'r
 import { pendingPlayService } from '../services/pendingPlayService';
 import { PlaysApiError, playsApi } from '../services/playsApi';
 import { SavedPlay, SavePlayInput } from '../types/play';
+import type { PlayerQuotaInfo } from '../types/quota';
+import { PackPurchaseModal } from '../components/plays/PackPurchaseModal';
 import { useAuth } from './AuthContext';
 
 /** Clave donde la versión anterior guardaba las jugadas en el navegador; ya no se usa y se borra. */
@@ -24,6 +26,11 @@ export interface PlaysContextValue {
   toggleSaveMatch: (matchId: string) => Promise<boolean>;
   isMatchSaved: (matchId: string) => boolean;
   refreshPlays: () => Promise<void>;
+  /** El uso y el cupo del jugador con sesión (y el paquete vigente), o null si no hay sesión de jugador o no se pudo leer. */
+  quota: PlayerQuotaInfo | null;
+  refreshQuota: () => Promise<void>;
+  /** Abre la oferta del paquete de jugadas extra (también se abre sola al llegar al límite). */
+  openPackOffer: () => void;
   /**
    * Guarda en la cuenta, recién ingresada, la jugada que el invitado dejó pendiente en este navegador.
    * No depende del usuario del render: se llama justo después de confirmar el link.
@@ -42,9 +49,13 @@ export const PlaysProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Los partidos guardados siguen fuera del backend y no hay forma de guardar un partido: queda vacío.
   const [savedMatchIds, setSavedMatchIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [quota, setQuota] = useState<PlayerQuotaInfo | null>(null);
+  // La oferta del paquete vive acá para abrirse desde cualquier pantalla donde se guarde una jugada.
+  const [offerOpen, setOfferOpen] = useState(false);
 
   // Solo se aplica la lista del último pedido: una respuesta atrasada no pisa a una más nueva.
   const latestFetch = useRef(0);
+  const latestQuotaFetch = useRef(0);
 
   const isPlayer = user?.role === 'player';
 
@@ -74,14 +85,40 @@ export const PlaysProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  /** Lee el uso y el cupo del jugador; si no se puede, conserva lo último que se sabía. */
+  const refreshQuota = async () => {
+    const seq = ++latestQuotaFetch.current;
+    if (!isPlayer) {
+      setQuota(null);
+      return;
+    }
+    try {
+      const next = await playsApi.quota();
+      if (seq === latestQuotaFetch.current) setQuota(next);
+    } catch {
+      // sin cupo conocido, la oferta igual avisa del límite y se puede borrar una jugada
+    }
+  };
+
   useEffect(() => {
     fetchPlays();
+    void refreshQuota();
   }, [user]);
 
   const savePlay = async (input: SavePlayInput): Promise<SavedPlay> => {
-    const play = await playsApi.create(input, user?.id);
-    setSavedPlays((prev) => [play, ...prev.filter((p) => p.id !== play.id)]);
-    return play;
+    try {
+      const play = await playsApi.create(input, user?.id);
+      setSavedPlays((prev) => [play, ...prev.filter((p) => p.id !== play.id)]);
+      void refreshQuota();
+      return play;
+    } catch (err) {
+      // Al llegar al límite se ofrece el paquete; quien llamó recibe igual el error y cierra lo suyo.
+      if (err instanceof PlaysApiError && err.code === 'plays_limit_reached') {
+        setOfferOpen(true);
+        void refreshQuota();
+      }
+      throw err;
+    }
   };
 
   const updatePlay = async (
@@ -99,6 +136,7 @@ export const PlaysProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const success = await playsApi.remove(playId);
     if (success) {
       setSavedPlays((prev) => prev.filter((p) => p.id !== playId));
+      void refreshQuota();
     }
     return success;
   };
@@ -137,6 +175,8 @@ export const PlaysProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setSavedPlays(plays);
       setIsLoading(false);
     }
+    void refreshQuota();
+    if (result.status === 'limit') setOfferOpen(true);
     return result;
   };
 
@@ -152,10 +192,19 @@ export const PlaysProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         toggleSaveMatch,
         isMatchSaved,
         refreshPlays: fetchPlays,
+        quota,
+        refreshQuota,
+        openPackOffer: () => {
+          void refreshQuota();
+          setOfferOpen(true);
+        },
         resumePendingPlay,
       }}
     >
       {children}
+      {offerOpen && isPlayer && (
+        <PackPurchaseModal quota={quota} onClose={() => setOfferOpen(false)} onResolved={() => void refreshQuota()} />
+      )}
     </PlaysContext.Provider>
   );
 };

@@ -4,6 +4,8 @@ import { Building2 } from 'lucide-react';
 import { Navbar } from '../components/layout/Navbar';
 import { ClubDetail } from '../components/platform/ClubDetail';
 import { ClubsList } from '../components/platform/ClubsList';
+import { GrantExtraPlaysForm } from '../components/platform/GrantExtraPlaysForm';
+import { PlaySettingsForm } from '../components/platform/PlaySettingsForm';
 import { SiteNameForm } from '../components/platform/SiteNameForm';
 import { CreatePlayerForm } from '../components/ui/CreatePlayerForm';
 import { useAuth } from '../context/AuthContext';
@@ -76,7 +78,11 @@ export const PlatformAdminPage: React.FC = () => {
 
           {!selected && <SiteNameForm />}
 
+          {!selected && <PlaySettingsForm />}
+
           {!selected && <CreatePlayerForm create={platformApi.createPlayer} />}
+
+          {!selected && <GrantExtraPlaysForm />}
 
           {selected ? (
             <ClubDetail club={selected} onBack={() => setSelected(null)} />

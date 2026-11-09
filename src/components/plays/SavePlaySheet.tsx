@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { usePlays } from '../../context/PlaysContext';
 import { useToast } from '../../context/ToastContext';
+import { PlaysApiError } from '../../services/playsApi';
 import {
   CaptureMode,
   PlayCategory,
@@ -182,6 +183,12 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
         durationMs: 4000,
       });
     } catch (err: any) {
+      // Al llegar al límite de jugadas el contexto abre la oferta del paquete: no es un problema de conexión.
+      if (err instanceof PlaysApiError && err.code === 'plays_limit_reached') {
+        setProcessingStatus('idle');
+        onClose();
+        return;
+      }
       setProcessingStatus('error');
       setErrorMessage(err?.message || 'No se pudo guardar la jugada');
       showToast({

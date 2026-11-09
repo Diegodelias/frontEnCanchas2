@@ -28,7 +28,7 @@ import { Button } from '../ui/Button';
 export const ProfileView: React.FC = () => {
   const navigate = useNavigate();
   const { user, authMode } = useAuth();
-  const { savedPlays, savedMatchIds, deletePlay, updatePlay, toggleSaveMatch } = usePlays();
+  const { savedPlays, savedMatchIds, deletePlay, updatePlay, toggleSaveMatch, quota, openPackOffer } = usePlays();
   const { showToast } = useToast();
 
   const [activeTab, setActiveTab] = useState<'plays' | 'matches'>('plays');
@@ -242,6 +242,21 @@ export const ProfileView: React.FC = () => {
             <h2 className="font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-ink">
               Mis jugadas
             </h2>
+            {quota && (
+              <div className="flex items-center gap-2.5 shrink-0">
+                <p
+                  className="text-sm font-mono font-semibold text-ink px-3 py-1.5 rounded-lg border border-line bg-surface"
+                  aria-label={`Usaste ${quota.used} de ${quota.total} jugadas`}
+                >
+                  {quota.used} de {quota.total} jugadas
+                </p>
+                {quota.used >= quota.total && (
+                  <Button variant="secondary" size="sm" onClick={openPackOffer}>
+                    Conseguir más
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
 
           {savedPlays.length === 0 ? (
