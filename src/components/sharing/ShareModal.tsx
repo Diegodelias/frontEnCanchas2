@@ -19,6 +19,7 @@ import {
   copyTextToClipboard,
   formatVideoTime,
 } from '../../utils/sharing';
+import { useSite } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
 import { Button } from '../ui/Button';
 
@@ -67,17 +68,20 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   const playTimeFormatted = formatVideoTime(activePlay?.startTime ?? currentTimestamp);
   const playUrl = buildPlayShareUrl(playId);
 
+  const { name: siteName } = useSite();
   const whatsappMatchUrl = buildWhatsAppMatchShareUrl(
     match.title,
     match.clubName,
-    match.id
+    match.id,
+    siteName
   );
 
   const whatsappPlayUrl = buildWhatsAppPlayShareUrl(
     playTitle,
     match.clubName,
     playId,
-    playTimeFormatted
+    playTimeFormatted,
+    siteName
   );
 
   const { showToast } = useToast();

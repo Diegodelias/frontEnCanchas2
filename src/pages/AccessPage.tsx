@@ -4,6 +4,7 @@ import { AlertCircle, CheckCircle2, Mail } from 'lucide-react';
 import { Navbar } from '../components/layout/Navbar';
 import { Button } from '../components/ui/Button';
 import { useAuth } from '../context/AuthContext';
+import { useSite } from '../context/SiteContext';
 import { useAfterPlayerLogin } from '../hooks/useAfterPlayerLogin';
 import { ROUTES } from '../routes/paths';
 import { AuthError } from '../services/authService';
@@ -24,6 +25,7 @@ export const AccessPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { confirmLink, sendMagicLink } = useAuth();
+  const { name: siteName } = useSite();
   const afterPlayerLogin = useAfterPlayerLogin();
   const errorId = useId();
 
@@ -94,7 +96,7 @@ export const AccessPage: React.FC = () => {
                 <span>Acceso sin contraseña</span>
               </div>
               <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink">
-                Ingresá a Canchas3
+                Ingresá a {siteName}
               </h1>
               <p className="mt-2 text-sm text-ink-muted leading-relaxed">
                 Tocá el botón para entrar a tu cuenta y ver tus jugadas.
@@ -108,7 +110,7 @@ export const AccessPage: React.FC = () => {
                 onClick={handleConfirm}
                 className="mt-6"
               >
-                <span>{status.kind === 'confirming' ? 'Ingresando...' : 'Ingresar a Canchas3'}</span>
+                <span>{status.kind === 'confirming' ? 'Ingresando...' : `Ingresar a ${siteName}`}</span>
               </Button>
             </>
           ) : (

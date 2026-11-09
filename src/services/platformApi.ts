@@ -53,6 +53,12 @@ const json = (body: unknown): RequestInit => ({ body: JSON.stringify(body) });
 
 /** API del panel de la plataforma (`/api/platform/...`), solo para el superadmin con sesión. */
 export const platformApi = {
+  /** Cambia el nombre del sitio (superadmin) y devuelve el nombre guardado, ya sin espacios al borde. */
+  async updateSiteName(name: string): Promise<string> {
+    const res = await request('/api/platform/site', { method: 'PUT', ...json({ name }) });
+    return ((await res.json()) as { name: string }).name;
+  },
+
   /** Crea un jugador por mail como superadmin (o saca un link nuevo para uno existente) y devuelve el link. */
   async createPlayer(input: CreatePlayerInput): Promise<CreatePlayerResult> {
     const res = await request('/api/platform/players', { method: 'POST', ...json(input) });

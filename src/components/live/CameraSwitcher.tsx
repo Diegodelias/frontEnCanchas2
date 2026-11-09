@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Camera, Check, MapPin, X } from 'lucide-react';
+import { useSite } from '../../context/SiteContext';
 import { LiveCamera } from '../../types/liveCamera';
 import { LiveStatusBadge } from './LiveStatusBadge';
 
@@ -18,6 +19,7 @@ export const CameraSwitcher: React.FC<CameraSwitcherProps> = ({
   currentCameraId,
   onSelectCamera,
 }) => {
+  const { name: siteName } = useSite();
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -123,7 +125,7 @@ export const CameraSwitcher: React.FC<CameraSwitcherProps> = ({
         {/* Footer info */}
         <div className="mt-6 pt-4 border-t border-pitch-line text-center">
           <p className="text-[11px] font-mono text-pitch-muted">
-            Streaming simulado para evaluación de frontend Canchas3.
+            Streaming simulado para evaluación de frontend {siteName}.
           </p>
         </div>
       </div>

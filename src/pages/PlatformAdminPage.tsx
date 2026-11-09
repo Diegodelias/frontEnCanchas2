@@ -4,8 +4,10 @@ import { Building2 } from 'lucide-react';
 import { Navbar } from '../components/layout/Navbar';
 import { ClubDetail } from '../components/platform/ClubDetail';
 import { ClubsList } from '../components/platform/ClubsList';
+import { SiteNameForm } from '../components/platform/SiteNameForm';
 import { CreatePlayerForm } from '../components/ui/CreatePlayerForm';
 import { useAuth } from '../context/AuthContext';
+import { useSite } from '../context/SiteContext';
 import { useToast } from '../context/ToastContext';
 import { platformApi, PlatformClub } from '../services/platformApi';
 import { ROUTES } from '../routes/paths';
@@ -18,6 +20,7 @@ export const PlatformAdminPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, activeRole, isLoading } = useAuth();
   const { showToast } = useToast();
+  const { name: siteName } = useSite();
 
   const isSuperadmin = activeRole === 'superadmin' && user?.role === 'superadmin';
 
@@ -64,12 +67,14 @@ export const PlatformAdminPage: React.FC = () => {
             </span>
             <h1 className="mt-2 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-ink flex items-center gap-3">
               <Building2 className="w-8 h-8 text-turf shrink-0" aria-hidden="true" />
-              <span>Clubes de Canchas3</span>
+              <span>Clubes de {siteName}</span>
             </h1>
             <p className="mt-1 text-sm text-ink-muted">
               Creá clubes, gestioná sus canchas e invitá a sus administradores.
             </p>
           </div>
+
+          {!selected && <SiteNameForm />}
 
           {!selected && <CreatePlayerForm create={platformApi.createPlayer} />}
 

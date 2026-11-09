@@ -11,6 +11,7 @@ import {
   X,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useSite } from '../../context/SiteContext';
 import { ROUTES } from '../../routes/paths';
 import { LoginAccessModal } from '../modals/LoginAccessModal';
 import { ThemeToggle } from '../theme/ThemeToggle';
@@ -20,6 +21,7 @@ import { Button } from '../ui/Button';
 export const Navbar: React.FC = () => {
   const location = useLocation();
   const { authMode, user, activeRole, logout } = useAuth();
+  const { name: siteName } = useSite();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -34,7 +36,7 @@ export const Navbar: React.FC = () => {
           {/* Zone 1: Brand Wordmark */}
           <Link
             to={ROUTES.HOME}
-            aria-label="Canchas3 Inicio"
+            aria-label={`${siteName} Inicio`}
             className="inline-flex items-center shrink-0 py-1"
           >
             <BrandWordmark tone="light" />

@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Camera, Radio, Sparkles } from 'lucide-react';
 import { Navbar } from '../components/layout/Navbar';
+import { useSite } from '../context/SiteContext';
 import { LiveCourtCard } from '../components/live/LiveCourtCard';
 import { liveCameraService } from '../services/liveCameraService';
 import { LiveCamera } from '../types/liveCamera';
 
 export const LiveCamerasPage: React.FC = () => {
+  const { name: siteName } = useSite();
   const [cameras, setCameras] = useState<LiveCamera[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -54,7 +56,7 @@ export const LiveCamerasPage: React.FC = () => {
             <div className="flex items-center gap-2 text-ink-muted">
               <Sparkles className="w-4 h-4 text-volt-ink shrink-0" aria-hidden="true" />
               <span className="font-medium text-ink">
-                Demostración de streaming simulado para evaluación de frontend Canchas3.
+                Demostración de streaming simulado para evaluación de frontend {siteName}.
               </span>
             </div>
             <span className="font-mono text-ink-muted">

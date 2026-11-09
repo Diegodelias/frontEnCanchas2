@@ -2,6 +2,8 @@
  * Utilidades para compartir partidos y jugadas de Canchas3.
  */
 
+import { DEFAULT_SITE_NAME } from '../services/siteApi';
+
 export function formatVideoTime(seconds: number): string {
   if (isNaN(seconds) || seconds < 0) return '00:00';
   const mins = Math.floor(seconds / 60);
@@ -27,10 +29,11 @@ export function buildPlayShareUrl(playId: string): string {
 export function buildWhatsAppMatchShareUrl(
   matchTitle: string,
   clubName: string,
-  matchId: string
+  matchId: string,
+  siteName: string = DEFAULT_SITE_NAME
 ): string {
   const url = buildMatchShareUrl(matchId);
-  const text = `Mirá nuestro partido en Canchas3 (${clubName} · ${matchTitle}): ${url}`;
+  const text = `Mirá nuestro partido en ${siteName} (${clubName} · ${matchTitle}): ${url}`;
   return `https://wa.me/?text=${encodeURIComponent(text)}`;
 }
 
@@ -38,10 +41,11 @@ export function buildWhatsAppPlayShareUrl(
   playTitle: string,
   clubName: string,
   playId: string,
-  timeFormatted: string
+  timeFormatted: string,
+  siteName: string = DEFAULT_SITE_NAME
 ): string {
   const url = buildPlayShareUrl(playId);
-  const text = `Mirá esta jugada en Canchas3 (${clubName} · ${timeFormatted} hs - "${playTitle}"): ${url}`;
+  const text = `Mirá esta jugada en ${siteName} (${clubName} · ${timeFormatted} hs - "${playTitle}"): ${url}`;
   return `https://wa.me/?text=${encodeURIComponent(text)}`;
 }
 

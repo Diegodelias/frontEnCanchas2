@@ -4,6 +4,7 @@ import { AlertCircle, CheckCircle2, KeyRound, Mail } from 'lucide-react';
 import { Navbar } from '../components/layout/Navbar';
 import { Button } from '../components/ui/Button';
 import { useAuth } from '../context/AuthContext';
+import { useSite } from '../context/SiteContext';
 import { useToast } from '../context/ToastContext';
 import { ROUTES } from '../routes/paths';
 import { AuthError, authService } from '../services/authService';
@@ -39,6 +40,7 @@ export const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ mode = 're
   const errorId = useId();
   const { acceptInvite } = useAuth();
   const { showToast } = useToast();
+  const { name: siteName } = useSite();
   const isInvite = mode === 'invite';
 
   // El identificador se lee una sola vez y se saca de la barra de direcciones, para que no quede en el
@@ -177,7 +179,7 @@ export const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ mode = 're
                 {isInvite
                   ? `${invitation?.adminName ? `Hola ${invitation.adminName}. ` : ''}Te invitaron a administrar ${
                       invitation?.clubName ? invitation.clubName : 'un club'
-                    } en Canchas3. Usá ${MIN_PASSWORD_LENGTH} caracteres o más: con ella vas a ingresar siempre.`
+                    } en ${siteName}. Usá ${MIN_PASSWORD_LENGTH} caracteres o más: con ella vas a ingresar siempre.`
                   : `Usá ${MIN_PASSWORD_LENGTH} caracteres o más. Al cambiarla se cierran las sesiones abiertas de tu cuenta.`}
               </p>
 

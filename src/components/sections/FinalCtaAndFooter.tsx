@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useSite } from '../../context/SiteContext';
 import { NAV_LINKS } from '../../data/landingContent';
 import { BrandWordmark } from '../ui/BrandWordmark';
 import { Button } from '../ui/Button';
@@ -15,6 +16,7 @@ export const FinalCtaAndFooter: React.FC<FinalCtaAndFooterProps> = ({
   onOwnerClick,
   onPlaceholderClick,
 }) => {
+  const { name: siteName } = useSite();
   return (
     <>
       {/* Final Conversion CTA Band */}
@@ -61,7 +63,7 @@ export const FinalCtaAndFooter: React.FC<FinalCtaAndFooterProps> = ({
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pb-10 border-b border-pitch-line">
             <div>
-              <a href="#inicio" aria-label="Volver arriba — Canchas3">
+              <a href="#inicio" aria-label={`Volver arriba — ${siteName}`}>
                 <BrandWordmark tone="dark" />
               </a>
               <p className="mt-3 text-sm text-pitch-muted leading-relaxed max-w-xs">
@@ -177,7 +179,7 @@ export const FinalCtaAndFooter: React.FC<FinalCtaAndFooterProps> = ({
           </div>
 
           <div className="pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-pitch-muted">
-            <p>© 2026 Canchas3. Todos los derechos reservados.</p>
+            <p>© 2026 {siteName}. Todos los derechos reservados.</p>
             <p>
               Demostración interactiva sin almacenamiento de datos ni reservas
               reales.

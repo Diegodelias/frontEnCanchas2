@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { MvpConfigProvider } from './context/MvpConfigContext';
 import { PlaysProvider } from './context/PlaysContext';
+import { SiteProvider } from './context/SiteContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
 import { AccessPage } from './pages/AccessPage';
@@ -19,6 +20,7 @@ import { ROUTES } from './routes/paths';
 export function App() {
   return (
     <ThemeProvider>
+      <SiteProvider>
       <BrowserRouter>
         <AuthProvider>
             <MvpConfigProvider>
@@ -45,6 +47,7 @@ export function App() {
             </MvpConfigProvider>
         </AuthProvider>
       </BrowserRouter>
+      </SiteProvider>
     </ThemeProvider>
   );
 }

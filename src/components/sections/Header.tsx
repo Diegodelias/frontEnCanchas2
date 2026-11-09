@@ -11,6 +11,7 @@ import {
   X,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useSite } from '../../context/SiteContext';
 import { NAV_LINKS } from '../../data/landingContent';
 import { ROUTES } from '../../routes/paths';
 import { CityOption } from '../../types/canchas';
@@ -37,6 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
   const { authMode, user, activeRole, logout } = useAuth();
+  const { name: siteName } = useSite();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -76,7 +78,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Zone 1: Brand Wordmark */}
           <Link
             to="/"
-            aria-label="Canchas3 Inicio"
+            aria-label={`${siteName} Inicio`}
             className="inline-flex items-center shrink-0 py-1"
           >
             <BrandWordmark tone="light" />

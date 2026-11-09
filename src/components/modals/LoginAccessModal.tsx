@@ -2,6 +2,7 @@ import React, { useEffect, useId, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Building2, CheckCircle2, KeyRound, Lock, Mail, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useSite } from '../../context/SiteContext';
 import { useToast } from '../../context/ToastContext';
 import { useRememberedEmail } from '../../hooks/useRememberedEmail';
 import { ROUTES } from '../../routes/paths';
@@ -34,6 +35,7 @@ export const LoginAccessModal: React.FC<LoginAccessModalProps> = ({
   const navigate = useNavigate();
   const { sendMagicLink, loginAdmin } = useAuth();
   const { showToast } = useToast();
+  const { name: siteName } = useSite();
   const errorId = useId();
   const { remembered, reload: reloadRemembered, forget: forgetRemembered } = useRememberedEmail();
 
@@ -343,7 +345,7 @@ export const LoginAccessModal: React.FC<LoginAccessModalProps> = ({
                 <span>Acceso a la plataforma</span>
               </div>
               <h2 id="login-access-title" className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight text-ink">
-                Ingresar a Canchas3
+                Ingresar a {siteName}
               </h2>
               <p className="mt-1 text-xs sm:text-sm text-ink-muted leading-relaxed">
                 Ingresá tu correo y te enviamos un código y un link para entrar. Sin contraseña.

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AlertCircle, Building2, CheckCircle2, X } from 'lucide-react';
+import { useSite } from '../../context/SiteContext';
 import { Button } from '../ui/Button';
 
 interface OwnerInquiryModalProps {
@@ -11,6 +12,7 @@ export const OwnerInquiryModal: React.FC<OwnerInquiryModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  const { name: siteName } = useSite();
   const [complexName, setComplexName] = useState('');
   const [contact, setContact] = useState('');
   const [city, setCity] = useState('Buenos Aires');
@@ -90,7 +92,7 @@ export const OwnerInquiryModal: React.FC<OwnerInquiryModalProps> = ({
           <div>
             <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-turf">
               <Building2 className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-              <span>Sumá tu club a Canchas3</span>
+              <span>Sumá tu club a {siteName}</span>
             </span>
             <h2
               id="owner-modal-title"
@@ -144,7 +146,7 @@ export const OwnerInquiryModal: React.FC<OwnerInquiryModalProps> = ({
             </dl>
 
             <Button variant="primary" fullWidth onClick={onClose}>
-              Volver a Canchas3
+              Volver a {siteName}
             </Button>
           </div>
         ) : (
