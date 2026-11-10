@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { CourtVisualVariant, SportType } from '../../types/canchas';
 
 interface ComplexImagePlaceholderProps {
@@ -17,22 +17,44 @@ export const ComplexImagePlaceholder: React.FC<ComplexImagePlaceholderProps> = (
   variant,
 }) => {
   const [hasImageError, setHasImageError] = useState(false);
+  const [useOriginalImage, setUseOriginalImage] = useState(false);
+  const localName = imageUrl?.match(/^\/assets\/complejos\/([^/?]+)\.jpg$/)?.[1];
+  const imageSrcSet = localName
+    ? `/assets/complejos/responsive/${localName}-640.webp 640w, /assets/complejos/responsive/${localName}-960.webp 960w`
+    : undefined;
+
+  useEffect(() => {
+    setHasImageError(false);
+    setUseOriginalImage(false);
+  }, [imageUrl]);
 
   if (imageUrl && !hasImageError) {
     return (
       <div
-        className="relative w-full aspect-[16/10] overflow-hidden bg-pitch"
+        className="relative w-full aspect-[16/10] overflow-hidden bg-[linear-gradient(135deg,#174b31,#286b44)]"
         role="img"
         aria-label={`Imagen ilustrativa de una cancha de fútbol en ${zone} (${sports.join(', ')})`}
       >
-        <img
-          src={imageUrl}
-          alt=""
-          decoding="async"
-          loading="lazy"
-          onError={() => setHasImageError(true)}
-          className="complex-card-photo w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-        />
+        <picture className="absolute inset-0 block w-full h-full">
+          {imageSrcSet && !useOriginalImage && (
+            <source type="image/webp" srcSet={imageSrcSet}
+              sizes="(max-width: 639px) calc(100vw - 2rem), (max-width: 1023px) calc((100vw - 3.5rem) / 2), 22rem" />
+          )}
+          <img
+            src={imageUrl}
+            alt=""
+            decoding="async"
+            loading="lazy"
+            onError={() => {
+              if (imageSrcSet && !useOriginalImage) {
+                setUseOriginalImage(true);
+              } else {
+                setHasImageError(true);
+              }
+            }}
+            className="complex-card-photo w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+          />
+        </picture>
       </div>
     );
   }
