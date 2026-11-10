@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Building2, CalendarDays, LayoutGrid, Users } from 'lucide-react';
+import { ArrowLeft, Building2, CalendarDays, LayoutGrid, Trash2, Users } from 'lucide-react';
+import { useToast } from '../../context/ToastContext';
 import { bookingsApi } from '../../services/bookingsApi';
 import { ApiCourt } from '../../services/clubsApi';
 import { platformApi, PlatformClub } from '../../services/platformApi';
@@ -23,6 +24,35 @@ export const ClubDetail: React.FC<ClubDetailProps> = ({ club, onBack }) => {
   const [tab, setTab] = useState<'courts' | 'bookings' | 'admins'>('courts');
   // Cantidad de admins vigentes: la informa la pestaña de admins cuando la carga.
   const [adminsCount, setAdminsCount] = useState<number | null>(null);
+
+  // Eliminar el club: una confirmación en el propio detalle que pide escribir el nombre.
+  const { showToast } = useToast();
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [typedName, setTypedName] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const nameMatches = typedName.trim() === club.name;
+
+  const closeDelete = () => {
+    setConfirmingDelete(false);
+    setTypedName('');
+    setDeleteError(null);
+  };
+
+  const handleDelete = async () => {
+    if (deleting || !nameMatches) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await platformApi.deleteClub(club.id);
+      showToast({ title: 'Club eliminado', message: `«${club.name}» se eliminó de forma definitiva.`, type: 'success' });
+      onBack();
+    } catch (err) {
+      // La confirmación queda abierta con el motivo: por ejemplo, que el club tiene reservas o grabaciones.
+      setDeleteError(err instanceof Error ? err.message : 'No pudimos eliminar el club. Probá de nuevo.');
+      setDeleting(false);
+    }
+  };
 
   useEffect(() => {
     const seq = ++latest.current;
@@ -76,6 +106,65 @@ export const ClubDetail: React.FC<ClubDetailProps> = ({ club, onBack }) => {
             Este club está desactivado y no se muestra en el sitio. Sus canchas y sus admins se conservan.
           </p>
         )}
+
+        <div className="mt-4 pt-4 border-t border-line">
+          {confirmingDelete ? (
+            <div role="alertdialog" aria-label={`Confirmar la eliminación de ${club.name}`} className="space-y-3">
+              <p className="text-sm text-ink">
+                ¿Eliminar «{club.name}» de forma definitiva? Se eliminan también sus canchas, sus horarios y sus admins. Solo se puede si el club no
+                tiene reservas ni grabaciones, y no se puede deshacer.
+              </p>
+              <div>
+                <label htmlFor="delete-club-name" className="block text-xs font-semibold text-ink-muted mb-1">
+                  Para confirmar, escribí el nombre del club
+                </label>
+                <input
+                  id="delete-club-name"
+                  type="text"
+                  value={typedName}
+                  onChange={(e) => setTypedName(e.target.value)}
+                  placeholder={club.name}
+                  autoComplete="off"
+                  disabled={deleting}
+                  className="w-full max-w-md min-h-[44px] px-3 rounded-lg border border-line bg-surface text-sm text-ink focus:outline-none focus:ring-2 focus:ring-turf"
+                />
+              </div>
+              {deleteError && (
+                <p role="alert" className="text-sm text-red-600">
+                  {deleteError}
+                </p>
+              )}
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={!nameMatches || deleting}
+                  className="min-h-[44px] inline-flex items-center gap-1.5 px-3 rounded-lg border border-red-600 bg-red-600 text-sm font-semibold text-white hover:opacity-90 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Trash2 className="w-4 h-4" aria-hidden="true" />
+                  <span>{deleting ? 'Eliminando...' : 'Eliminar club'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={closeDelete}
+                  disabled={deleting}
+                  className="min-h-[44px] px-3 rounded-lg border border-line text-sm font-semibold text-ink hover:bg-surface-muted transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setConfirmingDelete(true)}
+              className="min-h-[44px] inline-flex items-center gap-1.5 px-3 rounded-lg border border-line text-sm font-semibold text-red-600 hover:bg-surface-muted transition-colors cursor-pointer"
+            >
+              <Trash2 className="w-4 h-4" aria-hidden="true" />
+              <span>Eliminar club</span>
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center gap-2 border-b border-line overflow-x-auto pb-px">

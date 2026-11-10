@@ -107,6 +107,11 @@ export const platformApi = {
     return ((await res.json()) as { club: PlatformClub }).club;
   },
 
+  /** Elimina un club de forma definitiva. Falla con el mensaje de la API si el club tiene reservas o grabaciones. */
+  async deleteClub(id: string): Promise<void> {
+    await request(`/api/platform/clubs/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  },
+
   async listCourts(clubId: string): Promise<ApiCourt[]> {
     const res = await request(`/api/platform/clubs/${encodeURIComponent(clubId)}/courts`);
     return ((await res.json()) as { courts: ApiCourt[] }).courts;
