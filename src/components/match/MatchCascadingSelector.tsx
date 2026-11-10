@@ -16,6 +16,7 @@ import { matchesService } from '../../services/matchesService';
 import { Match } from '../../types/match';
 import { Button } from '../ui/Button';
 import { useClubsById } from '../../hooks/useClubsById';
+import { readCachedMatches, writeCachedMatches } from '../../utils/playableRecordingsCache';
 
 interface MatchCascadingSelectorProps {
   variant?: 'hero' | 'page';
@@ -48,8 +49,13 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
   const [dayId, setDayId] = useState<string>(initialDayId);
   const [slotId, setSlotId] = useState<string>(initialSlotId);
 
-  const [playableMatches, setPlayableMatches] = useState<Match[]>([]);
+  // La última lista recibida en una visita anterior (si el navegador la guardó): las opciones se arman con ella desde el
+  // primer pintado y se actualizan cuando llega la lista actual.
+  const [cachedMatches] = useState<Match[] | null>(readCachedMatches);
+  const [playableMatches, setPlayableMatches] = useState<Match[]>(cachedMatches ?? []);
+  // true mientras la lista ACTUAL no llegó. Las validaciones que dependen de la lista real esperan a que sea false.
   const [isLoadingRecordings, setIsLoadingRecordings] = useState<boolean>(true);
+  const [hasFreshList, setHasFreshList] = useState<boolean>(false);
   const [recordingsLoadError, setRecordingsLoadError] = useState<boolean>(false);
   const [recordingsLoadAttempt, setRecordingsLoadAttempt] = useState<number>(0);
   const [foundMatch, setFoundMatch] = useState<Match | null>(null);
@@ -72,10 +78,14 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
     matchesService
       .getPlayableMatches()
       .then((matches) => {
-        if (!isCancelled) setPlayableMatches(matches);
+        if (isCancelled) return;
+        setPlayableMatches(matches);
+        setHasFreshList(true);
+        writeCachedMatches(matches);
       })
       .catch(() => {
-        if (!isCancelled) setRecordingsLoadError(true);
+        // Con una lista guardada se sigue usando; sin ninguna, se avisa del error como siempre.
+        if (!isCancelled && cachedMatches === null) setRecordingsLoadError(true);
       })
       .finally(() => {
         if (!isCancelled) setIsLoadingRecordings(false);
@@ -84,7 +94,11 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
     return () => {
       isCancelled = true;
     };
-  }, [recordingsLoadAttempt]);
+  }, [recordingsLoadAttempt, cachedMatches]);
+
+  // Todavía no hay ninguna lista para ofrecer (ni guardada ni recibida): el campo se muestra deshabilitado con un brillo
+  // de carga, sin texto de espera.
+  const showLoadingField = isLoadingRecordings && cachedMatches === null && !hasFreshList;
 
   const availableClubs = useMemo(
     () => Array.from(new Map(playableMatches.map((match) => [match.clubId, match])).values()),
@@ -296,7 +310,7 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
       return;
     }
 
-    if (isLoadingRecordings || recordingsLoadError) return;
+    if (showLoadingField || recordingsLoadError) return;
     if (isCheckingMatch) return;
 
     const submittedSelection = { clubId, courtId, dayId, slotId };
@@ -387,7 +401,7 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
             <select
               id={`selector-club-${variant}`}
               value={clubId}
-              disabled={isLoadingRecordings || recordingsLoadError}
+              disabled={showLoadingField || recordingsLoadError}
               onChange={(e) => handleClubChange(e.target.value)}
               className={`w-full min-h-[48px] appearance-none rounded-xl pl-3.5 pr-9 py-2.5 text-sm font-medium cursor-pointer focus:outline-none transition-all ${
                 isHero
@@ -396,8 +410,8 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
               }`}
             >
               <option value="">
-                {isLoadingRecordings
-                  ? 'Cargando grabaciones…'
+                {showLoadingField
+                  ? 'Elegí un complejo'
                   : recordingsLoadError
                   ? 'No se pudieron cargar los videos'
                   : availableClubs.length === 0
@@ -419,6 +433,9 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
               }`}
               aria-hidden="true"
             />
+            {showLoadingField && (
+              <span aria-hidden="true" className={`field-shimmer ${isHero ? '' : 'field-shimmer--light'}`} />
+            )}
           </div>
         </div>
 
@@ -438,7 +455,7 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
               id={`selector-court-${variant}`}
               value={courtId}
               onChange={(e) => handleCourtChange(e.target.value)}
-              disabled={isLoadingRecordings || recordingsLoadError || !clubId || availableCourts.length === 0}
+              disabled={showLoadingField || recordingsLoadError || !clubId || availableCourts.length === 0}
               className={`w-full min-h-[48px] appearance-none rounded-xl pl-3.5 pr-9 py-2.5 text-sm font-medium cursor-pointer focus:outline-none transition-all ${
                 isHero
                   ? `bg-black/65 hover:bg-black/70 border border-white/25 hover:border-white/35 text-white focus:border-volt focus:ring-1 focus:ring-volt focus-visible:ring-2 focus-visible:ring-volt disabled:bg-black/35 disabled:text-white/80 disabled:border-white/40 disabled:cursor-not-allowed ${heroStepField(2)}`
@@ -483,7 +500,7 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
               id={`selector-day-${variant}`}
               value={dayId}
               onChange={(e) => handleDayChange(e.target.value)}
-              disabled={isLoadingRecordings || recordingsLoadError || !selectedCourt}
+              disabled={showLoadingField || recordingsLoadError || !selectedCourt}
               className={`w-full min-h-[48px] appearance-none rounded-xl pl-3.5 pr-9 py-2.5 text-sm font-medium cursor-pointer focus:outline-none transition-all ${
                 isHero
                   ? `bg-black/65 hover:bg-black/70 border border-white/25 hover:border-white/35 text-white focus:border-volt focus:ring-1 focus:ring-volt focus-visible:ring-2 focus-visible:ring-volt disabled:bg-black/35 disabled:text-white/80 disabled:border-white/40 disabled:cursor-not-allowed ${heroStepField(3)}`
@@ -524,7 +541,7 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
               id={`selector-slot-${variant}`}
               value={slotId}
               onChange={(e) => handleSlotChange(e.target.value)}
-              disabled={isLoadingRecordings || recordingsLoadError || !selectedDay || availableSlots.length === 0}
+              disabled={showLoadingField || recordingsLoadError || !selectedDay || availableSlots.length === 0}
               className={`w-full min-h-[48px] appearance-none rounded-xl pl-3.5 pr-9 py-2.5 text-sm font-mono font-medium cursor-pointer focus:outline-none transition-all ${
                 isHero
                   ? `bg-black/65 hover:bg-black/70 border border-white/25 hover:border-white/35 text-white focus:border-volt focus:ring-1 focus:ring-volt focus-visible:ring-2 focus-visible:ring-volt disabled:font-sans disabled:bg-black/35 disabled:text-white/80 disabled:border-white/40 disabled:cursor-not-allowed ${heroStepField(4)}`
@@ -561,7 +578,7 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
             variant="volt"
             size="lg"
             disabled={
-              isLoadingRecordings ||
+              showLoadingField ||
               recordingsLoadError ||
               isCheckingMatch ||
               (!isHero && !isComplete)
@@ -593,16 +610,6 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
       </div>
 
       {/* Validation or status notifications */}
-      {isLoadingRecordings && (
-        <div
-          role="status"
-          className="mt-3.5 p-3 rounded-lg bg-surface-muted border border-line flex items-center gap-2 text-xs sm:text-sm text-ink font-medium"
-        >
-          <Loader2 className="w-4 h-4 text-turf shrink-0 animate-spin" aria-hidden="true" />
-          <span>Cargando videos disponibles…</span>
-        </div>
-      )}
-
       {!isLoadingRecordings && !recordingsLoadError && playableMatches.length === 0 && (
         <div
           role="status"

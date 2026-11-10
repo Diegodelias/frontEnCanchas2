@@ -159,6 +159,43 @@
   outline-offset: 2px;
 }
 
+/* Brillo suave de un campo mientras llega su lista: solo transform, y estático con movimiento reducido. */
+@keyframes fieldShimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
+.field-shimmer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  pointer-events: none;
+}
+
+.field-shimmer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 14%), transparent);
+  animation: fieldShimmer 1.4s ease-in-out infinite;
+}
+
+.field-shimmer--light::before {
+  background: linear-gradient(90deg, transparent, rgb(0 0 0 / 6%), transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field-shimmer::before {
+    animation: none;
+    background: rgb(255 255 255 / 6%);
+  }
+
+  .field-shimmer--light::before {
+    background: rgb(0 0 0 / 4%);
+  }
+}
+
 .complex-card {
   transition-property: transform, box-shadow, border-color;
 }
