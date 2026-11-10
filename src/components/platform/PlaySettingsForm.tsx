@@ -116,7 +116,7 @@ export const PlaySettingsForm: React.FC = () => {
   };
 
   return (
-    <section className="p-5 sm:p-6 rounded-2xl bg-surface border border-line space-y-4" aria-labelledby={`${baseId}-title`}>
+    <section className="p-4 sm:p-6 rounded-2xl bg-surface border border-line space-y-4" aria-labelledby={`${baseId}-title`}>
       <div>
         <h2 id={`${baseId}-title`} className="font-display text-xl font-bold text-ink flex items-center gap-2">
           <Ticket className="w-5 h-5 text-turf" aria-hidden="true" />
@@ -144,7 +144,7 @@ export const PlaySettingsForm: React.FC = () => {
         </div>
       ) : (
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {field('freeQuota', 'Jugadas gratis por jugador', 'De 0 a 10.000. Con 0 nadie puede guardar sin comprar.')}
             {field('packPlays', 'Jugadas del paquete', 'De 1 a 1.000 jugadas extra por compra.')}
             {field('packPrice', 'Precio del paquete (pesos)', 'Entero, de $1 a $1.000.000, sin centavos.')}

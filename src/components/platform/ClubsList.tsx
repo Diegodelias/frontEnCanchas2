@@ -116,13 +116,13 @@ export const ClubsList: React.FC<ClubsListProps> = ({ query, onQueryChange, page
               : 'Todos los clubes, activos y desactivados.'}
           </p>
         </div>
-        <Button variant="volt" size="sm" onClick={() => setFormClub('new')}>
+        <Button variant="volt" size="sm" className="w-full sm:w-auto" onClick={() => setFormClub('new')}>
           <Plus className="w-4 h-4 shrink-0" aria-hidden="true" />
           <span>Nuevo club</span>
         </Button>
       </div>
 
-      <div className="relative max-w-md">
+      <div className="relative w-full max-w-md">
         <Search className="w-4 h-4 text-ink-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
         <input
           type="search"
@@ -151,8 +151,15 @@ export const ClubsList: React.FC<ClubsListProps> = ({ query, onQueryChange, page
           {query ? `No hay clubes con el nombre «${query}».` : 'Todavía no hay clubes. Creá el primero con «Nuevo club».'}
         </div>
       ) : (
-        <div className={`rounded-xl border border-line bg-surface overflow-x-auto ${status === 'loading' ? 'opacity-60' : ''}`}>
-          <table className="w-full text-left text-xs sm:text-sm">
+        <>
+        <p className="text-xs text-ink-muted sm:hidden">Deslizá la tabla hacia los lados para ver todas las columnas.</p>
+        <div
+          role="region"
+          aria-label="Tabla de clubes; se puede desplazar horizontalmente"
+          tabIndex={0}
+          className={`rounded-xl border border-line bg-surface overflow-x-auto overscroll-x-contain focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf ${status === 'loading' ? 'opacity-60' : ''}`}
+        >
+          <table className="w-full min-w-[700px] text-left text-xs sm:text-sm">
             <thead className="bg-canvas border-b border-line text-ink-muted font-mono uppercase text-[11px]">
               <tr>
                 <th className="py-3 px-4">Club</th>
@@ -197,7 +204,7 @@ export const ClubsList: React.FC<ClubsListProps> = ({ query, onQueryChange, page
                           type="button"
                           onClick={() => handleToggle(club)}
                           disabled={togglingId === club.id}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-turf bg-turf-soft text-xs font-semibold text-turf-ink hover:opacity-90 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="min-h-[44px] inline-flex items-center gap-1.5 px-2.5 rounded-lg border border-turf bg-turf-soft text-xs font-semibold text-turf-ink hover:opacity-90 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <Power className="w-3.5 h-3.5" aria-hidden="true" />
                           <span>{togglingId === club.id ? 'Guardando...' : club.active ? 'Desactivar' : 'Reactivar'}</span>
@@ -206,7 +213,7 @@ export const ClubsList: React.FC<ClubsListProps> = ({ query, onQueryChange, page
                           type="button"
                           onClick={() => setConfirmingId(null)}
                           disabled={togglingId === club.id}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-line text-xs font-semibold text-ink hover:bg-surface-muted transition-colors cursor-pointer disabled:opacity-50"
+                          className="min-h-[44px] inline-flex items-center gap-1.5 px-2.5 rounded-lg border border-line text-xs font-semibold text-ink hover:bg-surface-muted transition-colors cursor-pointer disabled:opacity-50"
                         >
                           Cancelar
                         </button>
@@ -217,7 +224,7 @@ export const ClubsList: React.FC<ClubsListProps> = ({ query, onQueryChange, page
                           type="button"
                           onClick={() => onManage(club)}
                           aria-label={`Gestionar canchas y admins de ${club.name}`}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-turf bg-turf-soft text-xs font-semibold text-turf-ink hover:opacity-90 transition-colors cursor-pointer"
+                          className="min-h-[44px] inline-flex items-center gap-1.5 px-2.5 rounded-lg border border-turf bg-turf-soft text-xs font-semibold text-turf-ink hover:opacity-90 transition-colors cursor-pointer"
                         >
                           <Settings2 className="w-3.5 h-3.5" aria-hidden="true" />
                           <span>Gestionar</span>
@@ -226,7 +233,7 @@ export const ClubsList: React.FC<ClubsListProps> = ({ query, onQueryChange, page
                           type="button"
                           onClick={() => setFormClub(club)}
                           aria-label={`Editar ${club.name}`}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-line text-xs font-semibold text-ink hover:bg-surface-muted transition-colors cursor-pointer"
+                          className="min-h-[44px] inline-flex items-center gap-1.5 px-2.5 rounded-lg border border-line text-xs font-semibold text-ink hover:bg-surface-muted transition-colors cursor-pointer"
                         >
                           <Pencil className="w-3.5 h-3.5" aria-hidden="true" />
                           <span>Editar</span>
@@ -235,7 +242,7 @@ export const ClubsList: React.FC<ClubsListProps> = ({ query, onQueryChange, page
                           type="button"
                           onClick={() => setConfirmingId(club.id)}
                           aria-label={`${club.active ? 'Desactivar' : 'Reactivar'} ${club.name}`}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-line text-xs font-semibold text-ink hover:bg-surface-muted transition-colors cursor-pointer"
+                          className="min-h-[44px] inline-flex items-center gap-1.5 px-2.5 rounded-lg border border-line text-xs font-semibold text-ink hover:bg-surface-muted transition-colors cursor-pointer"
                         >
                           <Power className="w-3.5 h-3.5" aria-hidden="true" />
                           <span>{club.active ? 'Desactivar' : 'Reactivar'}</span>
@@ -248,6 +255,7 @@ export const ClubsList: React.FC<ClubsListProps> = ({ query, onQueryChange, page
             </tbody>
           </table>
         </div>
+        </>
       )}
 
       <Pagination page={page} totalPages={totalPages} onPageChange={onPageChange} label="Páginas de clubes" />

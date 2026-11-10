@@ -47,7 +47,7 @@ export const ClubDetail: React.FC<ClubDetailProps> = ({ club, onBack }) => {
       <button
         type="button"
         onClick={onBack}
-        className="inline-flex items-center gap-1.5 text-sm font-semibold text-turf-ink hover:underline underline-offset-4 cursor-pointer"
+        className="min-h-[44px] inline-flex items-center gap-1.5 text-sm font-semibold text-turf-ink hover:underline underline-offset-4 cursor-pointer"
       >
         <ArrowLeft className="w-4 h-4" aria-hidden="true" />
         <span>Volver a los clubes</span>
@@ -91,7 +91,7 @@ export const ClubDetail: React.FC<ClubDetailProps> = ({ club, onBack }) => {
             type="button"
             onClick={() => setTab(id)}
             aria-pressed={tab === id}
-            className={`pb-3 px-3 text-sm font-semibold transition-colors cursor-pointer border-b-2 flex items-center gap-2 whitespace-nowrap ${
+            className={`min-h-[44px] px-3 text-sm font-semibold transition-colors cursor-pointer border-b-2 flex items-center gap-2 whitespace-nowrap ${
               tab === id ? 'border-turf text-turf-ink' : 'border-transparent text-ink-muted hover:text-ink'
             }`}
           >

@@ -183,7 +183,7 @@ export const ClubAdminsManager: React.FC<ClubAdminsManagerProps> = ({ clubId, cl
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
-        <div className="lg:col-span-2 rounded-xl border border-line bg-surface overflow-x-auto">
+        <div className="lg:col-span-2 min-w-0">
           {status === 'loading' ? (
             <p className="p-6 text-sm text-ink-muted" role="status">
               Cargando los admins...
@@ -201,7 +201,15 @@ export const ClubAdminsManager: React.FC<ClubAdminsManagerProps> = ({ clubId, cl
               Este club todavía no tiene admins. Invitá al primero con el formulario.
             </p>
           ) : (
-            <table className="w-full text-left text-xs sm:text-sm">
+            <>
+            <p className="mb-2 text-xs text-ink-muted sm:hidden">Deslizá la tabla hacia los lados para ver todas las columnas.</p>
+            <div
+              role="region"
+              aria-label="Tabla de administradores; se puede desplazar horizontalmente"
+              tabIndex={0}
+              className="rounded-xl border border-line bg-surface overflow-x-auto overscroll-x-contain focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf"
+            >
+            <table className="w-full min-w-[520px] text-left text-xs sm:text-sm">
               <thead className="bg-canvas border-b border-line text-ink-muted font-mono uppercase text-[11px]">
                 <tr>
                   <th className="py-3 px-4">Admin</th>
@@ -248,7 +256,7 @@ export const ClubAdminsManager: React.FC<ClubAdminsManagerProps> = ({ clubId, cl
                             type="button"
                             onClick={() => handleRemove(admin)}
                             disabled={busyId === admin.id}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-red-600/60 bg-red-600/10 text-xs font-semibold text-red-700 hover:bg-red-600/20 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="min-h-[44px] inline-flex items-center gap-1.5 px-2.5 rounded-lg border border-red-600/60 bg-red-600/10 text-xs font-semibold text-red-700 hover:bg-red-600/20 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <UserMinus className="w-3.5 h-3.5" aria-hidden="true" />
                             <span>{busyId === admin.id ? 'Guardando...' : 'Dar de baja'}</span>
@@ -257,7 +265,7 @@ export const ClubAdminsManager: React.FC<ClubAdminsManagerProps> = ({ clubId, cl
                             type="button"
                             onClick={() => setConfirmingId(null)}
                             disabled={busyId === admin.id}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-line text-xs font-semibold text-ink hover:bg-surface-muted transition-colors cursor-pointer disabled:opacity-50"
+                            className="min-h-[44px] inline-flex items-center gap-1.5 px-2.5 rounded-lg border border-line text-xs font-semibold text-ink hover:bg-surface-muted transition-colors cursor-pointer disabled:opacity-50"
                           >
                             Cancelar
                           </button>
@@ -270,7 +278,7 @@ export const ClubAdminsManager: React.FC<ClubAdminsManagerProps> = ({ clubId, cl
                               onClick={() => handleResend(admin)}
                               disabled={busyId === admin.id}
                               aria-label={`Reenviar la invitación a ${admin.email}`}
-                              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-line text-xs font-semibold text-ink hover:bg-surface-muted transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="min-h-[44px] inline-flex items-center gap-1.5 px-2.5 rounded-lg border border-line text-xs font-semibold text-ink hover:bg-surface-muted transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               <Mail className="w-3.5 h-3.5" aria-hidden="true" />
                               <span>{busyId === admin.id ? 'Enviando...' : 'Reenviar'}</span>
@@ -281,7 +289,7 @@ export const ClubAdminsManager: React.FC<ClubAdminsManagerProps> = ({ clubId, cl
                               type="button"
                               onClick={() => setConfirmingId(admin.id)}
                               aria-label={`Dar de baja a ${admin.name ?? admin.email}`}
-                              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-line text-xs font-semibold text-red-700 hover:bg-red-600/10 transition-colors cursor-pointer"
+                              className="min-h-[44px] inline-flex items-center gap-1.5 px-2.5 rounded-lg border border-line text-xs font-semibold text-red-700 hover:bg-red-600/10 transition-colors cursor-pointer"
                             >
                               <UserMinus className="w-3.5 h-3.5" aria-hidden="true" />
                               <span>Dar de baja</span>
@@ -294,13 +302,15 @@ export const ClubAdminsManager: React.FC<ClubAdminsManagerProps> = ({ clubId, cl
                 ))}
               </tbody>
             </table>
+            </div>
+            </>
           )}
         </div>
 
         <form
           onSubmit={handleInvite}
           noValidate
-          className="p-5 rounded-xl border border-line bg-surface space-y-4"
+          className="p-4 sm:p-5 rounded-xl border border-line bg-surface space-y-4"
           aria-label="Invitar a un admin"
         >
           <h3 className="font-display text-lg font-bold text-ink flex items-center gap-2">

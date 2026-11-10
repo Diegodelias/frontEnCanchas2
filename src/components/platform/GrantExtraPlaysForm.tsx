@@ -55,7 +55,7 @@ export const GrantExtraPlaysForm: React.FC = () => {
   };
 
   return (
-    <section className="p-5 sm:p-6 rounded-2xl bg-surface border border-line space-y-4" aria-labelledby={`${baseId}-title`}>
+    <section className="p-4 sm:p-6 rounded-2xl bg-surface border border-line space-y-4" aria-labelledby={`${baseId}-title`}>
       <div>
         <h2 id={`${baseId}-title`} className="font-display text-xl font-bold text-ink flex items-center gap-2">
           <PlusCircle className="w-5 h-5 text-turf" aria-hidden="true" />
@@ -67,7 +67,7 @@ export const GrantExtraPlaysForm: React.FC = () => {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} noValidate className="grid grid-cols-1 sm:grid-cols-[1fr_10rem_auto] gap-4 sm:items-end">
+      <form onSubmit={handleSubmit} noValidate className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_10rem_auto] gap-4 md:items-end">
         <div>
           <label htmlFor={emailId} className="block text-sm font-semibold text-ink mb-1">
             Mail del jugador
