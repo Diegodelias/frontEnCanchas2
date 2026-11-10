@@ -28,11 +28,11 @@ export const FinalCtaAndFooter: React.FC<FinalCtaAndFooterProps> = ({
                 Armá el próximo partido
               </p>
               <h2 className="mt-2 font-display text-3xl sm:text-5xl font-extrabold tracking-tight text-ink">
-                Elegí horario y salí a jugar
+                Tu partido ya está grabado
               </h2>
               <p className="mt-3 text-sm sm:text-base text-ink-muted leading-relaxed">
-                Consultá canchas libres en complejos cercanos o sumá tu club para
-                recibir reservas ordenadas.
+                Buscá tu partido, mirá la jugada y compartila con tu grupo. ¿Tenés un
+                club? Sumalo y ofrecé las grabaciones a tus jugadores.
               </p>
             </div>
 
@@ -43,7 +43,7 @@ export const FinalCtaAndFooter: React.FC<FinalCtaAndFooterProps> = ({
                 className="w-full sm:w-auto lg:w-full xl:w-auto"
                 onClick={onFindCourtClick}
               >
-                Encontrá tu próxima cancha
+                Ver complejos con grabación
               </Button>
               <Button
                 variant="secondary"

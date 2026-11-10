@@ -15,6 +15,9 @@ export const TestimonialsSection: React.FC = () => {
           <h2 className="mt-2 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-ink">
             Así se vive cada turno
           </h2>
+          <p className="mt-2 text-sm text-ink-muted">
+            Testimonios de ejemplo, mientras sumamos opiniones reales.
+          </p>
         </div>
 
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">

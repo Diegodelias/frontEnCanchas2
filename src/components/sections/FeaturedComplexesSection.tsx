@@ -86,11 +86,10 @@ export const FeaturedComplexesSection: React.FC<
               Complejos destacados · {activeCityName}
             </p>
             <h2 className="mt-2 font-display text-3xl sm:text-5xl font-extrabold tracking-tight text-ink">
-              Elegí cancha cerca tuyo
+              Complejos con grabación
             </h2>
             <p className="mt-2 text-sm sm:text-base text-ink-muted max-w-xl">
-              Explorá clubes disponibles, compará precios por turno y reservá en
-              pocos clics.
+              Mirá dónde grabamos y, si querés, reservá tu turno.
             </p>
           </div>
 

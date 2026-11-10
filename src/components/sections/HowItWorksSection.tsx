@@ -21,7 +21,7 @@ export const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({
               Cómo funciona
             </p>
             <h2 className="mt-2 font-display text-3xl sm:text-5xl font-extrabold tracking-tight text-ink">
-              De la idea a la cancha en tres pasos
+              De tu partido a tu jugada en tres pasos
             </h2>
           </div>
 
@@ -31,7 +31,7 @@ export const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({
             onClick={onPrimaryCta}
             className="self-start md:self-auto"
           >
-            Reservá tu cancha
+            Ver complejos
           </Button>
         </div>
 

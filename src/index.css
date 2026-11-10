@@ -173,14 +173,12 @@
 
 .hero-kicker-enter,
 .hero-title-enter,
-.hero-lead-enter,
-.hero-search-enter {
+.hero-lead-enter {
   animation: heroContentEnter 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .hero-title-enter { animation-delay: 70ms; }
 .hero-lead-enter { animation-delay: 150ms; }
-.hero-search-enter { animation-delay: 230ms; }
 
 .complex-card {
   transition-property: transform, box-shadow, border-color;
@@ -293,8 +291,7 @@
 
   .hero-kicker-enter,
   .hero-title-enter,
-  .hero-lead-enter,
-  .hero-search-enter {
+  .hero-lead-enter {
     animation: none;
     opacity: 1;
     transform: none;

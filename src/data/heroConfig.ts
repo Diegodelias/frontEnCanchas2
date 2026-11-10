@@ -11,50 +11,17 @@
 
 export const HERO_VIDEO_SRC = '/assets/home-bg.mp4';
 
+/** Primer cuadro del video: se ve de fondo hasta que el video entra, y se precarga desde index.html. */
+export const HERO_POSTER_SRC = '/assets/hero-poster.jpg';
+
 export const HERO_VIDEO_PLAYBACK_RATE = 0.78;
 
 export const HERO_COPY = {
   badge: 'Grabaciones HD · Canchas en vivo · Jugadas destacadas',
   headline: 'Encontrá la grabación de tu partido.',
   subtitle:
-    'Elegí complejo, cancha, fecha y horario. Abrí el partido en video HD y guardá tus mejores jugadas para compartirlas.',
+    'Elegí tu cancha y horario, mirá el partido en HD y guardá tus mejores jugadas para compartirlas.',
   primaryCta: 'Buscar mi partido grabado',
   secondaryCta: 'Mirar canchas en vivo',
   tertiaryCta: 'Reservar una cancha',
 };
-
-/**
- * Genera dinámicamente un póster SVG usando los tokens CSS activos del tema.
- */
-export function buildHeroPosterDataUri(): string {
-  if (typeof window === 'undefined' || typeof document === 'undefined') {
-    return '';
-  }
-
-  const styles = getComputedStyle(document.documentElement);
-  const bg = styles.getPropertyValue('--c3-pitch').trim() || 'currentColor';
-  const mid = styles.getPropertyValue('--c3-pitch-elevated').trim() || 'currentColor';
-  const accent = styles.getPropertyValue('--c3-volt').trim() || 'currentColor';
-
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" fill="none">
-      <defs>
-        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="${bg}"/>
-          <stop offset="55%" stop-color="${mid}"/>
-          <stop offset="100%" stop-color="${bg}"/>
-        </linearGradient>
-      </defs>
-      <rect width="1600" height="900" fill="url(#sky)"/>
-      <g stroke="${accent}" stroke-opacity="0.16" stroke-width="2">
-        <rect x="220" y="180" width="1160" height="580" rx="8"/>
-        <line x1="800" y1="180" x2="800" y2="760"/>
-        <circle cx="800" cy="470" r="110"/>
-        <rect x="220" y="310" width="170" height="320"/>
-        <rect x="1210" y="310" width="170" height="320"/>
-      </g>
-    </svg>
-  `.trim();
-
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
-}

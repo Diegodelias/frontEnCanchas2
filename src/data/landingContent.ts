@@ -122,7 +122,7 @@ export const EXAMPLE_TESTIMONIALS: TestimonialItem[] = [
   {
     id: 'testimonio-1',
     quote:
-      'Antes perdíamos media hora escribiendo a tres clubes para ver si quedaba una de cinco. Acá elegimos el horario y listo.',
+      'Elegimos el complejo y el horario en el que jugamos y ahí estaba el video del partido, sin camarógrafo ni nada. Fue ver el gol de nuevo y no parar de reírnos.',
     authorName: 'Martín Echeverría',
     authorRole: 'Organizador de partido semanal',
     sportContext: 'Fútbol 5 · Palermo',
@@ -130,7 +130,7 @@ export const EXAMPLE_TESTIMONIALS: TestimonialItem[] = [
   {
     id: 'testimonio-2',
     quote:
-      'Me sirve un montón ver el precio, el tipo de césped y si la cancha es techada antes de reservar con el grupo.',
+      'Marqué mi atajada, recorté los segundos y la mandé al grupo de WhatsApp en un toque. Se ve bien, en HD, y todos pudieron mirarla desde el celular.',
     authorName: 'Lucía Ferreyra',
     authorRole: 'Jugadora de torneo amateur',
     sportContext: 'Fútbol 7 · Belgrano',
@@ -138,14 +138,26 @@ export const EXAMPLE_TESTIMONIALS: TestimonialItem[] = [
   {
     id: 'testimonio-3',
     quote:
-      'Tener todas las canchas ordenadas por horario nos ahorra idas y vueltas por teléfono en los momentos de mayor demanda.',
-    authorName: 'Federico Quiroga',
-    authorRole: 'Encargado de complejo',
-    sportContext: 'Complejo de fútbol · Villa Crespo',
+      'Siempre discutíamos si la pelota había entrado o no. Ahora abrimos el partido, vemos la jugada y se terminó la discusión.',
+    authorName: 'Nicolás Paredes',
+    authorRole: 'Jugador de los jueves',
+    sportContext: 'Fútbol 5 · Villa Crespo',
   },
 ];
 
 export const FAQ_ITEMS: FaqItem[] = [
+  {
+    id: 'ver-video',
+    question: '¿Cómo veo el video de mi partido?',
+    answer:
+      'Elegí el complejo, la cancha, el día y el horario en el que jugaste desde el buscador de arriba y abrí el partido en video HD. Es el video de las cámaras instaladas en el complejo, sin camarógrafo.',
+  },
+  {
+    id: 'guardar-compartir-jugada',
+    question: '¿Cómo guardo y comparto una jugada?',
+    answer:
+      'Mientras mirás el partido, marcá la jugada: recortás unos 20 segundos y los descargás o los compartís por WhatsApp o Instagram. Para guardarla en tu perfil tenés que ingresar con tu mail.',
+  },
   {
     id: 'como-reservar',
     question: '¿Cómo hago para reservar una cancha en Canchas3?',
