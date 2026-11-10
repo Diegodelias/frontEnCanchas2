@@ -94,20 +94,11 @@ export const LandingPage: React.FC = () => {
     }
   }, [location.hash]);
 
-  const handleCityChange = (nextCityId: string) => {
-    setSelectedCityId(nextCityId);
-    setActiveSearch(null);
-    setSportFilter('Todos');
-    setPage(1);
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-canvas text-ink">
       {/* 1. Header */}
       <AppHeader
-        cities={CITIES}
-        selectedCityId={selectedCityId}
-        onSelectCity={handleCityChange}
+        presentation="public"
         sectionLinks={[
           { label: 'Complejos', href: '#complejos' },
           { label: 'Para complejos', href: '#para-complejos' },

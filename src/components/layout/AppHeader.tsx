@@ -36,6 +36,8 @@ export interface AppHeaderSectionLink {
 }
 
 interface AppHeaderProps {
+  /** Tratamiento visual: las páginas públicas pueden diferir; la lógica sigue compartida. */
+  presentation?: 'public' | 'admin';
   cities?: CityOption[];
   selectedCityId?: string;
   onSelectCity?: (cityId: string) => void;
@@ -113,6 +115,7 @@ function useMenuButton() {
  * Lo que varía entre superficies llega por props (selector de ciudad, links de sección, CTA).
  */
 export const AppHeader: React.FC<AppHeaderProps> = ({
+  presentation = 'admin',
   cities,
   selectedCityId,
   onSelectCity,
@@ -128,6 +131,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [loginView, setLoginView] = useState<LoginView>('player');
   const accountMenu = useMenuButton();
+  const isPublicPresentation = presentation === 'public';
 
   const showCitySelector = Boolean(cities && selectedCityId && onSelectCity);
 
@@ -152,9 +156,32 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   };
 
   const navLinkClass = (path: string) =>
-    `inline-flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 py-1 rounded-sm ${FOCUS_RING} ${
-      isSectionActive(location.pathname, path) ? 'text-ink font-semibold' : 'hover:text-ink'
+    `inline-flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 ${
+      isPublicPresentation ? 'px-3 py-2 rounded-lg' : 'py-1 rounded-sm'
+    } ${FOCUS_RING} ${
+      isSectionActive(location.pathname, path)
+        ? isPublicPresentation
+          ? 'bg-surface-muted text-ink font-semibold'
+          : 'text-ink font-semibold'
+        : isPublicPresentation
+          ? 'hover:bg-surface-muted hover:text-ink'
+          : 'hover:text-ink'
     }`;
+
+  const renderCitySelector = () => showCitySelector ? (
+    <div className="relative inline-flex items-center text-ink shrink-0">
+      <MapPin className="w-4 h-4 text-turf pointer-events-none shrink-0" aria-hidden="true" />
+      <select
+        aria-label="Ciudad"
+        value={selectedCityId}
+        onChange={(e) => onSelectCity?.(e.target.value)}
+        className={`appearance-none bg-transparent pl-1.5 pr-6 py-1.5 text-sm font-semibold text-ink cursor-pointer whitespace-nowrap rounded-sm ${FOCUS_RING}`}
+      >
+        {cities!.map((city) => <option key={city.id} value={city.id}>{city.name}</option>)}
+      </select>
+      <ChevronDown className="w-3.5 h-3.5 text-ink-muted pointer-events-none -ml-4 shrink-0" aria-hidden="true" />
+    </div>
+  ) : null;
 
   const rolePanel =
     activeRole === 'club_admin'
@@ -190,20 +217,23 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   return (
     <>
       <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur-md border-b border-line">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-          {/* Zone 1: Brand Wordmark */}
-          <Link
-            to={ROUTES.HOME}
-            aria-label={`${siteName} Inicio`}
-            className={`inline-flex items-center shrink-0 py-1 rounded-sm ${FOCUS_RING}`}
-          >
-            <BrandWordmark tone="light" />
-          </Link>
+        <div className={`max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between ${isPublicPresentation ? 'gap-2 lg:gap-4' : 'gap-4'}`}>
+          {/* Marca y selector de ciudad forman el grupo izquierdo en la presentación pública. */}
+          <div className="flex items-center gap-2 lg:gap-4 shrink-0">
+            <Link
+              to={ROUTES.HOME}
+              aria-label={`${siteName} Inicio`}
+              className={`inline-flex items-center shrink-0 py-1 rounded-sm ${FOCUS_RING}`}
+            >
+              <BrandWordmark tone="light" />
+            </Link>
+             {isPublicPresentation && showCitySelector && <div className="hidden md:block">{renderCitySelector()}</div>}
+          </div>
 
           {/* Zone 2: Navigation Links */}
           <nav
             aria-label="Navegación del sitio"
-            className="hidden md:flex items-center gap-6 text-sm font-medium text-ink-muted"
+            className={`hidden ${isPublicPresentation ? 'xl:flex' : 'md:flex'} items-center text-sm font-medium text-ink-muted ${isPublicPresentation ? 'gap-1 lg:gap-2' : 'gap-6'}`}
           >
             <Link
               to={ROUTES.LIVE}
@@ -218,7 +248,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               <a
                 key={item.href}
                 href={item.href}
-                className={`inline-flex items-center transition-colors whitespace-nowrap shrink-0 py-1 rounded-sm hover:text-ink ${FOCUS_RING}`}
+                aria-current={location.hash === item.href ? 'location' : undefined}
+                className={`inline-flex items-center transition-colors whitespace-nowrap shrink-0 ${isPublicPresentation ? 'px-3 py-2 rounded-lg' : 'py-1 rounded-sm'} ${FOCUS_RING} ${location.hash === item.href ? 'bg-surface-muted text-ink font-semibold' : isPublicPresentation ? 'hover:bg-surface-muted hover:text-ink' : 'hover:text-ink'}`}
               >
                 {item.label}
               </a>
@@ -246,31 +277,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               </Link>
             )}
 
-            {showCitySelector && (
+            {showCitySelector && !isPublicPresentation && (
               <>
                 <span className="h-4 w-px bg-line shrink-0" aria-hidden="true" />
-                <div className="relative inline-flex items-center text-ink shrink-0">
-                  <MapPin
-                    className="w-4 h-4 text-turf pointer-events-none shrink-0"
-                    aria-hidden="true"
-                  />
-                  <select
-                    aria-label="Ciudad"
-                    value={selectedCityId}
-                    onChange={(e) => onSelectCity?.(e.target.value)}
-                    className={`appearance-none bg-transparent pl-1.5 pr-6 py-1.5 text-sm font-semibold text-ink cursor-pointer whitespace-nowrap rounded-sm ${FOCUS_RING}`}
-                  >
-                    {cities!.map((city) => (
-                      <option key={city.id} value={city.id}>
-                        {city.name}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown
-                    className="w-3.5 h-3.5 text-ink-muted pointer-events-none -ml-4 shrink-0"
-                    aria-hidden="true"
-                  />
-                </div>
+                {renderCitySelector()}
               </>
             )}
           </nav>
@@ -279,16 +289,16 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
             {/* If logged in: User Menu */}
             {authMode === 'registered' && user ? (
-              <div className="relative hidden md:block">
+              <div className={`relative hidden ${isPublicPresentation ? 'xl:block' : 'md:block'}`}>
                 <button
                   ref={accountMenu.buttonRef}
                   type="button"
                   onClick={() => accountMenu.setOpen((prev) => !prev)}
                   aria-haspopup="menu"
                   aria-expanded={accountMenu.open}
-                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-line bg-canvas hover:bg-surface-muted text-xs font-semibold text-ink transition-colors cursor-pointer self-center ${FOCUS_RING}`}
+                  className={`inline-flex items-center gap-2 px-3 py-1.5 border border-line bg-canvas hover:bg-surface-muted text-xs font-semibold text-ink transition-colors cursor-pointer self-center ${isPublicPresentation ? 'rounded-full' : 'rounded-lg'} ${FOCUS_RING}`}
                 >
-                  <span className="w-6 h-6 rounded-md bg-pitch text-volt font-bold flex items-center justify-center text-[11px]">
+                  <span className={`w-6 h-6 bg-pitch text-volt font-bold flex items-center justify-center text-[11px] ${isPublicPresentation ? 'rounded-full' : 'rounded-md'}`}>
                     {user.avatar || 'U'}
                   </span>
                   <span>{user.name.split(' ')[0]}</span>
@@ -355,7 +365,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               <button
                 type="button"
                 onClick={handleOpenLogin}
-                className={`hidden md:inline-flex items-center justify-center h-10 px-3.5 text-sm font-semibold text-ink hover:text-turf transition-colors duration-150 whitespace-nowrap shrink-0 cursor-pointer self-center rounded-lg ${FOCUS_RING}`}
+                className={`hidden ${isPublicPresentation ? 'xl:inline-flex' : 'md:inline-flex'} items-center justify-center h-10 px-3.5 text-sm font-semibold text-ink hover:text-turf transition-colors duration-150 whitespace-nowrap shrink-0 cursor-pointer self-center rounded-lg ${FOCUS_RING}`}
               >
                 Ingresar
               </button>
@@ -374,7 +384,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-nav-drawer"
               aria-label={mobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
-              className={`md:hidden w-11 h-11 min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-lg border border-line text-ink hover:bg-surface-muted transition-colors cursor-pointer shrink-0 self-center my-auto ${FOCUS_RING}`}
+              className={`${isPublicPresentation ? 'xl:hidden' : 'md:hidden'} w-11 h-11 min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-lg border border-line text-ink hover:bg-surface-muted transition-colors cursor-pointer shrink-0 self-center my-auto ${FOCUS_RING}`}
             >
               {mobileMenuOpen ? (
                 <X className="w-5 h-5" aria-hidden="true" />
@@ -389,7 +399,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         {mobileMenuOpen && (
           <div
             id="mobile-nav-drawer"
-            className="md:hidden border-t border-line bg-surface px-4 py-4 space-y-3"
+            className={`${isPublicPresentation ? 'xl:hidden' : 'md:hidden'} border-t border-line bg-surface px-4 py-4 space-y-3`}
           >
             {showCitySelector && (
               <div className="flex items-center justify-between gap-3 pb-3 border-b border-line">
