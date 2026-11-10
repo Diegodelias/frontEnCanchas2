@@ -22,7 +22,7 @@ export const ProfilePage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-canvas text-ink">
-      <AppHeader presentation="public" cta={{ label: 'Reservá tu cancha', compactLabel: 'Reservá', to: '/#complejos' }} />
+      <AppHeader presentation="profile" cta={{ label: 'Reservá tu cancha', compactLabel: 'Reservá', to: '/#complejos' }} />
       <main className="flex-1">
         <ProfileView />
       </main>

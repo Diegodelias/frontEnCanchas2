@@ -36,8 +36,8 @@ export interface AppHeaderSectionLink {
 }
 
 interface AppHeaderProps {
-  /** Tratamiento visual: las páginas públicas pueden diferir; la lógica sigue compartida. */
-  presentation?: 'public' | 'admin';
+  /** Tratamiento visual por superficie; la lógica de navegación y cuenta sigue compartida. */
+  presentation?: 'public' | 'profile' | 'admin';
   cities?: CityOption[];
   selectedCityId?: string;
   onSelectCity?: (cityId: string) => void;
@@ -132,6 +132,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   const [loginView, setLoginView] = useState<LoginView>('player');
   const accountMenu = useMenuButton();
   const isPublicPresentation = presentation === 'public';
+  const isProfilePresentation = presentation === 'profile';
+  const usesPillNavigation = isPublicPresentation || isProfilePresentation;
 
   const showCitySelector = Boolean(cities && selectedCityId && onSelectCity);
 
@@ -156,14 +158,14 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   };
 
   const navLinkClass = (path: string) =>
-    `inline-flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 ${
-      isPublicPresentation ? 'px-3 py-2 rounded-lg' : 'py-1 rounded-sm'
+    `inline-flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 ${isProfilePresentation ? 'justify-start text-left' : ''} ${
+      usesPillNavigation ? 'px-3 py-2 rounded-lg' : 'py-1 rounded-sm'
     } ${FOCUS_RING} ${
       isSectionActive(location.pathname, path)
-        ? isPublicPresentation
+        ? usesPillNavigation
           ? 'bg-surface-muted text-ink font-semibold'
           : 'text-ink font-semibold'
-        : isPublicPresentation
+        : usesPillNavigation
           ? 'hover:bg-surface-muted hover:text-ink'
           : 'hover:text-ink'
     }`;
@@ -217,7 +219,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   return (
     <>
       <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur-md border-b border-line">
-        <div className={`max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between ${isPublicPresentation ? 'gap-2 lg:gap-4' : 'gap-4'}`}>
+        <div className={`max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center ${isProfilePresentation ? 'justify-start gap-0' : `justify-between ${isPublicPresentation ? 'gap-2 lg:gap-4' : 'gap-4'}`}`}>
           {/* Marca y selector de ciudad forman el grupo izquierdo en la presentación pública. */}
           <div className="flex items-center gap-2 lg:gap-4 shrink-0">
             <Link
@@ -233,7 +235,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           {/* Zone 2: Navigation Links */}
           <nav
             aria-label="Navegación del sitio"
-            className={`hidden ${isPublicPresentation ? 'xl:flex' : 'md:flex'} items-center text-sm font-medium text-ink-muted ${isPublicPresentation ? 'gap-1 lg:gap-2' : 'gap-6'}`}
+            className={`${isProfilePresentation ? 'hidden' : `hidden ${isPublicPresentation ? 'xl:flex' : 'md:flex'}`} items-center text-sm font-medium text-ink-muted ${usesPillNavigation ? 'gap-1 lg:gap-2' : 'gap-6'}`}
           >
             <Link
               to={ROUTES.LIVE}
@@ -286,19 +288,19 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           </nav>
 
           {/* Zone 3: Actions & User Menu */}
-          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+          <div className={`flex items-center gap-2 sm:gap-2.5 shrink-0 ${isProfilePresentation ? 'ml-auto' : ''}`}>
             {/* If logged in: User Menu */}
             {authMode === 'registered' && user ? (
-              <div className={`relative hidden ${isPublicPresentation ? 'xl:block' : 'md:block'}`}>
+              <div className={`relative hidden ${isPublicPresentation ? 'xl:block' : isProfilePresentation ? 'lg:block' : 'md:block'}`}>
                 <button
                   ref={accountMenu.buttonRef}
                   type="button"
                   onClick={() => accountMenu.setOpen((prev) => !prev)}
                   aria-haspopup="menu"
                   aria-expanded={accountMenu.open}
-                  className={`inline-flex items-center gap-2 px-3 py-1.5 border border-line bg-canvas hover:bg-surface-muted text-xs font-semibold text-ink transition-colors cursor-pointer self-center ${isPublicPresentation ? 'rounded-full' : 'rounded-lg'} ${FOCUS_RING}`}
+                  className={`inline-flex items-center gap-2 px-3 py-1.5 border border-line bg-canvas hover:bg-surface-muted text-xs font-semibold text-ink transition-colors cursor-pointer self-center ${usesPillNavigation ? 'rounded-full' : 'rounded-lg'} ${FOCUS_RING}`}
                 >
-                  <span className={`w-6 h-6 bg-pitch text-volt font-bold flex items-center justify-center text-[11px] ${isPublicPresentation ? 'rounded-full' : 'rounded-md'}`}>
+                  <span className={`w-6 h-6 bg-pitch text-volt font-bold flex items-center justify-center text-[11px] ${usesPillNavigation ? 'rounded-full' : 'rounded-md'}`}>
                     {user.avatar || 'U'}
                   </span>
                   <span>{user.name.split(' ')[0]}</span>
@@ -365,13 +367,13 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               <button
                 type="button"
                 onClick={handleOpenLogin}
-                className={`hidden ${isPublicPresentation ? 'xl:inline-flex' : 'md:inline-flex'} items-center justify-center h-10 px-3.5 text-sm font-semibold text-ink hover:text-turf transition-colors duration-150 whitespace-nowrap shrink-0 cursor-pointer self-center rounded-lg ${FOCUS_RING}`}
+                className={`hidden ${isPublicPresentation ? 'xl:inline-flex' : isProfilePresentation ? 'lg:inline-flex' : 'md:inline-flex'} items-center justify-center h-10 px-3.5 text-sm font-semibold text-ink hover:text-turf transition-colors duration-150 whitespace-nowrap shrink-0 cursor-pointer self-center rounded-lg ${FOCUS_RING}`}
               >
                 Ingresar
               </button>
             )}
 
-            {renderCta(false)}
+            {!isProfilePresentation && renderCta(false)}
 
             {/* Única instancia de ThemeToggle en el documento: siempre vive en la fila de la barra. */}
             <div className="theme-toggle-container flex items-center justify-center shrink-0 self-center my-auto sm:ml-0.5">
@@ -384,7 +386,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-nav-drawer"
               aria-label={mobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
-              className={`${isPublicPresentation ? 'xl:hidden' : 'md:hidden'} w-11 h-11 min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-lg border border-line text-ink hover:bg-surface-muted transition-colors cursor-pointer shrink-0 self-center my-auto ${FOCUS_RING}`}
+              className={`${isPublicPresentation ? 'xl:hidden' : isProfilePresentation ? 'lg:hidden' : 'md:hidden'} w-11 h-11 min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-lg border border-line text-ink hover:bg-surface-muted transition-colors cursor-pointer shrink-0 self-center my-auto ${FOCUS_RING}`}
             >
               {mobileMenuOpen ? (
                 <X className="w-5 h-5" aria-hidden="true" />
@@ -399,7 +401,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         {mobileMenuOpen && (
           <div
             id="mobile-nav-drawer"
-            className={`${isPublicPresentation ? 'xl:hidden' : 'md:hidden'} border-t border-line bg-surface px-4 py-4 space-y-3`}
+            className={`${isPublicPresentation ? 'xl:hidden' : isProfilePresentation ? 'lg:hidden' : 'md:hidden'} border-t border-line bg-surface px-4 py-4 space-y-3`}
           >
             {showCitySelector && (
               <div className="flex items-center justify-between gap-3 pb-3 border-b border-line">
@@ -428,7 +430,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               </div>
             )}
 
-            <nav aria-label="Navegación móvil" className="flex flex-col space-y-1">
+            <nav aria-label="Navegación móvil" className={`flex flex-col space-y-1 ${isProfilePresentation ? 'hidden' : ''}`}>
               <Link
                 to={ROUTES.LIVE}
                 onClick={() => setMobileMenuOpen(false)}
@@ -475,7 +477,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             </nav>
 
             <div className="pt-2 flex flex-col gap-2">
-              {cta && (
+              {cta && !isProfilePresentation && (
                 <span onClick={() => setMobileMenuOpen(false)}>{renderCta(true)}</span>
               )}
 
