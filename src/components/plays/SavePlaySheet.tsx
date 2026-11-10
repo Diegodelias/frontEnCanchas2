@@ -227,12 +227,14 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
               <span>{momentData.isLiveMoment ? 'Momento en vivo' : `Momento ${momentData.timestampLabel}`}</span>
             </div>
             <h2 id="save-sheet-title" className="font-display text-2xl font-bold tracking-tight text-ink leading-tight">
-              {processingStatus === 'ready' ? '¡Jugada guardada con éxito!' : 'Grabá tu jugada'}
+              {processingStatus === 'ready' ? '¡Jugada guardada con éxito!' : 'Guardá esta jugada'}
             </h2>
             <p className="text-xs sm:text-sm text-ink-muted mt-0.5">
               {processingStatus === 'ready'
                 ? 'Elegí qué querés hacer ahora o continuá viendo el video.'
-                : 'Marcá el momento y elegí cómo querés guardarlo.'}
+                : momentData.isLiveMoment
+                ? 'Se guarda el momento en vivo que marcaste.'
+                : 'Se guarda un fragmento del video alrededor del momento que marcaste.'}
             </p>
           </div>
 
@@ -331,17 +333,23 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
         {/* Form View (Idle state before clicking save) */}
         {processingStatus === 'idle' && (
           <div className="space-y-4">
-            {/* Modalidad de captura */}
-            <CaptureModeSelector
-              selectedMode={captureMode}
-              onChange={setCaptureMode}
-            />
-
-            {/* Clasificación opcional */}
-            <PlayCategorySelector
-              selectedCategory={category}
-              onSelectCategory={setCategory}
-            />
+            {/* Fragmento de la jugada: se ajusta con botones grandes (también desde el celular) */}
+            {momentData.isLiveMoment ? (
+              <div className="p-3 rounded-xl bg-surface-muted border border-line flex items-center gap-2.5 text-xs text-ink-muted">
+                <Clock className="w-4 h-4 text-turf shrink-0" aria-hidden="true" />
+                <span>
+                  Se guarda este <strong className="text-ink font-semibold">momento en vivo</strong>. Las jugadas en vivo no
+                  se pueden descargar porque no hay una grabación.
+                </span>
+              </div>
+            ) : (
+              <ClipRangeControl
+                clip={clip}
+                timestamp={momentData.timestamp}
+                videoDuration={momentData.videoDuration}
+                onChange={setClip}
+              />
+            )}
 
             {/* Campo de nombre opcional */}
             <div className="space-y-1.5">
@@ -365,32 +373,29 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
               />
             </div>
 
-            {/* Fragmento de la jugada: se ajusta con botones grandes (también desde el celular) */}
-            {momentData.isLiveMoment ? (
-              <div className="p-3 rounded-xl bg-surface-muted border border-line flex items-center gap-2.5 text-xs text-ink-muted">
-                <Clock className="w-4 h-4 text-turf shrink-0" aria-hidden="true" />
-                <span>
-                  Se guarda este <strong className="text-ink font-semibold">momento en vivo</strong>. Las jugadas en vivo no
-                  se pueden descargar porque no hay una grabación.
-                </span>
-              </div>
-            ) : (
-              <ClipRangeControl
-                clip={clip}
-                timestamp={momentData.timestamp}
-                videoDuration={momentData.videoDuration}
-                onChange={setClip}
-              />
-            )}
+            {/* Clasificación opcional */}
+            <PlayCategorySelector
+              selectedCategory={category}
+              onSelectCategory={setCategory}
+            />
+
+            {/* Modalidad de captura */}
+            <CaptureModeSelector
+              selectedMode={captureMode}
+              onChange={setCaptureMode}
+            />
 
             {/* Footer Buttons */}
-            <div className="pt-2 flex items-center justify-between gap-3">
+            <p className="text-xs text-ink-muted pt-1">
+              Si cerrás, la jugada se guarda igual con {momentData.isLiveMoment ? 'este momento' : 'este fragmento'}.
+            </p>
+            <div className="flex items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={handleUserDismiss}
                 className="px-4 py-2.5 rounded-xl text-xs font-semibold text-ink-muted hover:text-ink hover:bg-surface-muted transition-colors cursor-pointer"
               >
-                Cerrar (guarda por defecto)
+                Cerrar y guardar
               </button>
 
               <Button

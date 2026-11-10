@@ -20,36 +20,44 @@ const STEP_BUTTON =
   'hover:bg-surface-muted active:bg-surface-muted disabled:opacity-40 disabled:cursor-not-allowed ' +
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf';
 
-interface EdgeRowProps {
+interface SpanRowProps {
+  /** «Antes del momento» o «Después del momento». */
   label: string;
+  /** Borde del fragmento que se mueve: el inicio para «antes» y el fin para «después». */
   edge: ClipEdge;
-  value: number;
+  /** Segundos del fragmento que quedan de ese lado del momento marcado. */
+  seconds: number;
   clip: ClipWindow;
   timestamp: number;
   videoDuration?: number;
   onChange: (clip: ClipWindow) => void;
 }
 
-const EdgeRow: React.FC<EdgeRowProps> = ({ label, edge, value, clip, timestamp, videoDuration, onChange }) => {
+/**
+ * Una fila del ajuste: los segundos que se guardan antes (o después) del momento marcado, con un botón para
+ * acortarlos y otro para alargarlos. «+» siempre alarga el fragmento y «−» siempre lo acorta, en cualquiera de las dos
+ * filas: por dentro se mueve el inicio (hacia atrás para alargar) o el fin (hacia adelante para alargar).
+ */
+const SpanRow: React.FC<SpanRowProps> = ({ label, edge, seconds, clip, timestamp, videoDuration, onChange }) => {
+  const lengthen = edge === 'start' ? -1 : 1;
+  const shorten = edge === 'start' ? 1 : -1;
   const move = (direction: -1 | 1) => onChange(moveClipEdge(clip, edge, direction, timestamp, videoDuration));
   const can = (direction: -1 | 1) => canMoveClipEdge(clip, edge, direction, timestamp, videoDuration);
-  const backLabel = edge === 'start' ? 'más temprano' : 'más corto';
-  const forwardLabel = edge === 'start' ? 'más tarde' : 'más largo';
 
   return (
     <div className="space-y-1.5">
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-xs font-bold uppercase tracking-wider text-ink-muted">{label}</span>
-        <span className="font-mono text-sm font-semibold text-ink tabular-nums" data-testid={`clip-${edge}-value`}>
-          {formatVideoTime(value)}
+        <span className="font-mono text-sm font-semibold text-ink tabular-nums whitespace-nowrap shrink-0" data-testid={`clip-${edge}-value`}>
+          {seconds} s
         </span>
       </div>
       <div className="flex items-stretch gap-2">
         <button
           type="button"
-          onClick={() => move(-1)}
-          disabled={!can(-1)}
-          aria-label={`${label}: ${CLIP_STEP_SECONDS} segundos ${backLabel}`}
+          onClick={() => move(shorten)}
+          disabled={!can(shorten)}
+          aria-label={`${label}: restar ${CLIP_STEP_SECONDS} segundos`}
           className={STEP_BUTTON}
         >
           <Minus className="w-4 h-4 shrink-0" aria-hidden="true" />
@@ -57,9 +65,9 @@ const EdgeRow: React.FC<EdgeRowProps> = ({ label, edge, value, clip, timestamp, 
         </button>
         <button
           type="button"
-          onClick={() => move(1)}
-          disabled={!can(1)}
-          aria-label={`${label}: ${CLIP_STEP_SECONDS} segundos ${forwardLabel}`}
+          onClick={() => move(lengthen)}
+          disabled={!can(lengthen)}
+          aria-label={`${label}: sumar ${CLIP_STEP_SECONDS} segundos`}
           className={STEP_BUTTON}
         >
           <Plus className="w-4 h-4 shrink-0" aria-hidden="true" />
@@ -71,28 +79,46 @@ const EdgeRow: React.FC<EdgeRowProps> = ({ label, edge, value, clip, timestamp, 
 };
 
 /**
- * Ajuste del fragmento de una jugada: dos botones de 5 segundos para el inicio y dos para el fin.
- * Respeta los límites (de 3 a 120 segundos, dentro del video y con el momento marcado adentro) deshabilitando
- * el botón que los rompería.
+ * Ajuste del fragmento de una jugada respecto del momento marcado: cuántos segundos se guardan antes y cuántos después,
+ * de a 5 segundos. Respeta los límites (de 3 a 120 segundos, dentro del video y con el momento marcado adentro)
+ * deshabilitando el botón que los rompería.
  */
 export const ClipRangeControl: React.FC<ClipRangeControlProps> = ({ clip, timestamp, videoDuration, onChange }) => {
   const length = clip.end - clip.start;
+  const mark = Math.max(0, Math.floor(timestamp));
   return (
     <div className="p-3.5 rounded-2xl bg-surface-muted border border-line space-y-3.5" role="group" aria-label="Fragmento de la jugada">
       <div className="flex items-start gap-2.5">
         <Scissors className="w-4 h-4 text-turf shrink-0 mt-0.5" aria-hidden="true" />
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-ink" data-testid="clip-summary">
-            Fragmento: {formatVideoTime(clip.start)} → {formatVideoTime(clip.end)} ({length} s)
+          <p className="text-xs font-bold uppercase tracking-wider text-ink-muted">Esto es lo que se guarda</p>
+          <p className="text-sm font-semibold text-ink mt-0.5" data-testid="clip-summary">
+            De {formatVideoTime(clip.start)} a {formatVideoTime(clip.end)} · {length} segundos
           </p>
           <p className="text-xs text-ink-muted mt-0.5">
-            Es lo que se guarda y se descarga. Movelo de a {CLIP_STEP_SECONDS} segundos.
+            Incluye el momento que marcaste ({formatVideoTime(mark)}). Elegí cuántos segundos querés antes y después.
           </p>
         </div>
       </div>
       <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-3.5">
-        <EdgeRow label="Inicio" edge="start" value={clip.start} clip={clip} timestamp={timestamp} videoDuration={videoDuration} onChange={onChange} />
-        <EdgeRow label="Fin" edge="end" value={clip.end} clip={clip} timestamp={timestamp} videoDuration={videoDuration} onChange={onChange} />
+        <SpanRow
+          label="Antes del momento"
+          edge="start"
+          seconds={mark - clip.start}
+          clip={clip}
+          timestamp={timestamp}
+          videoDuration={videoDuration}
+          onChange={onChange}
+        />
+        <SpanRow
+          label="Después del momento"
+          edge="end"
+          seconds={clip.end - mark}
+          clip={clip}
+          timestamp={timestamp}
+          videoDuration={videoDuration}
+          onChange={onChange}
+        />
       </div>
     </div>
   );
