@@ -44,6 +44,18 @@ export const playsApi = {
     return plays.map((p) => toSavedPlay(p, userId));
   },
 
+  /** Una jugada por su id, sin sesión (es lo que abre el link que se comparte). `null` si no existe. */
+  async get(playId: string): Promise<SavedPlay | null> {
+    try {
+      const res = await request(`/api/plays/${encodeURIComponent(playId)}`);
+      const { play } = (await res.json()) as { play: ApiPlay };
+      return toSavedPlay(play);
+    } catch (err) {
+      if (err instanceof PlaysApiError && err.status === 404) return null;
+      throw err;
+    }
+  },
+
   /** Guarda la jugada. Solo viajan el partido, el título, la categoría, el modo y el momento marcado. */
   async create(input: SavePlayInput, userId?: string): Promise<SavedPlay> {
     const res = await request('/api/plays', {
