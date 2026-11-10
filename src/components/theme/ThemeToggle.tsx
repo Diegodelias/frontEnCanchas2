@@ -61,7 +61,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
       aria-label={titleText}
       title={titleText}
       onClick={toggleTheme}
-      className={`w-10 h-10 min-w-[40px] min-h-[40px] inline-flex items-center justify-center rounded-lg border border-line bg-surface text-ink hover:bg-surface-muted hover:border-line-strong transition-all duration-150 cursor-pointer focus-visible:outline-2 focus-visible:outline-turf shrink-0 self-center my-auto ${className}`}
+      className={`w-11 h-11 min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-lg border border-line bg-surface text-ink hover:bg-surface-muted hover:border-line-strong transition-all duration-150 cursor-pointer focus-visible:outline-2 focus-visible:outline-turf shrink-0 self-center my-auto ${className}`}
     >
       <span className="sr-only">{titleText}</span>
       {isDark ? (

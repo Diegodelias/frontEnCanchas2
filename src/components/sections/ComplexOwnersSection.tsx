@@ -42,7 +42,7 @@ export const ComplexOwnersSection: React.FC<ComplexOwnersSectionProps> = ({
             <h2 className="mt-2.5 font-display text-3xl sm:text-5xl font-extrabold tracking-tight text-pitch-ink leading-[1.06]">
               {OWNER_SECTION_COPY.headline}
             </h2>
-            <p className="mt-4 text-sm sm:text-base text-pitch-muted leading-relaxed max-w-lg">
+            <p className="mt-4 text-base text-pitch-muted leading-relaxed max-w-lg">
               {OWNER_SECTION_COPY.description}
             </p>
 
@@ -74,7 +74,7 @@ export const ComplexOwnersSection: React.FC<ComplexOwnersSectionProps> = ({
                 <h3 className="mt-4 font-display text-xl sm:text-2xl font-bold tracking-tight text-pitch-ink">
                   {item.title}
                 </h3>
-                <p className="mt-1.5 text-sm text-pitch-muted leading-relaxed">
+                <p className="mt-1.5 text-base text-pitch-muted leading-relaxed">
                   {item.description}
                 </p>
               </article>

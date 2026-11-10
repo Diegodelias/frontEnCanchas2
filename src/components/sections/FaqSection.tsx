@@ -58,7 +58,7 @@ export const FaqSection: React.FC = () => {
                     id={panelId}
                     role="region"
                     aria-labelledby={buttonId}
-                    className="mt-2.5 pr-8 text-sm sm:text-base text-ink-muted leading-relaxed"
+                    className="mt-2.5 pr-8 text-base text-ink-muted leading-relaxed"
                   >
                     {item.answer}
                   </div>

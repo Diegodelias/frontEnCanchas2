@@ -54,7 +54,7 @@ export const ComplexCard: React.FC<ComplexCardProps> = ({
           type="button"
           onClick={() => onOpenCourts(complex)}
           aria-label={`Ver las canchas de ${complex.name}`}
-          className="mt-2 self-start text-sm font-semibold text-turf-ink hover:underline underline-offset-4 cursor-pointer"
+          className="mt-1 min-h-11 inline-flex items-center self-start text-sm font-semibold text-turf-ink hover:underline underline-offset-4 cursor-pointer"
         >
           Ver canchas
         </button>

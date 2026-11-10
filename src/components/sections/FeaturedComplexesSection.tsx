@@ -77,7 +77,7 @@ export const FeaturedComplexesSection: React.FC<
   return (
     <section
       id="complejos"
-      className="py-14 sm:py-20 bg-canvas border-b border-line scroll-mt-16"
+      className="py-14 sm:py-20 bg-surface-muted border-b border-line scroll-mt-16"
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -88,7 +88,7 @@ export const FeaturedComplexesSection: React.FC<
             <h2 className="mt-2 font-display text-3xl sm:text-5xl font-extrabold tracking-tight text-ink">
               Complejos con grabación
             </h2>
-            <p className="mt-2 text-sm sm:text-base text-ink-muted max-w-xl">
+            <p className="mt-2 text-base text-ink-muted max-w-xl leading-relaxed">
               Mirá dónde grabamos y, si querés, reservá tu turno.
             </p>
           </div>
@@ -97,7 +97,7 @@ export const FeaturedComplexesSection: React.FC<
           <div
             role="group"
             aria-label="Filtrar complejos por modalidad"
-            className="inline-flex items-center p-1 rounded-lg bg-surface-muted border border-line self-start md:self-auto max-w-full overflow-x-auto"
+            className="inline-flex items-center p-1 rounded-lg bg-canvas border border-line self-start md:self-auto max-w-full overflow-x-auto"
           >
             {SPORT_TABS.map((tab) => {
               const active = sportFilter === tab;
@@ -107,9 +107,9 @@ export const FeaturedComplexesSection: React.FC<
                   type="button"
                   onClick={() => onSportFilterChange(tab)}
                   aria-pressed={active}
-                  className={`min-h-[38px] px-4 py-1.5 rounded-md text-xs sm:text-sm font-semibold transition-colors duration-150 cursor-pointer whitespace-nowrap ${
+                  className={`min-h-[44px] px-3 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-semibold transition-colors duration-150 cursor-pointer whitespace-nowrap ${
                     active
-                      ? 'bg-surface text-ink shadow-xs'
+                      ? 'bg-turf text-white shadow-xs'
                       : 'text-ink-muted hover:text-ink'
                   }`}
                 >
@@ -156,7 +156,7 @@ export const FeaturedComplexesSection: React.FC<
             <h3 className="font-display text-2xl sm:text-3xl font-bold text-ink">
               No pudimos cargar los complejos
             </h3>
-            <p className="mt-2.5 text-sm sm:text-base text-ink-muted leading-relaxed">
+            <p className="mt-2.5 text-base text-ink-muted leading-relaxed">
               Hubo un problema al conectar con el servidor. Revisá tu conexión y probá de nuevo.
             </p>
             <div className="mt-6 flex justify-center">
@@ -172,7 +172,7 @@ export const FeaturedComplexesSection: React.FC<
             <h3 className="font-display text-2xl sm:text-3xl font-bold text-ink">
               Todavía no sumamos complejos en {activeCityName}
             </h3>
-            <p className="mt-2.5 text-sm sm:text-base text-ink-muted leading-relaxed">
+            <p className="mt-2.5 text-base text-ink-muted leading-relaxed">
               Actualmente los complejos de ejemplo están cargados en Buenos Aires.
               Podés volver a Buenos Aires para probar reservas o postular tu club.
             </p>
@@ -209,7 +209,7 @@ export const FeaturedComplexesSection: React.FC<
 
         {/* Acceso secundario claramente diferenciado: Mirá la cancha en vivo */}
         {featuredLiveCamera && (
-          <div className="mt-16 pt-12 border-t border-line">
+          <div className="mt-16 pt-12 border-t border-line-strong">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
               <div>
                 <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-turf-ink mb-1">
@@ -219,14 +219,14 @@ export const FeaturedComplexesSection: React.FC<
                 <h3 className="font-display text-2xl sm:text-4xl font-extrabold tracking-tight text-ink">
                   Mirá la cancha en vivo
                 </h3>
-                <p className="mt-1 text-sm text-ink-muted max-w-xl">
+                <p className="mt-1 text-base text-ink-muted max-w-xl leading-relaxed">
                   Conectate directamente a la cámara para ver el estado de la cancha y los partidos que se están jugando ahora.
                 </p>
               </div>
 
               <Link
                 to={ROUTES.LIVE}
-                className="text-xs sm:text-sm font-semibold text-turf hover:text-turf-hover transition-colors whitespace-nowrap self-start sm:self-auto"
+                className="min-h-11 inline-flex items-center text-xs sm:text-sm font-semibold text-turf hover:text-turf-hover transition-colors whitespace-nowrap self-start sm:self-auto"
               >
                 Ver cámara en vivo →
               </Link>

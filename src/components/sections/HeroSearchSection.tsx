@@ -17,6 +17,13 @@ export const HeroSearchSection: React.FC<HeroSearchSectionProps> = ({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [videoReady, setVideoReady] = useState<boolean>(false);
   const [videoFailed, setVideoFailed] = useState<boolean>(false);
+  const [loadVideo, setLoadVideo] = useState(false);
+
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const timer = window.setTimeout(() => setLoadVideo(true), 1500);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   // Configure video poster, playback rate, and reduced motion compliance
   useEffect(() => {
@@ -46,7 +53,7 @@ export const HeroSearchSection: React.FC<HeroSearchSectionProps> = ({
       video.removeEventListener('loadedmetadata', applyPlaybackRate);
       video.removeEventListener('canplay', applyPlaybackRate);
     };
-  }, []);
+  }, [loadVideo]);
 
   return (
     <section
@@ -64,7 +71,7 @@ export const HeroSearchSection: React.FC<HeroSearchSectionProps> = ({
       />
 
       {/* Background Hero Video */}
-      {!videoFailed && (
+      {loadVideo && !videoFailed && (
         <video
           ref={videoRef}
           src={HERO_VIDEO_SRC}
@@ -72,7 +79,7 @@ export const HeroSearchSection: React.FC<HeroSearchSectionProps> = ({
           muted
           loop
           playsInline
-          preload="auto"
+          preload="metadata"
           onLoadedData={() => setVideoReady(true)}
           onError={() => setVideoFailed(true)}
           aria-hidden="true"

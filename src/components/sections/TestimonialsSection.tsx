@@ -15,7 +15,7 @@ export const TestimonialsSection: React.FC = () => {
           <h2 className="mt-2 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-ink">
             Así se vive cada turno
           </h2>
-          <p className="mt-2 text-sm text-ink-muted">
+          <p className="mt-2 text-base text-ink-muted leading-relaxed">
             Testimonios de ejemplo, mientras sumamos opiniones reales.
           </p>
         </div>
@@ -36,7 +36,7 @@ export const TestimonialsSection: React.FC = () => {
                 >
                   “
                 </span>
-                <blockquote className="-mt-1 text-sm sm:text-base text-ink leading-relaxed">
+                <blockquote className="-mt-1 text-base text-ink leading-relaxed">
                   “{item.quote}”
                 </blockquote>
               </div>

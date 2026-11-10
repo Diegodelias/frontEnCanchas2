@@ -30,7 +30,7 @@ export const FinalCtaAndFooter: React.FC<FinalCtaAndFooterProps> = ({
               <h2 className="mt-2 font-display text-3xl sm:text-5xl font-extrabold tracking-tight text-ink">
                 Tu partido ya está grabado
               </h2>
-              <p className="mt-3 text-sm sm:text-base text-ink-muted leading-relaxed">
+              <p className="mt-3 text-base text-ink-muted leading-relaxed">
                 Buscá tu partido, mirá la jugada y compartila con tu grupo. ¿Tenés un
                 club? Sumalo y ofrecé las grabaciones a tus jugadores.
               </p>

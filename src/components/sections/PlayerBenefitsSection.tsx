@@ -48,7 +48,7 @@ export const PlayerBenefitsSection: React.FC<PlayerBenefitsSectionProps> = ({
             <h2 className="mt-2 font-display text-3xl sm:text-5xl font-extrabold tracking-tight text-ink">
               Y para reservar tu cancha
             </h2>
-            <p className="mt-3 text-sm sm:text-base text-ink-muted leading-relaxed max-w-md">
+            <p className="mt-3 text-base text-ink-muted leading-relaxed max-w-md">
               Pensado para que organizar el partido con tu grupo sea simple,
               directo y sin idas y vueltas.
             </p>
@@ -74,7 +74,7 @@ export const PlayerBenefitsSection: React.FC<PlayerBenefitsSectionProps> = ({
                   <h3 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-ink">
                     {benefit.title}
                   </h3>
-                  <p className="mt-1 text-sm sm:text-base text-ink-muted leading-relaxed">
+                  <p className="mt-1 text-base text-ink-muted leading-relaxed">
                     {benefit.description}
                   </p>
                 </div>

@@ -403,7 +403,7 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
               value={clubId}
               disabled={showLoadingField || recordingsLoadError}
               onChange={(e) => handleClubChange(e.target.value)}
-              className={`w-full min-h-[48px] appearance-none rounded-xl pl-3.5 pr-9 py-2.5 text-sm font-medium cursor-pointer focus:outline-none transition-all ${
+              className={`w-full min-h-[48px] appearance-none rounded-xl pl-3.5 pr-9 py-2.5 text-base sm:text-sm font-medium cursor-pointer focus:outline-none transition-all ${
                 isHero
                 ? `bg-black/50 hover:bg-black/60 border border-white/20 hover:border-white/30 text-white focus:border-volt focus:ring-1 focus:ring-volt focus-visible:ring-2 focus-visible:ring-volt ${heroStepField(1)}`
                   : 'bg-canvas border border-line-strong text-ink focus:border-turf focus-visible:ring-2 focus-visible:ring-turf focus-visible:ring-offset-2 focus-visible:ring-offset-surface'
@@ -456,7 +456,7 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
               value={courtId}
               onChange={(e) => handleCourtChange(e.target.value)}
               disabled={showLoadingField || recordingsLoadError || !clubId || availableCourts.length === 0}
-              className={`w-full min-h-[48px] appearance-none rounded-xl pl-3.5 pr-9 py-2.5 text-sm font-medium cursor-pointer focus:outline-none transition-all ${
+              className={`w-full min-h-[48px] appearance-none rounded-xl pl-3.5 pr-9 py-2.5 text-base sm:text-sm font-medium cursor-pointer focus:outline-none transition-all ${
                 isHero
                   ? `bg-black/65 hover:bg-black/70 border border-white/25 hover:border-white/35 text-white focus:border-volt focus:ring-1 focus:ring-volt focus-visible:ring-2 focus-visible:ring-volt disabled:bg-black/35 disabled:text-white/80 disabled:border-white/40 disabled:cursor-not-allowed ${heroStepField(2)}`
                   : 'bg-canvas border border-line-strong text-ink focus:border-turf focus-visible:ring-2 focus-visible:ring-turf focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:bg-surface-muted disabled:text-ink-muted disabled:border-line-strong disabled:cursor-not-allowed'
@@ -501,7 +501,7 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
               value={dayId}
               onChange={(e) => handleDayChange(e.target.value)}
               disabled={showLoadingField || recordingsLoadError || !selectedCourt}
-              className={`w-full min-h-[48px] appearance-none rounded-xl pl-3.5 pr-9 py-2.5 text-sm font-medium cursor-pointer focus:outline-none transition-all ${
+              className={`w-full min-h-[48px] appearance-none rounded-xl pl-3.5 pr-9 py-2.5 text-base sm:text-sm font-medium cursor-pointer focus:outline-none transition-all ${
                 isHero
                   ? `bg-black/65 hover:bg-black/70 border border-white/25 hover:border-white/35 text-white focus:border-volt focus:ring-1 focus:ring-volt focus-visible:ring-2 focus-visible:ring-volt disabled:bg-black/35 disabled:text-white/80 disabled:border-white/40 disabled:cursor-not-allowed ${heroStepField(3)}`
                   : 'bg-canvas border border-line-strong text-ink focus:border-turf focus-visible:ring-2 focus-visible:ring-turf focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:bg-surface-muted disabled:text-ink-muted disabled:border-line-strong disabled:cursor-not-allowed'
@@ -542,7 +542,7 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
               value={slotId}
               onChange={(e) => handleSlotChange(e.target.value)}
               disabled={showLoadingField || recordingsLoadError || !selectedDay || availableSlots.length === 0}
-              className={`w-full min-h-[48px] appearance-none rounded-xl pl-3.5 pr-9 py-2.5 text-sm font-mono font-medium cursor-pointer focus:outline-none transition-all ${
+              className={`w-full min-h-[48px] appearance-none rounded-xl pl-3.5 pr-9 py-2.5 text-base sm:text-sm font-mono font-medium cursor-pointer focus:outline-none transition-all ${
                 isHero
                   ? `bg-black/65 hover:bg-black/70 border border-white/25 hover:border-white/35 text-white focus:border-volt focus:ring-1 focus:ring-volt focus-visible:ring-2 focus-visible:ring-volt disabled:font-sans disabled:bg-black/35 disabled:text-white/80 disabled:border-white/40 disabled:cursor-not-allowed ${heroStepField(4)}`
                   : 'bg-canvas border border-line-strong text-ink focus:border-turf focus-visible:ring-2 focus-visible:ring-turf focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:font-sans disabled:bg-surface-muted disabled:text-ink-muted disabled:border-line-strong disabled:cursor-not-allowed'

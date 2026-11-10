@@ -231,9 +231,11 @@ export const Header: React.FC<HeaderProps> = ({
               variant="volt"
               size="sm"
               onClick={onFindMatchClick}
-              className="text-xs sm:text-sm h-10 self-center"
+                aria-label="Ver mi partido"
+                className="text-xs sm:text-sm h-11 min-h-[44px] px-2.5 sm:px-3.5 self-center"
             >
-              Ver mi partido
+              <span className="sm:hidden">Ver partido</span>
+              <span className="hidden sm:inline">Ver mi partido</span>
             </Button>
 
             <div className="theme-toggle-container flex items-center justify-center shrink-0 self-center my-auto sm:ml-0.5">
@@ -246,7 +248,7 @@ export const Header: React.FC<HeaderProps> = ({
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-nav-drawer"
               aria-label={mobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
-              className="lg:hidden w-10 h-10 min-w-[40px] min-h-[40px] inline-flex items-center justify-center rounded-lg border border-line text-ink hover:bg-surface-muted transition-colors cursor-pointer shrink-0 self-center my-auto"
+              className="lg:hidden w-11 h-11 min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-lg border border-line text-ink hover:bg-surface-muted transition-colors cursor-pointer shrink-0 self-center my-auto"
             >
               {mobileMenuOpen ? (
                 <X className="w-5 h-5" aria-hidden="true" />
@@ -278,7 +280,7 @@ export const Header: React.FC<HeaderProps> = ({
                   onSelectCity(e.target.value);
                   setMobileMenuOpen(false);
                 }}
-                className="min-h-[40px] px-3 py-1.5 rounded-lg border border-line-strong bg-canvas text-sm font-semibold text-ink"
+                className="min-h-[44px] px-3 py-1.5 rounded-lg border border-line-strong bg-canvas text-sm font-semibold text-ink"
               >
                 {cities.map((city) => (
                   <option key={city.id} value={city.id}>
@@ -338,7 +340,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <button
                       type="button"
                       onClick={logout}
-                      className="text-red-500 hover:underline cursor-pointer"
+                      className="min-h-11 inline-flex items-center px-2 text-red-500 hover:underline cursor-pointer"
                     >
                       Cerrar sesión
                     </button>
@@ -348,7 +350,7 @@ export const Header: React.FC<HeaderProps> = ({
                       <Link
                         to={ROUTES.PROFILE}
                         onClick={() => setMobileMenuOpen(false)}
-                        className="text-xs text-turf font-bold hover:underline"
+                        className="min-h-11 inline-flex items-center text-xs text-turf font-bold hover:underline"
                       >
                         Ir a Mi perfil →
                       </Link>
@@ -357,7 +359,7 @@ export const Header: React.FC<HeaderProps> = ({
                       <Link
                         to={ROUTES.CLUB_ADMIN}
                         onClick={() => setMobileMenuOpen(false)}
-                        className="text-xs text-turf font-bold hover:underline"
+                        className="min-h-11 inline-flex items-center text-xs text-turf font-bold hover:underline"
                       >
                         Ir a Panel de Administración →
                       </Link>
@@ -367,7 +369,7 @@ export const Header: React.FC<HeaderProps> = ({
                       <Link
                         to={ROUTES.PLATFORM_ADMIN}
                         onClick={() => setMobileMenuOpen(false)}
-                        className="text-xs text-turf font-bold hover:underline"
+                        className="min-h-11 inline-flex items-center text-xs text-turf font-bold hover:underline"
                       >
                         Ir al panel de la plataforma →
                       </Link>

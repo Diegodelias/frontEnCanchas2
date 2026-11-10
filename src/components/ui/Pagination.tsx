@@ -23,7 +23,7 @@ function pageItems(page: number, totalPages: number): (number | 'gap-start' | 'g
 }
 
 const BASE =
-  'min-w-[40px] min-h-[40px] px-3 inline-flex items-center justify-center rounded-lg border text-sm font-semibold transition-colors cursor-pointer';
+  'min-w-[44px] min-h-[44px] px-3 inline-flex items-center justify-center rounded-lg border text-sm font-semibold transition-colors cursor-pointer';
 
 /** Controles de página. No se muestra si todo entra en una sola página. */
 export const Pagination: React.FC<PaginationProps> = ({ page, totalPages, onPageChange, label }) => {

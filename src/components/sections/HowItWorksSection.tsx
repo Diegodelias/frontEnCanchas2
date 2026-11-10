@@ -39,7 +39,7 @@ export const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({
           {HOW_IT_WORKS_STEPS.map((step) => (
             <article
               key={step.number}
-              className="py-8 sm:py-9 sm:px-5 lg:px-7 first:sm:pl-0 last:sm:pr-0 flex flex-col"
+              className="py-8 sm:py-9 sm:px-5 lg:px-7 first:sm:pl-0 last:sm:pr-0 last:sm:col-span-2 last:sm:max-w-xl last:sm:mx-auto lg:last:col-span-1 lg:last:max-w-none lg:last:mx-0 flex flex-col"
             >
               <StepImage src={step.imageSrc} alt={step.imageAlt} />
 
@@ -52,7 +52,7 @@ export const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({
                 </h3>
               </div>
 
-              <p className="mt-2.5 text-sm sm:text-base text-ink-muted leading-relaxed">
+              <p className="mt-2.5 text-base text-ink-muted leading-relaxed">
                 {step.description}
               </p>
             </article>

@@ -37,21 +37,21 @@
 
 :root,
 [data-theme='light'] {
-  /* 60% Neutral Light Canvas */
-  --c3-canvas: #f5f7f4;
+  /* Cool, court-side neutrals keep the content calm while framing action. */
+  --c3-canvas: #f2f5f0;
   --c3-surface: #ffffff;
-  --c3-surface-muted: #ebefe8;
+  --c3-surface-muted: #e8efe8;
 
   /* 30% Structural Inks & Hairline Borders */
-  --c3-ink: #0c1410;
-  --c3-ink-muted: #4b5951;
-  --c3-line: #dce2da;
-  --c3-line-strong: #b9c5b8;
+  --c3-ink: #102017;
+  --c3-ink-muted: #46594c;
+  --c3-line: #d6e1d7;
+  --c3-line-strong: #aebfaf;
 
   /* Stadium Surfaces */
   --c3-pitch: #09100c;
-  --c3-pitch-surface: #111c16;
-  --c3-pitch-elevated: #18271f;
+  --c3-pitch-surface: #122219;
+  --c3-pitch-elevated: #1a3022;
   --c3-pitch-ink: #f4f7f4;
   --c3-pitch-muted: #a6b7ad;
   --c3-pitch-line: #23362b;
@@ -60,10 +60,10 @@
   --c3-volt: #c4f236;
   --c3-volt-hover: #d3f85c;
   --c3-volt-ink: #09100c;
-  --c3-turf: #156e39;
-  --c3-turf-soft: #e3f3e8;
-  --c3-turf-ink: #0f522a;
-  --c3-turf-highlight: #1f8a48;
+  --c3-turf: #176b3c;
+  --c3-turf-soft: #e1f1e5;
+  --c3-turf-ink: #14552f;
+  --c3-turf-highlight: #25864c;
 
   /* Semantic States */
   --c3-alert: #b91c1c;
@@ -72,10 +72,10 @@
   --c3-warning-soft: #fffbeb;
 
   /* Scrims & Overlays */
-  --c3-scrim-top: rgba(9, 16, 12, 0.6);
-  --c3-scrim-mid: rgba(9, 16, 12, 0.54);
-  --c3-scrim-bottom: rgba(9, 16, 12, 0.62);
-  --c3-backdrop: rgba(9, 16, 12, 0.74);
+  --c3-scrim-top: rgba(10, 24, 15, 0.58);
+  --c3-scrim-mid: rgba(10, 24, 15, 0.52);
+  --c3-scrim-bottom: rgba(10, 24, 15, 0.64);
+  --c3-backdrop: rgba(8, 19, 12, 0.76);
 }
 
 /* Dark Theme Tokens */
@@ -83,31 +83,31 @@
 .dark {
   /* Dark Stadium Canvas & Surfaces */
   --c3-canvas: #0a110d;
-  --c3-surface: #121b15;
-  --c3-surface-muted: #18251e;
+  --c3-surface: #121e16;
+  --c3-surface-muted: #19291f;
 
   /* Crisp Light Text & Contrast Lines */
   --c3-ink: #f2f7f3;
-  --c3-ink-muted: #9ab0a2;
-  --c3-line: #203327;
-  --c3-line-strong: #2f4837;
+  --c3-ink-muted: #a3b8a8;
+  --c3-line: #263c2d;
+  --c3-line-strong: #3a5741;
 
   /* Stadium Surfaces in Dark Mode */
   --c3-pitch: #060a08;
   --c3-pitch-surface: #0e1611;
-  --c3-pitch-elevated: #15221a;
+  --c3-pitch-elevated: #18291d;
   --c3-pitch-ink: #f2f7f3;
-  --c3-pitch-muted: #9ab0a2;
-  --c3-pitch-line: #203327;
+  --c3-pitch-muted: #a3b8a8;
+  --c3-pitch-line: #263c2d;
 
   /* Accents */
   --c3-volt: #c4f236;
   --c3-volt-hover: #d3f85c;
   --c3-volt-ink: #09100c;
-  --c3-turf: #22c55e;
-  --c3-turf-soft: #143520;
-  --c3-turf-ink: #86efac;
-  --c3-turf-highlight: #16a34a;
+  --c3-turf: #39ca70;
+  --c3-turf-soft: #183b26;
+  --c3-turf-ink: #a0edb8;
+  --c3-turf-highlight: #2baa5b;
 
   /* Semantic States */
   --c3-alert: #f87171;
@@ -138,6 +138,10 @@
     background-color: var(--c3-canvas);
     color: var(--c3-ink);
     transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  p {
+    text-wrap: pretty;
   }
 
   h1,
