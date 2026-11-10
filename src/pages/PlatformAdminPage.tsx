@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2 } from 'lucide-react';
-import { Navbar } from '../components/layout/Navbar';
+import { AppHeader } from '../components/layout/AppHeader';
 import { ClubDetail } from '../components/platform/ClubDetail';
 import { ClubsList } from '../components/platform/ClubsList';
 import { GrantExtraPlaysForm } from '../components/platform/GrantExtraPlaysForm';
@@ -59,19 +59,19 @@ export const PlatformAdminPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-canvas text-ink">
-      <Navbar />
+      <AppHeader />
 
-      <main className="flex-1 py-8 sm:py-10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-          <div className="p-6 rounded-2xl bg-surface border border-line">
+      <main className="flex-1 py-5 sm:py-8 lg:py-10">
+        <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
+          <div className="p-4 sm:p-6 rounded-2xl bg-surface border border-line">
             <span className="font-mono text-xs font-bold uppercase tracking-wider text-turf-ink px-2.5 py-0.5 rounded bg-turf-soft">
               Panel de la plataforma
             </span>
-            <h1 className="mt-2 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-ink flex items-center gap-3">
-              <Building2 className="w-8 h-8 text-turf shrink-0" aria-hidden="true" />
-              <span>Clubes de {siteName}</span>
+            <h1 className="mt-2 font-display text-2xl sm:text-4xl font-extrabold tracking-tight text-ink flex items-start sm:items-center gap-2 sm:gap-3">
+              <Building2 className="w-6 h-6 sm:w-8 sm:h-8 text-turf shrink-0 mt-1 sm:mt-0" aria-hidden="true" />
+              <span className="min-w-0 break-words">Clubes de {siteName}</span>
             </h1>
-            <p className="mt-1 text-sm text-ink-muted">
+            <p className="mt-2 sm:mt-1 text-sm text-ink-muted leading-relaxed">
               Creá clubes, gestioná sus canchas e invitá a sus administradores.
             </p>
           </div>

@@ -14,7 +14,7 @@ import { CourtsManager } from '../components/club/CourtsManager';
 import { RecordingsList } from '../components/club/RecordingsList';
 import { ownClubCourtsApi } from '../components/club/courtsApi';
 import { useMyCourts } from '../components/club/useMyCourts';
-import { Navbar } from '../components/layout/Navbar';
+import { AppHeader } from '../components/layout/AppHeader';
 import { Button } from '../components/ui/Button';
 import { CreatePlayerForm } from '../components/ui/CreatePlayerForm';
 import { useAuth } from '../context/AuthContext';
@@ -66,7 +66,7 @@ export const ClubAdminPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-canvas text-ink">
-      <Navbar />
+      <AppHeader />
 
       <main className="flex-1 py-8 sm:py-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">

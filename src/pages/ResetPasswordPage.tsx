@@ -1,7 +1,7 @@
 import React, { useEffect, useId, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AlertCircle, CheckCircle2, KeyRound, Mail } from 'lucide-react';
-import { Navbar } from '../components/layout/Navbar';
+import { AppHeader } from '../components/layout/AppHeader';
 import { Button } from '../components/ui/Button';
 import { useAuth } from '../context/AuthContext';
 import { useSite } from '../context/SiteContext';
@@ -157,7 +157,7 @@ export const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ mode = 're
 
   return (
     <div className="min-h-screen flex flex-col bg-canvas text-ink">
-      <Navbar />
+      <AppHeader cta={{ label: 'Reservá tu cancha', compactLabel: 'Reservá', to: '/#complejos' }} />
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md rounded-2xl bg-surface border border-line p-6 sm:p-8 shadow-sm">
           {status.kind === 'checking' && (

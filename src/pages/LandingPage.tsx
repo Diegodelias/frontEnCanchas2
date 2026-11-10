@@ -11,7 +11,7 @@ import {
   SportFilterOption,
 } from '../components/sections/FeaturedComplexesSection';
 import { FinalCtaAndFooter } from '../components/sections/FinalCtaAndFooter';
-import { Header } from '../components/sections/Header';
+import { AppHeader } from '../components/layout/AppHeader';
 import { HeroSearchSection } from '../components/sections/HeroSearchSection';
 import { HowItWorksSection } from '../components/sections/HowItWorksSection';
 import { PlayerBenefitsSection } from '../components/sections/PlayerBenefitsSection';
@@ -104,11 +104,19 @@ export const LandingPage: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-canvas text-ink">
       {/* 1. Header */}
-      <Header
+      <AppHeader
         cities={CITIES}
         selectedCityId={selectedCityId}
         onSelectCity={handleCityChange}
-        onFindMatchClick={() => scrollToElement('buscador')}
+        sectionLinks={[
+          { label: 'Complejos', href: '#complejos' },
+          { label: 'Para complejos', href: '#para-complejos' },
+        ]}
+        cta={{
+          label: 'Ver mi partido',
+          compactLabel: 'Ver partido',
+          onClick: () => scrollToElement('buscador'),
+        }}
       />
 
       <main className="flex-1">

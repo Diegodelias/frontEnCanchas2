@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Camera, Radio, Sparkles } from 'lucide-react';
-import { Navbar } from '../components/layout/Navbar';
+import { AppHeader } from '../components/layout/AppHeader';
 import { useSite } from '../context/SiteContext';
 import { LiveCourtCard } from '../components/live/LiveCourtCard';
 import { liveCameraService } from '../services/liveCameraService';
@@ -32,7 +32,7 @@ export const LiveCamerasPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-canvas text-ink">
-      <Navbar />
+      <AppHeader cta={{ label: 'Reservá tu cancha', compactLabel: 'Reservá', to: '/#complejos' }} />
 
       <main className="flex-1 py-8 sm:py-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
