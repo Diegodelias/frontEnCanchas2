@@ -161,8 +161,8 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
     'Por último, elegí el horario del partido.',
   ][activeHeroStep];
   const heroStepMarker = (step: number) =>
-    activeHeroStep === step ? 'bg-volt shadow-[0_0_10px_rgba(196,242,54,0.6)]' :
-    activeHeroStep > step || activeHeroStep === 0 ? 'bg-white/60' : 'bg-white/35';
+    activeHeroStep === step ? 'bg-volt shadow-[0_0_10px_rgba(196,242,54,0.6)] scale-125' :
+    activeHeroStep > step || activeHeroStep === 0 ? 'bg-white/60 scale-100' : 'bg-white/35 scale-100';
   const heroStepField = (step: number) =>
     isHero && activeHeroStep === step ? 'ring-1 ring-volt/50 border-volt/70' : '';
 
@@ -371,13 +371,34 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
       } ${className}`}
     >
       {isHero && (
-        <p role="status" aria-live="polite" className="mb-3 text-xs sm:text-sm text-white/85">
-          <span className="font-semibold text-volt">
-            {isHeroSelectionComplete ? 'Listo para buscar' : `Paso ${displayedHeroStep} de 4`}
-          </span>
-          <span className="mx-1.5 text-white/50" aria-hidden="true">·</span>
-          {isHeroSelectionComplete ? 'Buscá el video de tu partido.' : heroStepGuidance}
-        </p>
+        <div role="status" aria-live="polite" className="mb-3 text-xs sm:text-sm text-white/85">
+          <p>
+            <span
+              key={isHeroSelectionComplete ? 'complete' : displayedHeroStep}
+              className="hero-step-copy inline-block"
+            >
+              <span className="font-semibold text-volt">
+                {isHeroSelectionComplete ? 'Listo para buscar' : `Paso ${displayedHeroStep} de 4`}
+              </span>
+              <span className="mx-1.5 text-white/50" aria-hidden="true">·</span>
+              {isHeroSelectionComplete ? 'Buscá el video de tu partido.' : heroStepGuidance}
+            </span>
+          </p>
+          {isHeroSelectionComplete && (
+            <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-white/80">
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-volt" aria-hidden="true" />
+              <span className="font-semibold text-white">
+                {complexes.get(clubId)?.name ?? availableClubs.find((match) => match.clubId === clubId)?.clubName}
+              </span>
+              <span aria-hidden="true">·</span>
+              <span>{selectedCourt?.courtName}</span>
+              <span aria-hidden="true">·</span>
+              <span>{selectedDay?.dateLabel}</span>
+              <span aria-hidden="true">·</span>
+              <span className="font-mono text-volt">{slotId} hs</span>
+            </div>
+          )}
+        </div>
       )}
       <div
         className={`grid grid-cols-1 ${
@@ -394,7 +415,7 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
               isHero ? 'text-white/75 flex items-center gap-1.5' : 'text-ink-muted'
             }`}
           >
-            {isHero && <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${heroStepMarker(1)}`} />}
+            {isHero && <span className={`w-1.5 h-1.5 rounded-full shrink-0 transition-[background-color,box-shadow,transform] duration-200 ease-out ${heroStepMarker(1)}`} />}
             <span>1. Club o complejo</span>
           </label>
           <div className="relative">
@@ -447,7 +468,7 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
               isHero ? 'text-white/75 flex items-center gap-1.5' : 'text-ink-muted'
             }`}
           >
-            {isHero && <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${heroStepMarker(2)}`} />}
+            {isHero && <span className={`w-1.5 h-1.5 rounded-full shrink-0 transition-[background-color,box-shadow,transform] duration-200 ease-out ${heroStepMarker(2)}`} />}
             <span>2. Cancha</span>
           </label>
           <div className="relative">
@@ -492,7 +513,7 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
               isHero ? 'text-white/75 flex items-center gap-1.5' : 'text-ink-muted'
             }`}
           >
-            {isHero && <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${heroStepMarker(3)}`} />}
+            {isHero && <span className={`w-1.5 h-1.5 rounded-full shrink-0 transition-[background-color,box-shadow,transform] duration-200 ease-out ${heroStepMarker(3)}`} />}
             <span>3. Fecha</span>
           </label>
           <div className="relative">
@@ -533,7 +554,7 @@ export const MatchCascadingSelector: React.FC<MatchCascadingSelectorProps> = ({
               isHero ? 'text-white/75 flex items-center gap-1.5' : 'text-ink-muted'
             }`}
           >
-            {isHero && <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${heroStepMarker(4)}`} />}
+            {isHero && <span className={`w-1.5 h-1.5 rounded-full shrink-0 transition-[background-color,box-shadow,transform] duration-200 ease-out ${heroStepMarker(4)}`} />}
             <span>4. Horario del partido</span>
           </label>
           <div className="relative">

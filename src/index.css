@@ -163,6 +163,21 @@
   outline-offset: 2px;
 }
 
+@keyframes heroStepAdvance {
+  from {
+    opacity: 0.72;
+    transform: translateX(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.hero-step-copy {
+  animation: heroStepAdvance 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 /* Brillo suave de un campo mientras llega su lista: solo transform, y estático con movimiento reducido. */
 @keyframes fieldShimmer {
   from { transform: translateX(-100%); }
@@ -295,6 +310,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .hero-step-copy {
+    animation: none;
+  }
+
   html,
   body {
     scroll-behavior: auto;
