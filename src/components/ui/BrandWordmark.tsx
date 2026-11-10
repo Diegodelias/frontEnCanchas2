@@ -37,6 +37,9 @@ export const BrandWordmark: React.FC<BrandWordmarkProps> = ({
   const site = useSite();
   const name = nameOverride ?? site.name;
   const logoColor = colorOverride === undefined ? site.logoColor : colorOverride;
+  // Mientras no se sabe el nombre verdadero, el logo reserva su lugar sin mostrar el de relleno («Canchas3»), para
+  // que no parpadee con el nombre equivocado. Con valores pasados por propiedades (vista previa del panel) se ve siempre.
+  const pending = nameOverride === undefined && colorOverride === undefined && !site.ready;
   const { base, accent } = splitWordmark(name);
   const onDark = tone === 'dark';
 
@@ -50,8 +53,9 @@ export const BrandWordmark: React.FC<BrandWordmarkProps> = ({
 
   return (
     <span
-      className={`inline-flex items-baseline font-display ${size} font-extrabold tracking-tight leading-none whitespace-pre shrink-0 select-none ${baseClass} ${className}`}
+      className={`inline-flex items-baseline font-display ${size} font-extrabold tracking-tight leading-none whitespace-pre shrink-0 select-none ${baseClass} ${pending ? 'invisible' : ''} ${className}`}
       style={wholeLogo ? colorStyle : undefined}
+      aria-hidden={pending ? true : undefined}
     >
       <span>{base}</span>
       {accent && (
