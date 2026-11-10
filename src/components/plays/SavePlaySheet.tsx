@@ -208,7 +208,7 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="save-sheet-title"
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs animate-in fade-in"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs animate-in fade-in sm:p-4"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           handleUserDismiss();
@@ -217,19 +217,19 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
     >
       <div
         ref={sheetRef}
-        className="relative w-full sm:max-w-md max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-surface border-t sm:border border-line shadow-2xl text-ink p-5 sm:p-6 space-y-5 animate-in slide-in-from-bottom-4"
+        className="relative w-full sm:max-w-[480px] max-h-[92dvh] overflow-y-auto overscroll-contain rounded-t-2xl sm:rounded-2xl bg-surface border-t sm:border border-line shadow-2xl text-ink p-5 sm:p-6 space-y-4 animate-in slide-in-from-bottom-4"
       >
         {/* Header Bar */}
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-volt/20 text-volt-ink border border-volt/30 text-xs font-bold uppercase tracking-wider mb-1.5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-volt/15 text-volt-ink border border-volt/30 text-xs font-bold uppercase tracking-wide mb-2">
               <Sparkles className="w-3 h-3 text-volt fill-volt" aria-hidden="true" />
               <span>{momentData.isLiveMoment ? 'Momento en vivo' : `Momento ${momentData.timestampLabel}`}</span>
             </div>
-            <h2 id="save-sheet-title" className="font-display text-2xl font-bold tracking-tight text-ink leading-tight">
+            <h2 id="save-sheet-title" className="font-display text-xl sm:text-2xl font-bold tracking-tight text-ink leading-tight">
               {processingStatus === 'ready' ? '¡Jugada guardada con éxito!' : 'Guardá esta jugada'}
             </h2>
-            <p className="text-xs sm:text-sm text-ink-muted mt-0.5">
+            <p className="text-sm text-ink-muted mt-1 leading-relaxed">
               {processingStatus === 'ready'
                 ? 'Elegí qué querés hacer ahora o continuá viendo el video.'
                 : momentData.isLiveMoment
@@ -242,7 +242,7 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
             type="button"
             onClick={handleUserDismiss}
             aria-label="Cerrar y conservar jugada"
-            className="p-1.5 rounded-xl text-ink-muted hover:text-ink hover:bg-surface-muted transition-colors cursor-pointer shrink-0"
+            className="min-h-[40px] min-w-[40px] inline-flex items-center justify-center rounded-xl text-ink-muted hover:text-ink hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf transition-colors cursor-pointer shrink-0"
           >
             <X className="w-5 h-5" aria-hidden="true" />
           </button>
@@ -265,7 +265,7 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
         {/* Ready / Confirmation View */}
         {processingStatus === 'ready' && savedPlayResult && (
           <div className="space-y-4">
-            <div className="p-4 rounded-2xl bg-pitch-elevated border border-pitch-line text-pitch-ink flex items-center gap-3">
+            <div className="p-4 rounded-xl bg-pitch-elevated border border-pitch-line text-pitch-ink flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-volt text-volt-ink flex items-center justify-center shrink-0">
                 <CheckCircle2 className="w-6 h-6" aria-hidden="true" />
               </div>
@@ -280,7 +280,7 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
             </div>
 
             {/* Post-save action buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <Button
                 variant="volt"
                 size="md"
@@ -307,13 +307,13 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
               </Button>
             </div>
 
-            <div className="flex items-center gap-2.5 pt-1">
+            <div className="flex flex-wrap items-center gap-2.5 border-t border-line pt-4">
               <button
                 type="button"
                 onClick={() => void download(savedPlayResult)}
                 disabled={isDownloading || downloadBlock !== null}
                 title={downloadBlock ?? 'Descargar el fragmento de la jugada'}
-                className="flex-1 min-h-[44px] px-3 rounded-xl border border-line bg-surface hover:bg-surface-muted text-ink font-semibold text-xs sm:text-sm transition-colors cursor-pointer inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 min-h-[44px] px-3 rounded-lg border border-line bg-surface hover:bg-surface-muted text-ink font-semibold text-sm transition-colors cursor-pointer inline-flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Download className="w-4 h-4 shrink-0" aria-hidden="true" />
                 <span>{isDownloading ? 'Preparando el fragmento...' : 'Descargar video'}</span>
@@ -322,7 +322,7 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="min-h-[42px] px-4 rounded-xl border border-transparent hover:bg-surface-muted text-ink font-semibold text-xs sm:text-sm transition-colors cursor-pointer"
+                className="min-h-[44px] px-4 rounded-lg border border-transparent hover:bg-surface-muted text-ink font-semibold text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf transition-colors cursor-pointer"
               >
                 Seguir viendo
               </button>
@@ -335,7 +335,7 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
           <div className="space-y-4">
             {/* Fragmento de la jugada: se ajusta con botones grandes (también desde el celular) */}
             {momentData.isLiveMoment ? (
-              <div className="p-3 rounded-xl bg-surface-muted border border-line flex items-center gap-2.5 text-xs text-ink-muted">
+              <div className="p-4 rounded-xl bg-surface-muted border border-line flex items-center gap-3 text-sm leading-relaxed text-ink-muted">
                 <Clock className="w-4 h-4 text-turf shrink-0" aria-hidden="true" />
                 <span>
                   Se guarda este <strong className="text-ink font-semibold">momento en vivo</strong>. Las jugadas en vivo no
@@ -352,8 +352,8 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
             )}
 
             {/* Campo de nombre opcional */}
-            <div className="space-y-1.5">
-              <label htmlFor="play-custom-title" className="block text-xs font-bold uppercase tracking-wider text-ink-muted">
+            <div className="space-y-2">
+              <label htmlFor="play-custom-title" className="block text-xs font-bold uppercase tracking-wide text-ink-muted">
                 Nombre de la jugada (opcional)
               </label>
               <input
@@ -369,7 +369,7 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
                     : `Ej: Jugada de ${momentData.timestampLabel}`
                 }
                 maxLength={60}
-                className="w-full h-11 px-3.5 rounded-xl border border-line bg-canvas text-sm font-medium text-ink placeholder:text-ink-muted/50 focus:outline-none focus:border-turf"
+                className="w-full h-11 px-3.5 rounded-lg border border-line bg-canvas text-sm font-medium text-ink placeholder:text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf"
               />
             </div>
 
@@ -386,26 +386,28 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
             />
 
             {/* Footer Buttons */}
-            <p className="text-xs text-ink-muted pt-1">
-              Si cerrás, la jugada se guarda igual con {momentData.isLiveMoment ? 'este momento' : 'este fragmento'}.
-            </p>
-            <div className="flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={handleUserDismiss}
-                className="px-4 py-2.5 rounded-xl text-xs font-semibold text-ink-muted hover:text-ink hover:bg-surface-muted transition-colors cursor-pointer"
-              >
-                Cerrar y guardar
-              </button>
+            <div className="border-t border-line pt-4 space-y-3">
+              <p className="text-xs leading-relaxed text-ink-muted">
+                Si cerrás, la jugada se guarda igual con {momentData.isLiveMoment ? 'este momento' : 'este fragmento'}.
+              </p>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={handleUserDismiss}
+                  className="min-h-[44px] px-4 rounded-lg border border-line bg-surface text-sm font-semibold text-ink-muted hover:text-ink hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf transition-colors cursor-pointer"
+                >
+                  Cerrar y guardar
+                </button>
 
-              <Button
-                variant="volt"
-                size="md"
-                onClick={handleManualSave}
-                className="min-w-[130px]"
-              >
-                Guardar jugada
-              </Button>
+                <Button
+                  variant="volt"
+                  size="md"
+                  onClick={handleManualSave}
+                  className="min-w-[150px]"
+                >
+                  Guardar jugada
+                </Button>
+              </div>
             </div>
           </div>
         )}

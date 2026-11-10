@@ -14,14 +14,14 @@ export const PlayCategorySelector: React.FC<PlayCategorySelectorProps> = ({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <label className="block text-xs font-bold uppercase tracking-wider text-ink-muted">
+        <label className="block text-xs font-bold uppercase tracking-wide text-ink-muted">
           Clasificación rápida
         </label>
         {selectedCategory && (
           <button
             type="button"
             onClick={() => onSelectCategory(undefined)}
-            className="text-[11px] font-semibold text-turf hover:underline cursor-pointer"
+            className="text-xs font-semibold text-turf hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf cursor-pointer"
           >
             Quitar
           </button>
@@ -38,9 +38,9 @@ export const PlayCategorySelector: React.FC<PlayCategorySelectorProps> = ({
               type="button"
               onClick={() => onSelectCategory(isSelected ? undefined : cat)}
               aria-pressed={isSelected}
-              className={`h-10 px-3 rounded-xl text-xs font-semibold tracking-tight transition-all duration-150 cursor-pointer flex items-center justify-center gap-1.5 ${
+              className={`min-h-[44px] px-3 rounded-lg text-xs font-semibold tracking-tight transition-colors duration-150 cursor-pointer flex items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf ${
                 isSelected
-                  ? 'bg-volt text-volt-ink font-bold ring-2 ring-volt shadow-xs'
+                  ? 'bg-volt text-volt-ink font-bold'
                   : 'bg-surface border border-line text-ink hover:bg-surface-muted hover:border-line-strong'
               }`}
             >

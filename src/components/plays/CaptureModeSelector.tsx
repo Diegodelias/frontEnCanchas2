@@ -12,24 +12,24 @@ export const CaptureModeSelector: React.FC<CaptureModeSelectorProps> = ({
   onChange,
 }) => {
   return (
-    <div className="space-y-2.5">
-      <label className="block text-xs font-bold uppercase tracking-wider text-ink-muted">
+    <div className="space-y-2">
+      <label className="block text-xs font-bold uppercase tracking-wide text-ink-muted">
         Modalidad de captura
       </label>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {/* Option 1: Solo el video (Default) */}
         <button
           type="button"
           onClick={() => onChange('video')}
           aria-pressed={selectedMode === 'video'}
-          className={`flex items-center justify-between p-3.5 rounded-xl border text-left transition-all duration-150 cursor-pointer ${
+          className={`min-h-[68px] flex items-center justify-between p-3 rounded-lg border text-left transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf ${
             selectedMode === 'video'
-              ? 'border-volt bg-pitch-elevated/90 ring-1 ring-volt shadow-xs'
+              ? 'border-volt bg-pitch-elevated'
               : 'border-line bg-surface hover:bg-surface-muted text-ink'
           }`}
         >
-          <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-2.5 min-w-0">
             <div
               className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
                 selectedMode === 'video'
@@ -47,7 +47,7 @@ export const CaptureModeSelector: React.FC<CaptureModeSelectorProps> = ({
               >
                 Solo el video
               </p>
-              <p className="text-xs text-ink-muted mt-0.5 truncate">
+              <p className={`text-xs mt-0.5 leading-tight ${selectedMode === 'video' ? 'text-pitch-muted' : 'text-ink-muted'}`}>
                 Con el sonido de la cancha
               </p>
             </div>
@@ -63,14 +63,14 @@ export const CaptureModeSelector: React.FC<CaptureModeSelectorProps> = ({
         <div
           aria-disabled="true"
           title="Próximamente disponible"
-          className="flex items-center justify-between p-3.5 rounded-xl border border-line/60 bg-surface/50 opacity-60 cursor-not-allowed select-none"
+          className="min-h-[68px] flex items-center justify-between p-3 rounded-lg border border-line bg-surface-muted text-ink-muted cursor-not-allowed select-none"
         >
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-lg bg-surface-muted text-ink-muted/50 flex items-center justify-center shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-lg bg-surface text-ink-muted flex items-center justify-center shrink-0">
               <Mic className="w-4 h-4" aria-hidden="true" />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
+              <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
                 <p className="text-sm font-semibold text-ink-muted leading-tight">
                   Con tu relato
                 </p>
@@ -78,7 +78,7 @@ export const CaptureModeSelector: React.FC<CaptureModeSelectorProps> = ({
                   Pronto
                 </span>
               </div>
-              <p className="text-xs text-ink-muted/70 mt-0.5 truncate">
+              <p className="text-xs text-ink-muted mt-0.5 leading-tight">
                 Agregale tus comentarios
               </p>
             </div>
