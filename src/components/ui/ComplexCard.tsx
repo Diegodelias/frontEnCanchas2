@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock } from 'lucide-react';
+import { ArrowRight, CalendarDays, Clock } from 'lucide-react';
 import { Complex } from '../../types/canchas';
 import { Button } from './Button';
 import { ComplexImagePlaceholder } from './ComplexImagePlaceholder';
@@ -22,7 +22,7 @@ export const ComplexCard: React.FC<ComplexCardProps> = ({
   onOpenCourts,
 }) => {
   return (
-    <article className="complex-card group flex flex-col bg-surface border border-line rounded-xl overflow-hidden transition-colors duration-200 hover:border-line-strong">
+    <article className="complex-card group flex flex-col bg-surface border border-line rounded-2xl overflow-hidden transition-colors duration-200 hover:border-line-strong">
       <ComplexImagePlaceholder
         imageUrl={complex.imageUrl}
         name={complex.name}
@@ -33,13 +33,13 @@ export const ComplexCard: React.FC<ComplexCardProps> = ({
 
       <div className="p-5 sm:p-6 flex flex-col flex-1">
         {/* Quiet 1-line unboxed metadata kicker */}
-        <div className="flex items-center gap-2 text-xs font-medium text-ink-muted">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-semibold uppercase tracking-wide text-turf-ink">
           <span>{complex.zone}</span>
           <span aria-hidden="true">·</span>
           <span>{complex.sports.join(' / ')}</span>
         </div>
 
-        <h3 className="mt-1.5 font-display text-2xl font-bold tracking-tight text-ink leading-snug">
+        <h3 className="mt-2 font-display text-xl font-bold tracking-tight text-ink leading-snug">
           {complex.name}
         </h3>
 
@@ -54,9 +54,10 @@ export const ComplexCard: React.FC<ComplexCardProps> = ({
           type="button"
           onClick={() => onOpenCourts(complex)}
           aria-label={`Ver las canchas de ${complex.name}`}
-          className="mt-1 min-h-11 inline-flex items-center self-start text-sm font-semibold text-turf-ink hover:underline underline-offset-4 cursor-pointer"
+          className="mt-1 min-h-11 inline-flex items-center gap-2 self-start text-sm font-semibold text-turf-ink hover:underline underline-offset-4 cursor-pointer"
         >
           Ver canchas
+          <ArrowRight className="w-4 h-4" aria-hidden="true" />
         </button>
 
         {matchedHint && (
@@ -74,22 +75,15 @@ export const ComplexCard: React.FC<ComplexCardProps> = ({
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => onOpenBooking(complex, 'schedule')}
-              >
-                Ver horarios
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => onOpenBooking(complex, 'book')}
-              >
-                Reservar
-              </Button>
-            </div>
+            <Button
+              variant="primary"
+              size="sm"
+              className="dark:hover:bg-surface-muted dark:hover:text-ink"
+              onClick={() => onOpenBooking(complex, 'book')}
+            >
+              <CalendarDays className="w-3.5 h-3.5 text-turf dark:text-volt" aria-hidden="true" />
+              Ver horarios y reservar
+            </Button>
           </div>
         </div>
       </div>

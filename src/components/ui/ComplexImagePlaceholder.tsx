@@ -31,7 +31,7 @@ export const ComplexImagePlaceholder: React.FC<ComplexImagePlaceholderProps> = (
   if (imageUrl && !hasImageError) {
     return (
       <div
-        className="relative w-full aspect-[16/10] overflow-hidden bg-[linear-gradient(135deg,#174b31,#286b44)]"
+        className="relative w-full aspect-[4/3] overflow-hidden bg-[linear-gradient(135deg,#174b31,#286b44)]"
         role="img"
         aria-label={`Imagen ilustrativa de una cancha de fútbol en ${zone} (${sports.join(', ')})`}
       >
@@ -61,7 +61,7 @@ export const ComplexImagePlaceholder: React.FC<ComplexImagePlaceholderProps> = (
 
   return (
     <div
-      className="relative w-full aspect-[16/10] overflow-hidden bg-pitch select-none"
+      className="relative w-full aspect-[4/3] overflow-hidden bg-pitch select-none"
       role="img"
       aria-label={`Ilustración arquitectónica de canchas de fútbol en ${name}, ${zone} (${sports.join(', ')})`}
     >
