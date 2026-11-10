@@ -157,7 +157,7 @@ export const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ mode = 're
 
   return (
     <div className="min-h-screen flex flex-col bg-canvas text-ink">
-      <AppHeader presentation="public" cta={{ label: 'Reservá tu cancha', compactLabel: 'Reservá', to: '/#complejos' }} />
+      <AppHeader presentation="compact" />
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md rounded-2xl bg-surface border border-line p-6 sm:p-8 shadow-sm">
           {status.kind === 'checking' && (

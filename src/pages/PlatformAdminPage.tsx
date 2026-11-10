@@ -59,7 +59,7 @@ export const PlatformAdminPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-canvas text-ink">
-      <AppHeader presentation="profile" />
+      <AppHeader presentation="compact" />
 
       <main className="flex-1 py-5 sm:py-8 lg:py-10">
         <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
