@@ -233,7 +233,7 @@ export const FeaturedComplexesSection: React.FC<
             </div>
 
             <div className="max-w-md">
-              <LiveCourtCard camera={featuredLiveCamera} featuredBanner />
+              <LiveCourtCard camera={featuredLiveCamera} featuredBanner showPreviewImage />
             </div>
           </div>
         )}

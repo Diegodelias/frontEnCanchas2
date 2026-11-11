@@ -10,11 +10,13 @@ import { LiveStatusBadge } from './LiveStatusBadge';
 interface LiveCourtCardProps {
   camera: LiveCamera;
   featuredBanner?: boolean;
+  showPreviewImage?: boolean;
 }
 
 export const LiveCourtCard: React.FC<LiveCourtCardProps> = ({
   camera,
   featuredBanner = false,
+  showPreviewImage = false,
 }) => {
   const navigate = useNavigate();
 
@@ -43,9 +45,26 @@ export const LiveCourtCard: React.FC<LiveCourtCardProps> = ({
           variant={camera.visualVariant || 'soccer-turf'}
         />
 
+        {showPreviewImage && isLive && (
+          <img
+            src="/assets/live-court-preview.jpg"
+            alt=""
+            loading="lazy"
+            decoding="async"
+            aria-hidden="true"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        )}
+
         {/* Top Badges Overlay */}
         <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none z-10">
-          <LiveStatusBadge status={camera.status} size="md" />
+          {showPreviewImage && isLive ? (
+            <span className="rounded bg-black/70 px-2 py-1 text-[10px] font-mono font-bold uppercase tracking-wide text-white backdrop-blur-xs">
+              Vista ilustrativa
+            </span>
+          ) : (
+            <LiveStatusBadge status={camera.status} size="md" />
+          )}
 
           {/* Connection signal indicator */}
           <div className="px-2 py-1 rounded bg-black/60 backdrop-blur-xs border border-white/10 flex items-center gap-1.5 text-[11px] font-mono text-white">
