@@ -155,8 +155,6 @@ export const PlaysProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const input = pendingPlayService.take();
     if (!input) return { status: 'none' };
 
-    // Este pedido pasa a ser el último: la lista que se cargó al cambiar de usuario ya no se aplica.
-    const seq = ++latestFetch.current;
     let result: ResumePendingResult;
     try {
       const play = await playsApi.create(input);
@@ -170,9 +168,12 @@ export const PlaysProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               message: err instanceof Error ? err.message : 'No pudimos guardar la jugada.',
             };
     }
+    // El número se toma recién ahora, con la jugada ya creada: la lista que se pidió al cambiar de usuario mientras
+    // el alta seguía en vuelo puede no incluirla, y con un número menor no pisa a esta, que sí la incluye.
+    const seq = ++latestFetch.current;
     const plays = await playsApi.list().catch(() => null);
-    if (plays && seq === latestFetch.current) {
-      setSavedPlays(plays);
+    if (seq === latestFetch.current) {
+      if (plays) setSavedPlays(plays);
       setIsLoading(false);
     }
     void refreshQuota();
