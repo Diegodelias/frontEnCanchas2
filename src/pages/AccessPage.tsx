@@ -117,10 +117,16 @@ export const AccessPage: React.FC = () => {
             <>
               <div className="inline-flex items-center gap-1.5 font-mono text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400 mb-1">
                 <AlertCircle className="w-3.5 h-3.5" aria-hidden="true" />
-                <span>{failed.code === 'link_used' ? 'Link ya usado' : 'Link no válido'}</span>
+                <span>
+                  {failed.code === 'admin_account' ? 'Cuenta de administrador' : failed.code === 'link_used' ? 'Link ya usado' : 'Link no válido'}
+                </span>
               </div>
               <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink">
-                {failed.code === 'link_used' ? 'Este link ya se usó' : 'Este link no sirve'}
+                {failed.code === 'admin_account'
+                  ? 'Este mail es de administrador'
+                  : failed.code === 'link_used'
+                    ? 'Este link ya se usó'
+                    : 'Este link no sirve'}
               </h1>
               <p role="alert" className="mt-2 text-sm text-ink-muted leading-relaxed">
                 {failed.code === 'link_used'
@@ -130,7 +136,7 @@ export const AccessPage: React.FC = () => {
                     : failed.message}
               </p>
 
-              {requestMessage ? (
+              {failed.code === 'admin_account' ? null : requestMessage ? (
                 <div className="mt-6 p-4 rounded-xl bg-turf-soft border border-turf/25 flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-turf shrink-0 mt-0.5" aria-hidden="true" />
                   <p className="text-sm text-ink leading-relaxed">{requestMessage}</p>
