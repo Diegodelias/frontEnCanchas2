@@ -1,5 +1,5 @@
 import React, { useId, useState } from 'react';
-import { AlertTriangle, CalendarClock, Pencil, Plus, Power, RotateCcw, Trash2 } from 'lucide-react';
+import { AlertTriangle, CalendarClock, ChevronDown, ChevronUp, Pencil, Plus, Power, RotateCcw, Search, Trash2 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import { ApiCourt, CourtInput } from '../../services/clubsApi';
 import { SportType } from '../../types/canchas';
@@ -12,7 +12,7 @@ import { MyCourtsStatus } from './useMyCourts';
 const SPORTS: SportType[] = ['Fútbol 5', 'Fútbol 7', 'Fútbol 8', 'Fútbol 11'];
 
 const FIELD_CLASS =
-  'w-full px-3 py-2 text-sm rounded-lg border border-line bg-canvas text-ink placeholder:text-ink-muted focus:outline-none focus:border-turf';
+  'w-full min-h-[44px] px-3 py-2 text-base sm:text-sm rounded-lg border border-line bg-canvas text-ink placeholder:text-ink-muted focus:outline-none focus:border-turf';
 
 interface CourtsManagerProps {
   courts: ApiCourt[];
@@ -45,6 +45,10 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({
   const [priceText, setPriceText] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(true);
+  const [courtQuery, setCourtQuery] = useState('');
+  const [sportFilter, setSportFilter] = useState<SportType | 'all'>('all');
+  const [stateFilter, setStateFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [togglingId, setTogglingId] = useState<string | null>(null);
   // `confirmingId` es la cancha cuya confirmación de borrado está abierta; `deletingId`, la que se está borrando.
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
@@ -62,6 +66,7 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({
 
   const startEditing = (court: ApiCourt) => {
     setEditing(court);
+    setIsFormOpen(true);
     setName(court.name);
     setSport(court.sport);
     setPriceText(String(court.price));
@@ -69,6 +74,13 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({
   };
 
   const hasActiveCourt = courts.some((court) => court.active);
+  const filteredCourts = courts.filter((court) => {
+    const matchesQuery = court.name.toLocaleLowerCase('es-AR').includes(courtQuery.trim().toLocaleLowerCase('es-AR'));
+    const matchesSport = sportFilter === 'all' || court.sport === sportFilter;
+    const matchesState = stateFilter === 'all' || (stateFilter === 'active' ? court.active : !court.active);
+    return matchesQuery && matchesSport && matchesState;
+  });
+  const hasCourtFilters = courtQuery.trim() !== '' || sportFilter !== 'all' || stateFilter !== 'all';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,6 +102,7 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({
       }
       resetForm();
     } catch (err) {
+      setIsFormOpen(true);
       setFormError(err instanceof Error ? err.message : 'No pudimos guardar la cancha. Probá de nuevo.');
     } finally {
       setIsSaving(false);
@@ -164,7 +177,7 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="font-display text-xl sm:text-2xl font-bold text-ink">Canchas de {clubLabel}</h2>
+        <h2 className="font-display text-xl sm:text-2xl font-bold text-ink">Gestión de canchas</h2>
         <p className="text-xs sm:text-sm text-ink-muted">
           {isOwnClub ? 'Creá y editá tus canchas.' : `Creá y editá las canchas de ${clubLabel}.`} Lo que cargues se
           muestra en el sitio; una cancha desactivada deja de mostrarse y la podés reactivar, y una borrada no se puede
@@ -182,15 +195,172 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
-        {/* Lista */}
-        <div className="lg:col-span-2 rounded-xl border border-line bg-surface overflow-x-auto">
+      <section className="rounded-xl border border-line bg-surface overflow-hidden" aria-label={editing ? 'Editar cancha' : 'Crear cancha'}>
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5 border-b border-line">
+          <div>
+            <h3 className="font-display text-base sm:text-lg font-bold text-ink flex items-center gap-2">
+              {editing ? <Pencil className="w-4 h-4 text-turf" aria-hidden="true" /> : <Plus className="w-4 h-4 text-turf" aria-hidden="true" />}
+              <span>{editing ? `Editar ${editing.name}` : 'Nueva cancha'}</span>
+            </h3>
+            <p className="mt-0.5 text-xs text-ink-muted">Completá los datos para registrar una instalación deportiva en el club.</p>
+          </div>
+          <button
+            type="button"
+            aria-expanded={isFormOpen}
+            aria-controls="court-form-panel"
+            onClick={() => setIsFormOpen((open) => !open)}
+            className="min-h-[44px] inline-flex items-center gap-1.5 rounded-lg px-3 text-sm font-semibold text-ink-muted hover:bg-surface-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf"
+          >
+            <span>{isFormOpen ? 'Ocultar formulario' : 'Mostrar formulario'}</span>
+            {isFormOpen ? <ChevronUp className="w-4 h-4" aria-hidden="true" /> : <ChevronDown className="w-4 h-4" aria-hidden="true" />}
+          </button>
+        </div>
+
+        <form
+          id="court-form-panel"
+          onSubmit={handleSubmit}
+          noValidate
+          className={`${isFormOpen ? 'grid' : 'hidden'} grid-cols-1 gap-3 p-4 sm:grid-cols-2 sm:gap-4 sm:p-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(150px,0.9fr)_minmax(150px,0.8fr)_auto] lg:items-end`}
+          aria-label={editing ? 'Editar cancha' : 'Nueva cancha'}
+          hidden={!isFormOpen}
+        >
+            <div className="sm:col-span-2 lg:col-span-1">
+              <label htmlFor="court-name" className="block text-xs font-semibold text-ink mb-1.5">
+                Nombre
+              </label>
+              <input
+                id="court-name"
+                type="text"
+                value={name}
+                maxLength={80}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Ej. Cancha 3 · Fútbol 7"
+                aria-invalid={formError ? true : undefined}
+                aria-describedby={formError ? errorId : undefined}
+                className={FIELD_CLASS}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="court-sport" className="block text-xs font-semibold text-ink mb-1.5">
+                Deporte
+              </label>
+              <select id="court-sport" value={sport} onChange={(e) => setSport(e.target.value as SportType)} className={FIELD_CLASS}>
+                {SPORTS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="court-price" className="block text-xs font-semibold text-ink mb-1.5">
+                Precio por turno (en pesos)
+              </label>
+              <input
+                id="court-price"
+                type="number"
+                inputMode="numeric"
+                min={1}
+                step={1}
+                value={priceText}
+                onChange={(e) => setPriceText(e.target.value)}
+                placeholder="Ej. 30000"
+                aria-invalid={formError ? true : undefined}
+                aria-describedby={formError ? errorId : undefined}
+                className={FIELD_CLASS}
+              />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 sm:col-span-2 lg:col-span-1">
+              <Button type="submit" variant="volt" size="md" disabled={isSaving} className="flex-1 lg:flex-none">
+                <span>{isSaving ? 'Guardando...' : editing ? 'Guardar cambios' : 'Crear cancha'}</span>
+              </Button>
+              {editing && (
+                <Button type="button" variant="secondary" size="md" onClick={resetForm} disabled={isSaving}>
+                  <span>Cancelar</span>
+                </Button>
+              )}
+            </div>
+
+            {formError && (
+              <p id={errorId} role="alert" className="text-sm text-red-600 dark:text-red-400 leading-relaxed sm:col-span-2 lg:col-span-full">
+                {formError}
+              </p>
+            )}
+        </form>
+      </section>
+
+      <section className="space-y-3" aria-labelledby="courts-list-title">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 id="courts-list-title" className="font-display text-lg sm:text-xl font-bold text-ink">Canchas de {clubLabel}</h3>
+            <span className="rounded-full bg-surface-muted px-2 py-0.5 text-[11px] font-semibold text-ink-muted">
+              {filteredCourts.length} {filteredCourts.length === 1 ? 'cancha' : 'canchas'}
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-ink-muted">Creá y editá las canchas. Una cancha desactivada deja de mostrarse en el sitio; podés reactivarla cuando quieras.</p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(220px,1fr)_minmax(145px,auto)_minmax(145px,auto)_auto] sm:items-center">
+          <label className="relative block min-w-0">
+            <span className="sr-only">Buscar cancha por nombre</span>
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" aria-hidden="true" />
+            <input
+              type="search"
+              value={courtQuery}
+              onChange={(event) => setCourtQuery(event.target.value)}
+              placeholder="Buscar por nombre..."
+              className={`${FIELD_CLASS} pl-9 focus-visible:ring-2 focus-visible:ring-turf`}
+            />
+          </label>
+          <label>
+            <span className="sr-only">Filtrar canchas por deporte</span>
+            <select value={sportFilter} onChange={(event) => setSportFilter(event.target.value as SportType | 'all')} className={FIELD_CLASS}>
+              <option value="all">Todos los deportes</option>
+              {SPORTS.map((option) => <option key={option} value={option}>{option}</option>)}
+            </select>
+          </label>
+          <label>
+            <span className="sr-only">Filtrar canchas por estado</span>
+            <select value={stateFilter} onChange={(event) => setStateFilter(event.target.value as 'all' | 'active' | 'inactive')} className={FIELD_CLASS}>
+              <option value="all">Todos los estados</option>
+              <option value="active">Activas</option>
+              <option value="inactive">Desactivadas</option>
+            </select>
+          </label>
+          {hasCourtFilters && (
+            <button
+              type="button"
+              onClick={() => { setCourtQuery(''); setSportFilter('all'); setStateFilter('all'); }}
+              className="min-h-[44px] px-3 text-sm font-semibold text-turf-ink underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf"
+            >
+              Limpiar filtros
+            </button>
+          )}
+        </div>
+        <p className="text-xs text-ink-muted" aria-live="polite">
+          {hasCourtFilters ? `Mostrando ${filteredCourts.length} de ${courts.length} canchas` : `${courts.length} ${courts.length === 1 ? 'cancha registrada' : 'canchas registradas'}`}
+        </p>
+
+        {courts.length > 0 && (
+          <p className="text-xs text-ink-muted sm:hidden">Deslizá la tabla hacia los lados para ver todas las columnas.</p>
+        )}
+        <div
+          role="region"
+          aria-label="Tabla de canchas; se puede desplazar horizontalmente"
+          tabIndex={0}
+          className="min-w-0 overflow-x-auto overscroll-x-contain rounded-xl border border-line bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf"
+        >
           {courts.length === 0 ? (
             <p className="p-6 text-sm text-ink-muted">
               Todavía no cargaste canchas. Creá la primera con el formulario.
             </p>
+          ) : filteredCourts.length === 0 ? (
+            <p className="p-6 text-sm text-ink-muted">No hay canchas que coincidan con esos filtros.</p>
           ) : (
-            <table className="w-full text-left text-xs sm:text-sm">
+            <table className="w-full min-w-[900px] text-left text-xs sm:text-sm">
               <thead className="bg-canvas border-b border-line text-ink-muted font-mono uppercase text-[11px]">
                 <tr>
                   <th className="py-3 px-4">Cancha</th>
@@ -201,7 +371,7 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
-                {courts.map((court) => (
+                {filteredCourts.map((court) => (
                   <React.Fragment key={court.id}>
                   <tr className={court.active ? '' : 'opacity-70'}>
                     <td className="py-3 px-4 font-semibold text-ink">{court.name}</td>
@@ -231,7 +401,7 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({
                             type="button"
                             onClick={() => handleDelete(court)}
                             disabled={deletingId === court.id}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-red-600/60 bg-red-600/10 text-xs font-semibold text-red-700 hover:bg-red-600/20 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="min-h-[44px] inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-red-600/60 bg-red-600/10 text-xs font-semibold text-red-700 hover:bg-red-600/20 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                             <span>{deletingId === court.id ? 'Borrando...' : 'Borrar'}</span>
@@ -240,18 +410,18 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({
                             type="button"
                             onClick={() => setConfirmingId(null)}
                             disabled={deletingId === court.id}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-line text-xs font-semibold text-ink hover:bg-surface-muted transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="min-h-[44px] inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-line text-xs font-semibold text-ink hover:bg-surface-muted transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             Cancelar
                           </button>
                         </div>
                       ) : (
-                      <div className="flex items-center justify-end gap-1.5">
+                      <div className="flex flex-wrap items-center justify-end gap-1.5">
                         <button
                           type="button"
                           onClick={() => startEditing(court)}
                           aria-label={`Editar ${court.name}`}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-line text-xs font-semibold text-ink hover:bg-surface-muted transition-colors cursor-pointer"
+                          className="min-h-[44px] inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-line text-xs font-semibold text-ink hover:bg-surface-muted transition-colors cursor-pointer"
                         >
                           <Pencil className="w-3.5 h-3.5" aria-hidden="true" />
                           <span>Editar</span>
@@ -261,7 +431,7 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({
                           onClick={() => setSchedulingId(schedulingId === court.id ? null : court.id)}
                           aria-expanded={schedulingId === court.id}
                           aria-label={`Horarios de ${court.name}`}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-line text-xs font-semibold text-ink hover:bg-surface-muted transition-colors cursor-pointer"
+                          className="min-h-[44px] inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-line text-xs font-semibold text-ink hover:bg-surface-muted transition-colors cursor-pointer"
                         >
                           <CalendarClock className="w-3.5 h-3.5" aria-hidden="true" />
                           <span>Horarios</span>
@@ -271,7 +441,7 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({
                           onClick={() => handleToggle(court)}
                           disabled={togglingId === court.id}
                           aria-label={`${court.active ? 'Desactivar' : 'Activar'} ${court.name}`}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-line text-xs font-semibold text-ink hover:bg-surface-muted transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="min-h-[44px] inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-line text-xs font-semibold text-ink hover:bg-surface-muted transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <Power className="w-3.5 h-3.5" aria-hidden="true" />
                           <span>{court.active ? 'Desactivar' : 'Activar'}</span>
@@ -280,7 +450,7 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({
                           type="button"
                           onClick={() => setConfirmingId(court.id)}
                           aria-label={`Borrar ${court.name}`}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-line text-xs font-semibold text-red-700 hover:bg-red-600/10 transition-colors cursor-pointer"
+                          className="min-h-[44px] inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-line text-xs font-semibold text-red-700 hover:bg-red-600/10 transition-colors cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                           <span>Borrar</span>
@@ -310,91 +480,7 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({
             </table>
           )}
         </div>
-
-        {/* Formulario */}
-        <form
-          onSubmit={handleSubmit}
-          noValidate
-          className="p-5 rounded-xl border border-line bg-surface space-y-4"
-          aria-label={editing ? 'Editar cancha' : 'Nueva cancha'}
-        >
-          <h3 className="font-display text-lg font-bold text-ink flex items-center gap-2">
-            {editing ? <Pencil className="w-4 h-4 text-turf" aria-hidden="true" /> : <Plus className="w-4 h-4 text-turf" aria-hidden="true" />}
-            <span>{editing ? 'Editar cancha' : 'Nueva cancha'}</span>
-          </h3>
-
-          <div>
-            <label htmlFor="court-name" className="block text-xs font-semibold text-ink mb-1.5">
-              Nombre
-            </label>
-            <input
-              id="court-name"
-              type="text"
-              value={name}
-              maxLength={80}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Ej. Cancha 3 · Fútbol 7"
-              aria-invalid={formError ? true : undefined}
-              aria-describedby={formError ? errorId : undefined}
-              className={FIELD_CLASS}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="court-sport" className="block text-xs font-semibold text-ink mb-1.5">
-              Deporte
-            </label>
-            <select
-              id="court-sport"
-              value={sport}
-              onChange={(e) => setSport(e.target.value as SportType)}
-              className={FIELD_CLASS}
-            >
-              {SPORTS.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="court-price" className="block text-xs font-semibold text-ink mb-1.5">
-              Precio por turno (en pesos)
-            </label>
-            <input
-              id="court-price"
-              type="number"
-              inputMode="numeric"
-              min={1}
-              step={1}
-              value={priceText}
-              onChange={(e) => setPriceText(e.target.value)}
-              placeholder="Ej. 30000"
-              aria-invalid={formError ? true : undefined}
-              aria-describedby={formError ? errorId : undefined}
-              className={FIELD_CLASS}
-            />
-          </div>
-
-          {formError && (
-            <p id={errorId} role="alert" className="text-sm text-red-600 dark:text-red-400 leading-relaxed">
-              {formError}
-            </p>
-          )}
-
-          <div className="flex items-center gap-2">
-            <Button type="submit" variant="volt" size="md" disabled={isSaving} className="flex-1">
-              <span>{isSaving ? 'Guardando...' : editing ? 'Guardar cambios' : 'Crear cancha'}</span>
-            </Button>
-            {editing && (
-              <Button type="button" variant="secondary" size="md" onClick={resetForm} disabled={isSaving}>
-                <span>Cancelar</span>
-              </Button>
-            )}
-          </div>
-        </form>
-      </div>
+      </section>
     </div>
   );
 };

@@ -62,8 +62,8 @@ export const ClubAdminPage: React.FC = () => {
     <div className="min-h-screen flex flex-col bg-canvas text-ink">
       <AppHeader presentation="compact" />
 
-      <main className="flex-1 py-8 sm:py-10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      <main className="min-w-0 flex-1 py-4 sm:py-8 lg:py-10">
+        <div className="w-full min-w-0 max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 space-y-5 sm:space-y-8">
           {/* Aviso: el superadmin desactivó el club. Sigue pudiendo gestionar sus canchas, pero no se muestra en el sitio. */}
           {club && club.active === false && (
             <div
@@ -79,17 +79,17 @@ export const ClubAdminPage: React.FC = () => {
           )}
 
           {/* Header Panel */}
-          <div className="p-6 rounded-2xl bg-surface border border-line flex flex-col md:flex-row md:items-center justify-between gap-5">
-            <div>
+          <div className="min-w-0 p-4 sm:p-6 rounded-2xl bg-surface border border-line flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-5">
+            <div className="min-w-0">
               <div className="flex items-center gap-2 mb-2">
                 <span className="font-mono text-xs font-bold uppercase tracking-wider text-turf-ink px-2.5 py-0.5 rounded bg-turf-soft">
                   Panel de Administración de Complejo
                 </span>
               </div>
 
-              <h1 className="font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-ink flex items-center gap-3">
-                <Building2 className="w-8 h-8 text-turf shrink-0" aria-hidden="true" />
-                <span>{club?.name ?? user?.clubName ?? 'Tu club'}</span>
+              <h1 className="min-w-0 font-display text-2xl sm:text-4xl font-extrabold tracking-tight text-ink flex items-start sm:items-center gap-2 sm:gap-3">
+                <Building2 className="w-7 h-7 sm:w-8 sm:h-8 text-turf shrink-0 mt-0.5 sm:mt-0" aria-hidden="true" />
+                <span className="min-w-0 break-words">{club?.name ?? user?.clubName ?? 'Tu club'}</span>
               </h1>
               <p className="mt-1 text-sm text-ink-muted">
                 {[club?.zone, courtsStatus === 'ready' ? `${courts.length} ${courts.length === 1 ? 'cancha' : 'canchas'}` : null].filter(Boolean).join(' · ')}
@@ -98,7 +98,7 @@ export const ClubAdminPage: React.FC = () => {
           </div>
 
           {/* Navigation Tabs */}
-          <div className="flex items-center gap-2 border-b border-line overflow-x-auto pb-px">
+          <div className="min-w-0 flex items-center gap-1 sm:gap-2 border-b border-line overflow-x-auto overscroll-x-contain pb-px">
             <button
               type="button"
               onClick={() => setActiveTab('courts')}

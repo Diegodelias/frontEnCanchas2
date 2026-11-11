@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
-import { AlertTriangle, Mail, RotateCcw, UserMinus, UserPlus } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronUp, Mail, RotateCcw, Search, UserMinus, UserPlus } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import { platformApi, PlatformAdmin, PlatformAdminStatus } from '../../services/platformApi';
 import { Button } from '../ui/Button';
 
 const FIELD_CLASS =
-  'w-full px-3 py-2 text-sm rounded-lg border border-line bg-canvas text-ink placeholder:text-ink-muted focus:outline-none focus:border-turf';
+  'w-full min-h-[44px] px-3 py-2 text-base sm:text-sm rounded-lg border border-line bg-canvas text-ink placeholder:text-ink-muted focus:outline-none focus:border-turf';
 
 type ListStatus = 'loading' | 'ready' | 'error';
 
@@ -46,6 +46,9 @@ export const ClubAdminsManager: React.FC<ClubAdminsManagerProps> = ({ clubId, cl
   const [name, setName] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
   const [isInviting, setIsInviting] = useState(false);
+  const [isInviteFormOpen, setIsInviteFormOpen] = useState(true);
+  const [adminQuery, setAdminQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<PlatformAdminStatus | 'all'>('all');
 
   // Admins a los que la última invitación no se pudo enviar por mail: la cuenta existe, falta reenviar.
   const [sendFailed, setSendFailed] = useState<Set<string>>(new Set());
@@ -114,6 +117,7 @@ export const ClubAdminsManager: React.FC<ClubAdminsManagerProps> = ({ clubId, cl
       );
     } catch (err) {
       // El formulario sigue abierto y conserva lo escrito.
+      setIsInviteFormOpen(true);
       setFormError(err instanceof Error ? err.message : 'No pudimos invitar al admin. Probá de nuevo.');
     } finally {
       setIsInviting(false);
@@ -172,6 +176,13 @@ export const ClubAdminsManager: React.FC<ClubAdminsManagerProps> = ({ clubId, cl
     }
   };
 
+  const filteredAdmins = admins.filter((admin) => {
+    const query = adminQuery.trim().toLocaleLowerCase('es-AR');
+    const matchesQuery = !query || `${admin.name ?? ''} ${admin.email}`.toLocaleLowerCase('es-AR').includes(query);
+    return matchesQuery && (statusFilter === 'all' || admin.status === statusFilter);
+  });
+  const hasAdminFilters = adminQuery.trim() !== '' || statusFilter !== 'all';
+
   return (
     <div className="space-y-5">
       <div>
@@ -182,8 +193,133 @@ export const ClubAdminsManager: React.FC<ClubAdminsManagerProps> = ({ clubId, cl
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
-        <div className="lg:col-span-2 min-w-0">
+      <section className="rounded-xl border border-line bg-surface overflow-hidden" aria-label="Invitar a un administrador">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5 border-b border-line">
+          <div>
+            <h3 className="font-display text-base sm:text-lg font-bold text-ink flex items-center gap-2">
+              <UserPlus className="w-4 h-4 text-turf" aria-hidden="true" />
+              <span>Invitar a un admin</span>
+            </h3>
+            <p className="mt-0.5 text-xs text-ink-muted">Le enviamos un enlace para que configure su contraseña.</p>
+          </div>
+          <button
+            type="button"
+            aria-expanded={isInviteFormOpen}
+            aria-controls="admin-invite-form"
+            onClick={() => setIsInviteFormOpen((open) => !open)}
+            className="min-h-[44px] inline-flex items-center gap-1.5 rounded-lg px-3 text-sm font-semibold text-ink-muted hover:bg-surface-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf"
+          >
+            <span>{isInviteFormOpen ? 'Ocultar formulario' : 'Mostrar formulario'}</span>
+            {isInviteFormOpen ? <ChevronUp className="w-4 h-4" aria-hidden="true" /> : <ChevronDown className="w-4 h-4" aria-hidden="true" />}
+          </button>
+        </div>
+
+        <form
+          id="admin-invite-form"
+          onSubmit={handleInvite}
+          noValidate
+          hidden={!isInviteFormOpen}
+          className={`${isInviteFormOpen ? 'grid' : 'hidden'} grid-cols-1 gap-3 p-4 sm:grid-cols-2 sm:gap-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] lg:items-end`}
+          aria-label="Invitar a un admin"
+        >
+          <div>
+            <label htmlFor="invite-name" className="block text-xs font-semibold text-ink mb-1.5">
+              Nombre
+            </label>
+            <input
+              id="invite-name"
+              type="text"
+              value={name}
+              maxLength={120}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Ej. Ana Pérez"
+              aria-invalid={formError ? true : undefined}
+              aria-describedby={formError ? errorId : undefined}
+              className={FIELD_CLASS}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="invite-email" className="block text-xs font-semibold text-ink mb-1.5">
+              Mail
+            </label>
+            <input
+              id="invite-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="ana@club.com"
+              autoComplete="off"
+              aria-invalid={formError ? true : undefined}
+              aria-describedby={formError ? errorId : undefined}
+              className={FIELD_CLASS}
+            />
+          </div>
+
+          <Button type="submit" variant="volt" size="md" disabled={isInviting} className="w-full sm:col-span-2 lg:col-span-1 lg:w-auto">
+            {isInviting ? 'Enviando...' : 'Enviar invitación'}
+          </Button>
+
+          {formError && (
+            <p
+              id={errorId}
+              role="alert"
+              className="text-xs font-medium text-red-600 dark:text-red-400 flex items-start gap-1.5 sm:col-span-2 lg:col-span-full"
+            >
+              <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" aria-hidden="true" />
+              <span>{formError}</span>
+            </p>
+          )}
+        </form>
+      </section>
+
+      <section className="space-y-3" aria-labelledby="admins-list-title">
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 id="admins-list-title" className="font-display text-lg sm:text-xl font-bold text-ink">Lista de administradores</h3>
+          <span className="rounded-full bg-surface-muted px-2 py-0.5 text-[11px] font-semibold text-ink-muted">
+            {filteredAdmins.length} {filteredAdmins.length === 1 ? 'admin' : 'admins'}
+          </span>
+        </div>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(220px,1fr)_minmax(165px,auto)_auto] sm:items-center">
+          <label className="relative block min-w-0">
+            <span className="sr-only">Buscar por nombre o mail</span>
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" aria-hidden="true" />
+            <input
+              type="search"
+              value={adminQuery}
+              onChange={(event) => setAdminQuery(event.target.value)}
+              placeholder="Buscar por nombre o mail..."
+              className={`${FIELD_CLASS} pl-9 focus-visible:ring-2 focus-visible:ring-turf`}
+            />
+          </label>
+          <label>
+            <span className="sr-only">Filtrar administradores por estado</span>
+            <select
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value as PlatformAdminStatus | 'all')}
+              className={FIELD_CLASS}
+            >
+              <option value="all">Todos los estados</option>
+              <option value="invited">Invitados</option>
+              <option value="active">Activos</option>
+              <option value="deactivated">Dados de baja</option>
+            </select>
+          </label>
+          {hasAdminFilters && (
+            <button
+              type="button"
+              onClick={() => { setAdminQuery(''); setStatusFilter('all'); }}
+              className="min-h-[44px] px-3 text-sm font-semibold text-turf-ink underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf"
+            >
+              Limpiar filtros
+            </button>
+          )}
+        </div>
+        <p className="text-xs text-ink-muted" aria-live="polite">
+          {hasAdminFilters ? `Mostrando ${filteredAdmins.length} de ${admins.length} admins` : `${admins.length} ${admins.length === 1 ? 'admin registrado' : 'admins registrados'}`}
+        </p>
+
+        <div className="min-w-0 rounded-xl border border-line bg-surface">
           {status === 'loading' ? (
             <p className="p-6 text-sm text-ink-muted" role="status">
               Cargando los admins...
@@ -201,15 +337,18 @@ export const ClubAdminsManager: React.FC<ClubAdminsManagerProps> = ({ clubId, cl
               Este club todavía no tiene admins. Invitá al primero con el formulario.
             </p>
           ) : (
+            filteredAdmins.length === 0 ? (
+              <p className="p-6 text-sm text-ink-muted">No hay administradores que coincidan con esos filtros.</p>
+            ) : (
             <>
             <p className="mb-2 text-xs text-ink-muted sm:hidden">Deslizá la tabla hacia los lados para ver todas las columnas.</p>
             <div
               role="region"
               aria-label="Tabla de administradores; se puede desplazar horizontalmente"
               tabIndex={0}
-              className="rounded-xl border border-line bg-surface overflow-x-auto overscroll-x-contain focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf"
+              className="min-w-0 overflow-x-auto overscroll-x-contain focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf"
             >
-            <table className="w-full min-w-[520px] text-left text-xs sm:text-sm">
+            <table className="w-full min-w-[600px] text-left text-xs sm:text-sm">
               <thead className="bg-canvas border-b border-line text-ink-muted font-mono uppercase text-[11px]">
                 <tr>
                   <th className="py-3 px-4">Admin</th>
@@ -218,7 +357,7 @@ export const ClubAdminsManager: React.FC<ClubAdminsManagerProps> = ({ clubId, cl
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
-                {admins.map((admin) => (
+                {filteredAdmins.map((admin) => (
                   <tr key={admin.id} className={admin.status === 'deactivated' ? 'opacity-70' : ''}>
                     <td className="py-3 px-4">
                       <p className="font-semibold text-ink break-words">{admin.name ?? admin.email}</p>
@@ -304,70 +443,10 @@ export const ClubAdminsManager: React.FC<ClubAdminsManagerProps> = ({ clubId, cl
             </table>
             </div>
             </>
+            )
           )}
         </div>
-
-        <form
-          onSubmit={handleInvite}
-          noValidate
-          className="p-4 sm:p-5 rounded-xl border border-line bg-surface space-y-4"
-          aria-label="Invitar a un admin"
-        >
-          <h3 className="font-display text-lg font-bold text-ink flex items-center gap-2">
-            <UserPlus className="w-4 h-4 text-turf" aria-hidden="true" />
-            <span>Invitar a un admin</span>
-          </h3>
-
-          <div>
-            <label htmlFor="invite-name" className="block text-xs font-semibold text-ink mb-1.5">
-              Nombre
-            </label>
-            <input
-              id="invite-name"
-              type="text"
-              value={name}
-              maxLength={120}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Ej. Ana Pérez"
-              aria-invalid={formError ? true : undefined}
-              aria-describedby={formError ? errorId : undefined}
-              className={FIELD_CLASS}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="invite-email" className="block text-xs font-semibold text-ink mb-1.5">
-              Mail
-            </label>
-            <input
-              id="invite-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="ana@club.com"
-              autoComplete="off"
-              aria-invalid={formError ? true : undefined}
-              aria-describedby={formError ? errorId : undefined}
-              className={FIELD_CLASS}
-            />
-          </div>
-
-          {formError && (
-            <p
-              id={errorId}
-              role="alert"
-              className="text-xs font-medium text-red-600 dark:text-red-400 flex items-start gap-1.5"
-            >
-              <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" aria-hidden="true" />
-              <span>{formError}</span>
-            </p>
-          )}
-
-          <Button type="submit" variant="volt" size="sm" fullWidth disabled={isInviting}>
-            {isInviting ? 'Enviando...' : 'Enviar invitación'}
-          </Button>
-        </form>
-      </div>
+      </section>
     </div>
   );
 };

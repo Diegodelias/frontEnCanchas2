@@ -73,7 +73,7 @@ export const ClubDetail: React.FC<ClubDetailProps> = ({ club, onBack }) => {
   const retryCourts = useCallback(() => setAttempt((n) => n + 1), []);
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-4 sm:space-y-6">
       <button
         type="button"
         onClick={onBack}
@@ -83,11 +83,11 @@ export const ClubDetail: React.FC<ClubDetailProps> = ({ club, onBack }) => {
         <span>Volver a los clubes</span>
       </button>
 
-      <div className="p-5 rounded-xl bg-surface border border-line">
+      <div className="min-w-0 p-4 sm:p-5 rounded-xl bg-surface border border-line">
         <div className="flex flex-wrap items-center gap-2">
-          <h2 className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight text-ink flex items-center gap-2.5">
-            <Building2 className="w-6 h-6 text-turf shrink-0" aria-hidden="true" />
-            <span>{club.name}</span>
+          <h2 className="min-w-0 font-display text-xl sm:text-3xl font-extrabold tracking-tight text-ink flex items-start sm:items-center gap-2.5">
+            <Building2 className="w-6 h-6 text-turf shrink-0 mt-0.5 sm:mt-0" aria-hidden="true" />
+            <span className="min-w-0 break-words">{club.name}</span>
           </h2>
           <span
             className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono font-semibold ${
@@ -97,8 +97,8 @@ export const ClubDetail: React.FC<ClubDetailProps> = ({ club, onBack }) => {
             {club.active ? 'Activo' : 'Desactivado'}
           </span>
         </div>
-        <p className="mt-1 font-mono text-[11px] text-ink-muted">{club.id}</p>
-        <p className="mt-0.5 text-sm text-ink-muted">
+        <p className="mt-1 font-mono text-[11px] text-ink-muted break-all">{club.id}</p>
+        <p className="mt-0.5 text-sm text-ink-muted break-words">
           {club.zone} · {club.address}
         </p>
         {!club.active && (
@@ -167,7 +167,7 @@ export const ClubDetail: React.FC<ClubDetailProps> = ({ club, onBack }) => {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 border-b border-line overflow-x-auto pb-px">
+      <div className="min-w-0 flex items-center gap-1 sm:gap-2 border-b border-line overflow-x-auto overscroll-x-contain pb-px">
         {(
           [
             { id: 'courts', label: `Canchas${courtsStatus === 'ready' ? ` (${courts.length})` : ''}`, icon: LayoutGrid },
