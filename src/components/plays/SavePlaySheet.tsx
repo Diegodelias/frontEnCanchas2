@@ -21,7 +21,6 @@ import {
 } from '../../types/play';
 import { ClipWindow, defaultClip } from '../../utils/clip';
 import { Button } from '../ui/Button';
-import { CaptureModeSelector } from './CaptureModeSelector';
 import { ClipRangeControl } from './ClipRangeControl';
 import { PlayCategorySelector } from './PlayCategorySelector';
 import { PlayProcessingState } from './PlayProcessingState';
@@ -63,7 +62,7 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
   const { savePlay } = usePlays();
   const sheetRef = useRef<HTMLDivElement | null>(null);
 
-  const [captureMode, setCaptureMode] = useState<CaptureMode>('video');
+  const captureMode: CaptureMode = 'video';
   const [category, setCategory] = useState<PlayCategory | undefined>(undefined);
   const [customTitle, setCustomTitle] = useState<string>('');
   const [processingStatus, setProcessingStatus] = useState<PlayProcessingStatus>('idle');
@@ -76,7 +75,6 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
   // Reset form when opened for a new moment
   useEffect(() => {
     if (isOpen) {
-      setCaptureMode('video');
       setCategory(undefined);
       setCustomTitle('');
       setProcessingStatus('idle');
@@ -217,10 +215,10 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
     >
       <div
         ref={sheetRef}
-        className="relative w-full sm:max-w-[480px] max-h-[92dvh] overflow-y-auto overscroll-contain rounded-t-2xl sm:rounded-2xl bg-surface border-t sm:border border-line shadow-2xl text-ink p-5 sm:p-6 space-y-4 animate-in slide-in-from-bottom-4"
+        className="relative flex w-full sm:max-w-[480px] max-h-[min(92dvh,820px)] flex-col overflow-hidden rounded-t-2xl sm:rounded-2xl bg-surface border-t sm:border border-line shadow-2xl text-ink animate-in slide-in-from-bottom-4"
       >
         {/* Header Bar */}
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex shrink-0 items-start justify-between gap-4 px-5 pt-5 pb-4 sm:px-6 sm:pt-6">
           <div className="min-w-0">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-volt/15 text-volt-ink border border-volt/30 text-xs font-bold uppercase tracking-wide mb-2">
               <Sparkles className="w-3 h-3 text-volt fill-volt" aria-hidden="true" />
@@ -248,6 +246,7 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
           </button>
         </div>
 
+        <div className="play-sheet-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-4 sm:px-6">
         {/* Processing State View */}
         {processingStatus === 'processing' && (
           <PlayProcessingState status="processing" />
@@ -379,35 +378,32 @@ export const SavePlaySheet: React.FC<SavePlaySheetProps> = ({
               onSelectCategory={setCategory}
             />
 
-            {/* Modalidad de captura */}
-            <CaptureModeSelector
-              selectedMode={captureMode}
-              onChange={setCaptureMode}
-            />
+          </div>
+        )}
+        </div>
 
-            {/* Footer Buttons */}
-            <div className="border-t border-line pt-4 space-y-3">
-              <p className="text-xs leading-relaxed text-ink-muted">
-                Si cerrás, la jugada se guarda igual con {momentData.isLiveMoment ? 'este momento' : 'este fragmento'}.
-              </p>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <button
-                  type="button"
-                  onClick={handleUserDismiss}
-                  className="min-h-[44px] px-4 rounded-lg border border-line bg-surface text-sm font-semibold text-ink-muted hover:text-ink hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf transition-colors cursor-pointer"
-                >
-                  Cerrar y guardar
-                </button>
+        {processingStatus === 'idle' && (
+          <div className="shrink-0 border-t border-line bg-surface px-5 pt-3 pb-4 space-y-3 sm:px-6">
+            <p className="text-xs leading-relaxed text-ink-muted">
+              Si cerrás, la jugada se guarda igual con {momentData.isLiveMoment ? 'este momento' : 'este fragmento'}.
+            </p>
+            <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={handleUserDismiss}
+                className="min-h-[44px] px-3 rounded-lg border border-line bg-surface text-xs sm:text-sm font-semibold text-ink-muted hover:text-ink hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf transition-colors cursor-pointer"
+              >
+                Cerrar y guardar
+              </button>
 
-                <Button
-                  variant="volt"
-                  size="md"
-                  onClick={handleManualSave}
-                  className="min-w-[150px]"
-                >
-                  Guardar jugada
-                </Button>
-              </div>
+              <Button
+                variant="volt"
+                size="md"
+                fullWidth
+                onClick={handleManualSave}
+              >
+                Guardar jugada
+              </Button>
             </div>
           </div>
         )}

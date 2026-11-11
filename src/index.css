@@ -365,3 +365,33 @@
   --c3-logo-violeta: var(--c3-logo-violeta-on-dark);
   --c3-logo-tinta: var(--c3-logo-tinta-on-dark);
 }
+
+.play-sheet-scroll {
+  scrollbar-color: var(--c3-line-strong) transparent;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+
+.play-sheet-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.play-sheet-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.play-sheet-scroll::-webkit-scrollbar-thumb {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--c3-line-strong);
+  background-clip: content-box;
+}
+
+.play-sheet-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--c3-turf);
+  background-clip: content-box;
+}
+
+.play-sheet-scroll::-webkit-scrollbar-button {
+  display: none;
+}

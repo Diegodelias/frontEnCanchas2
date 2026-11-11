@@ -30,6 +30,30 @@ export function defaultClip(timestamp: number, videoDuration?: number): ClipWind
 
 export type ClipEdge = 'start' | 'end';
 
+/** Sets a clip boundary to an exact second while preserving the timestamp and server limits. */
+export function setClipEdge(
+  clip: ClipWindow,
+  edge: ClipEdge,
+  value: number,
+  timestamp: number,
+  videoDuration?: number
+): ClipWindow {
+  const mark = Math.max(0, Math.floor(timestamp));
+  const next = Math.floor(value);
+
+  if (edge === 'start') {
+    const lowest = Math.max(0, clip.end - MAX_CLIP_SECONDS);
+    const highest = Math.min(mark, clip.end - MIN_CLIP_SECONDS);
+    if (highest < lowest) return clip;
+    return { ...clip, start: Math.min(Math.max(next, lowest), highest) };
+  }
+
+  const lowest = Math.max(mark, clip.start + MIN_CLIP_SECONDS);
+  const highest = Math.min(clip.start + MAX_CLIP_SECONDS, latestEnd(videoDuration));
+  if (highest < lowest) return clip;
+  return { ...clip, end: Math.min(Math.max(next, lowest), highest) };
+}
+
 /**
  * Mueve un borde del fragmento `CLIP_STEP_SECONDS` hacia atrás (-1) o adelante (+1), respetando los límites:
  * desde 0 hasta el final del video, de 3 a 120 segundos y con el momento marcado siempre adentro.
