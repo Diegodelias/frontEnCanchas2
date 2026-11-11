@@ -86,8 +86,7 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({ onCountChange })
       <div>
         <h2 className="font-display text-xl sm:text-2xl font-bold text-ink">Historial de partidos grabados</h2>
         <p className="text-xs sm:text-sm text-ink-muted">
-          Las grabaciones de las canchas de tu club, de la más reciente a la más antigua. Es solo una lista: por ahora los
-          videos son de demostración.
+          Las grabaciones de las canchas de tu club, de la más reciente a la más antigua. Es solo una lista.
         </p>
       </div>
 

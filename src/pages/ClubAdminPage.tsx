@@ -1,10 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
   Building2,
   CalendarDays,
-  Eye,
   LayoutGrid,
   Users,
   Video,
@@ -15,14 +14,12 @@ import { RecordingsList } from '../components/club/RecordingsList';
 import { ownClubCourtsApi } from '../components/club/courtsApi';
 import { useMyCourts } from '../components/club/useMyCourts';
 import { AppHeader } from '../components/layout/AppHeader';
-import { Button } from '../components/ui/Button';
 import { CreatePlayerForm } from '../components/ui/CreatePlayerForm';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { realLiveCameraOf } from '../data/mockLiveCameras';
 import { bookingsApi } from '../services/bookingsApi';
 import { clubsApi } from '../services/clubsApi';
-import { buildLiveStreamPath, ROUTES } from '../routes/paths';
+import { ROUTES } from '../routes/paths';
 
 export const ClubAdminPage: React.FC = () => {
   const navigate = useNavigate();
@@ -34,9 +31,6 @@ export const ClubAdminPage: React.FC = () => {
   const clubId = isClubAdmin ? user!.clubId! : null;
   // Datos reales del club y sus canchas, del backend (solo se piden cuando ya se sabe que hay un admin).
   const { club, courts, setCourts, status: courtsStatus, reload: reloadCourts } = useMyCourts(isClubAdmin);
-
-  // La cámara en vivo real del club, si la tiene: solo ese club ve el botón «Ver señal en vivo».
-  const liveCamera = club ? realLiveCameraOf(club.id) : null;
 
   const redirected = useRef(false);
   useEffect(() => {
@@ -91,10 +85,6 @@ export const ClubAdminPage: React.FC = () => {
                 <span className="font-mono text-xs font-bold uppercase tracking-wider text-turf-ink px-2.5 py-0.5 rounded bg-turf-soft">
                   Panel de Administración de Complejo
                 </span>
-                <span className="inline-flex items-center gap-1 font-mono text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  SISTEMA ONLINE
-                </span>
               </div>
 
               <h1 className="font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-ink flex items-center gap-3">
@@ -104,18 +94,6 @@ export const ClubAdminPage: React.FC = () => {
               <p className="mt-1 text-sm text-ink-muted">
                 {[club?.zone, courtsStatus === 'ready' ? `${courts.length} ${courts.length === 1 ? 'cancha' : 'canchas'}` : null].filter(Boolean).join(' · ')}
               </p>
-            </div>
-
-            {/* Role indicator & Quick Actions */}
-            <div className="flex flex-wrap items-center gap-2.5">
-              {liveCamera && (
-                <Link to={buildLiveStreamPath(liveCamera.id)}>
-                  <Button variant="volt" size="sm">
-                    <Eye className="w-4 h-4 shrink-0" aria-hidden="true" />
-                    <span>Ver señal en vivo</span>
-                  </Button>
-                </Link>
-              )}
             </div>
           </div>
 
