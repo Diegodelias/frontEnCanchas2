@@ -23,8 +23,9 @@ import { Button } from '../ui/Button';
 import { CameraSwitcher } from './CameraSwitcher';
 import { LiveStatusBadge } from './LiveStatusBadge';
 
-const MAX_PLAYBACK_RETRIES = 3;
-const PLAYBACK_RETRY_DELAY_MS = 2000;
+// Espera antes de cada reintento (crece para no martillar a la API mientras la cámara se recupera); su largo es el tope.
+const PLAYBACK_RETRY_DELAYS_MS = [2000, 5000, 10000] as const;
+const MAX_PLAYBACK_RETRIES = PLAYBACK_RETRY_DELAYS_MS.length;
 
 interface LivePlayerProps {
   camera: LiveCamera;
@@ -76,17 +77,22 @@ export const LivePlayer: React.FC<LivePlayerProps> = ({
   const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     const video = e.currentTarget;
     const code = video.error?.code;
+    // Cuando la API responde 502 o 503 al pedido del stream, el navegador suele reportarlo como «origen no soportado»
+    // (la respuesta no es un video): casi siempre es un fallo pasajero de la cámara, así que también se reintenta.
     const isRecoverable =
-      code === MediaError.MEDIA_ERR_DECODE || code === MediaError.MEDIA_ERR_NETWORK;
+      code === MediaError.MEDIA_ERR_DECODE ||
+      code === MediaError.MEDIA_ERR_NETWORK ||
+      code === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED;
 
     if (isRecoverable && retryCountRef.current < MAX_PLAYBACK_RETRIES) {
+      const delay = PLAYBACK_RETRY_DELAYS_MS[retryCountRef.current]!;
       retryCountRef.current += 1;
       setIsVideoLoading(true);
       clearRetryTimeout();
       retryTimeoutRef.current = window.setTimeout(() => {
         retryTimeoutRef.current = null;
         video.load();
-      }, PLAYBACK_RETRY_DELAY_MS);
+      }, delay);
       return;
     }
 
