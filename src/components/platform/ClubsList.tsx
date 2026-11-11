@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Pencil, Plus, Power, RotateCcw, Search, Settings2 } from 'lucide-react';
+import { ChevronDown, Pencil, Plus, Power, RotateCcw, Search, Settings2 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import { platformApi, PlatformClub } from '../../services/platformApi';
 import { Button } from '../ui/Button';
@@ -152,13 +152,7 @@ export const ClubsList: React.FC<ClubsListProps> = ({ query, onQueryChange, page
         </div>
       ) : (
         <>
-        <p className="text-xs text-ink-muted sm:hidden">Deslizá la tabla hacia los lados para ver todas las columnas.</p>
-        <div
-          role="region"
-          aria-label="Tabla de clubes; se puede desplazar horizontalmente"
-          tabIndex={0}
-          className={`rounded-xl border border-line bg-surface overflow-x-auto overscroll-x-contain focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf ${status === 'loading' ? 'opacity-60' : ''}`}
-        >
+        <div className={`hidden lg:block rounded-xl border border-line bg-surface overflow-x-auto overscroll-x-contain focus-within:ring-2 focus-within:ring-turf ${status === 'loading' ? 'opacity-60' : ''}`}>
           <table className="w-full min-w-[700px] text-left text-xs sm:text-sm">
             <thead className="bg-canvas border-b border-line text-ink-muted font-mono uppercase text-[11px]">
               <tr>
@@ -173,7 +167,7 @@ export const ClubsList: React.FC<ClubsListProps> = ({ query, onQueryChange, page
               {clubs.map((club) => (
                 <tr key={club.id} className={club.active ? '' : 'opacity-70'}>
                   <td className="py-3 px-4">
-                    <p className="font-semibold text-ink break-words">{club.name}</p>
+                    <p className="font-semibold text-ink">{club.name}</p>
                     <p className="font-mono text-[11px] text-ink-muted">{club.id}</p>
                     <p className="text-[11px] text-ink-muted">{club.zone}</p>
                   </td>
@@ -255,6 +249,72 @@ export const ClubsList: React.FC<ClubsListProps> = ({ query, onQueryChange, page
             </tbody>
           </table>
         </div>
+        <ul className={`lg:hidden divide-y divide-line rounded-xl border border-line bg-surface ${status === 'loading' ? 'opacity-60' : ''}`} aria-label="Clubes">
+          {clubs.map((club) => (
+            <li key={club.id} className="p-4 space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-semibold text-sm text-ink break-words">{club.name}</p>
+                  <p className="mt-0.5 text-xs text-ink-muted">{club.zone}</p>
+                </div>
+                <span
+                  className={`shrink-0 inline-flex items-center px-2 py-1 rounded text-[11px] font-mono font-semibold ${
+                    club.active ? 'bg-turf-soft text-turf-ink' : 'bg-surface-muted text-ink-muted'
+                  }`}
+                >
+                  {club.active ? 'Activo' : 'Desactivado'}
+                </span>
+              </div>
+              <details className="group">
+                <summary className="min-h-11 flex items-center justify-between gap-2 text-xs font-semibold text-turf-ink cursor-pointer list-none [&::-webkit-details-marker]:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf rounded">
+                  Ver datos y acciones
+                  <ChevronDown className="w-4 h-4 transition-transform group-open:rotate-180" aria-hidden="true" />
+                </summary>
+                <div className="pt-2 space-y-3">
+                  <dl className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="min-w-0">
+                      <dt className="text-ink-muted">ID</dt>
+                      <dd className="font-mono text-ink break-all">{club.id}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-ink-muted">Canchas activas</dt>
+                      <dd className="font-mono tabular-nums text-ink">{club.activeCourts}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-ink-muted">Admins</dt>
+                      <dd className="font-mono tabular-nums text-ink">{club.admins}</dd>
+                    </div>
+                  </dl>
+                  {confirmingId === club.id ? (
+                    <div role="alertdialog" aria-label={`Confirmar ${club.active ? 'la desactivación' : 'la reactivación'} de ${club.name}`} className="space-y-2">
+                      <p className="text-xs text-ink">
+                        {club.active
+                          ? `¿Desactivar «${club.name}»? Deja de mostrarse en el sitio; sus canchas y sus admins se conservan.`
+                          : `¿Reactivar «${club.name}»? Vuelve al sitio con sus canchas activas.`}
+                      </p>
+                      <div className="flex gap-2">
+                        <button type="button" onClick={() => handleToggle(club)} disabled={togglingId === club.id} className="min-h-11 px-3 rounded-lg border border-turf bg-turf-soft text-xs font-semibold text-turf-ink disabled:opacity-50">
+                          {togglingId === club.id ? 'Guardando…' : club.active ? 'Desactivar' : 'Reactivar'}
+                        </button>
+                        <button type="button" onClick={() => setConfirmingId(null)} disabled={togglingId === club.id} className="min-h-11 px-3 rounded-lg border border-line text-xs font-semibold text-ink disabled:opacity-50">
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2">
+                      <button type="button" onClick={() => onManage(club)} aria-label={`Gestionar canchas y admins de ${club.name}`} className="min-h-11 px-3 rounded-lg border border-turf bg-turf-soft text-xs font-semibold text-turf-ink">Gestionar</button>
+                      <button type="button" onClick={() => setFormClub(club)} aria-label={`Editar ${club.name}`} className="min-h-11 px-3 rounded-lg border border-line text-xs font-semibold text-ink">Editar</button>
+                      <button type="button" onClick={() => setConfirmingId(club.id)} aria-label={`${club.active ? 'Desactivar' : 'Reactivar'} ${club.name}`} className="min-h-11 col-span-2 px-3 rounded-lg border border-line text-xs font-semibold text-ink">
+                        {club.active ? 'Desactivar' : 'Reactivar'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </details>
+            </li>
+          ))}
+        </ul>
         </>
       )}
 

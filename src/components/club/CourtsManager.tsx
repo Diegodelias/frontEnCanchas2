@@ -345,13 +345,13 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({
         </p>
 
         {courts.length > 0 && (
-          <p className="text-xs text-ink-muted sm:hidden">Deslizá la tabla hacia los lados para ver todas las columnas.</p>
+          <p className="text-xs text-ink-muted lg:hidden">Cada cancha muestra sus datos principales. Abrí “Ver datos y acciones” para consultar el estado y gestionar la cancha.</p>
         )}
         <div
           role="region"
           aria-label="Tabla de canchas; se puede desplazar horizontalmente"
           tabIndex={0}
-          className="min-w-0 overflow-x-auto overscroll-x-contain rounded-xl border border-line bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf"
+          className={`${courts.length > 0 ? 'hidden lg:block' : ''} min-w-0 overflow-x-auto overscroll-x-contain rounded-xl border border-line bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf`}
         >
           {courts.length === 0 ? (
             <p className="p-6 text-sm text-ink-muted">
@@ -480,6 +480,55 @@ export const CourtsManager: React.FC<CourtsManagerProps> = ({
             </table>
           )}
         </div>
+        {courts.length > 0 && filteredCourts.length === 0 && (
+          <p className="lg:hidden p-6 rounded-xl border border-line bg-surface text-sm text-ink-muted">No hay canchas que coincidan con esos filtros.</p>
+        )}
+        {courts.length > 0 && <ul className="lg:hidden divide-y divide-line rounded-xl border border-line bg-surface" aria-label="Canchas del club">
+          {filteredCourts.map((court) => (
+            <li key={court.id} className={`p-4 space-y-3 ${court.active ? '' : 'opacity-70'}`}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-semibold text-sm text-ink break-words">{court.name}</p>
+                  <p className="mt-0.5 text-xs text-ink-muted">{court.sport} · {formatCurrencyArs(court.price)} por turno</p>
+                </div>
+                <span className={`shrink-0 inline-flex items-center px-2 py-1 rounded text-[11px] font-mono font-semibold ${court.active ? 'bg-turf-soft text-turf-ink' : 'bg-surface-muted text-ink-muted'}`}>
+                  {court.active ? 'Activa' : 'Desactivada'}
+                </span>
+              </div>
+              {court.hasSchedule === false && <p className="text-xs font-medium text-amber-700 dark:text-amber-400">Sin horarios</p>}
+              <details className="group">
+                <summary className="min-h-11 flex items-center justify-between gap-2 rounded text-xs font-semibold text-turf-ink cursor-pointer list-none [&::-webkit-details-marker]:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf">
+                  Ver datos y acciones
+                  <ChevronDown className="w-4 h-4 transition-transform group-open:rotate-180" aria-hidden="true" />
+                </summary>
+                <div className="pt-2 space-y-3">
+                  <dl className="grid grid-cols-2 gap-2 text-xs">
+                    <div><dt className="text-ink-muted">Deporte</dt><dd className="text-ink">{court.sport}</dd></div>
+                    <div><dt className="text-ink-muted">Precio por turno</dt><dd className="font-mono tabular-nums text-ink">{formatCurrencyArs(court.price)}</dd></div>
+                    <div><dt className="text-ink-muted">Estado</dt><dd className="text-ink">{court.active ? 'Activa' : 'Desactivada'}</dd></div>
+                    {court.hasSchedule === false && <div><dt className="text-ink-muted">Horarios</dt><dd className="text-ink">Sin horarios</dd></div>}
+                  </dl>
+                  {confirmingId === court.id ? (
+                    <div role="alertdialog" aria-label={`Confirmar el borrado de ${court.name}`} className="space-y-2">
+                      <p className="text-xs text-ink">¿Borrar «{court.name}»? No se puede deshacer.</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button type="button" onClick={() => handleDelete(court)} disabled={deletingId === court.id} className="min-h-11 px-3 rounded-lg border border-red-600/60 bg-red-600/10 text-xs font-semibold text-red-700 disabled:opacity-50">{deletingId === court.id ? 'Borrando…' : 'Borrar cancha'}</button>
+                        <button type="button" onClick={() => setConfirmingId(null)} disabled={deletingId === court.id} className="min-h-11 px-3 rounded-lg border border-line text-xs font-semibold text-ink disabled:opacity-50">Cancelar</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2">
+                      <button type="button" onClick={() => startEditing(court)} aria-label={`Editar ${court.name}`} className="min-h-11 px-3 rounded-lg border border-line text-xs font-semibold text-ink">Editar</button>
+                      <button type="button" onClick={() => setSchedulingId(schedulingId === court.id ? null : court.id)} aria-expanded={schedulingId === court.id} aria-label={`Horarios de ${court.name}`} className="min-h-11 px-3 rounded-lg border border-line text-xs font-semibold text-ink">Horarios</button>
+                      <button type="button" onClick={() => handleToggle(court)} disabled={togglingId === court.id} aria-label={`${court.active ? 'Desactivar' : 'Activar'} ${court.name}`} className="min-h-11 px-3 rounded-lg border border-line text-xs font-semibold text-ink disabled:opacity-50">{togglingId === court.id ? 'Guardando…' : court.active ? 'Desactivar' : 'Activar'}</button>
+                      <button type="button" onClick={() => setConfirmingId(court.id)} aria-label={`Borrar ${court.name}`} className="min-h-11 px-3 rounded-lg border border-line text-xs font-semibold text-red-700">Borrar</button>
+                    </div>
+                  )}
+                </div>
+              </details>
+            </li>
+          ))}
+        </ul>}
       </section>
     </div>
   );

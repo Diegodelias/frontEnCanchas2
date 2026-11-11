@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { RotateCcw, Trash2 } from 'lucide-react';
+import { ChevronDown, RotateCcw, Trash2 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import { ApiBookingListItem } from '../../services/bookingsApi';
 import { Button } from '../ui/Button';
@@ -120,7 +120,8 @@ export const BookingsList: React.FC<BookingsListProps> = ({ load, clubLabel = 't
         </p>
       </div>
 
-      <div className="rounded-xl border border-line bg-surface overflow-x-auto">
+      {bookings.length > 0 && <p className="text-xs text-ink-muted lg:hidden">Abrí “Ver datos y acciones” para consultar el contacto y administrar una reserva.</p>}
+      <div className={`${bookings.length > 0 ? 'hidden lg:block' : ''} rounded-xl border border-line bg-surface overflow-x-auto`}>
         {bookings.length === 0 ? (
           <p className="p-6 text-sm text-ink-muted">Todavía no hay reservas. Cuando alguien reserve un turno, aparece acá.</p>
         ) : (
@@ -207,6 +208,50 @@ export const BookingsList: React.FC<BookingsListProps> = ({ load, clubLabel = 't
           </table>
         )}
       </div>
+      {bookings.length > 0 && (
+        <ul className="lg:hidden divide-y divide-line rounded-xl border border-line bg-surface" aria-label={`Reservas de ${clubLabel}`}>
+          {bookings.map((booking) => (
+            <li key={booking.id} className="p-4 space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-semibold text-sm text-ink break-words">{booking.court.name}</p>
+                  <p className="mt-0.5 text-xs text-ink-muted">{formatDate(booking.date)} · {booking.time} hs</p>
+                </div>
+                <p className="shrink-0 font-mono text-sm font-semibold tabular-nums text-ink">{formatCurrencyArs(booking.price)}</p>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-ink">
+                <span className="min-w-0 break-words">{booking.name}</span>
+                {booking.fromPlayer && <span className="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-turf-soft text-turf-ink">Con cuenta</span>}
+              </div>
+              <details className="group">
+                <summary className="min-h-11 flex items-center justify-between gap-2 rounded text-xs font-semibold text-turf-ink cursor-pointer list-none [&::-webkit-details-marker]:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf">
+                  Ver datos y acciones
+                  <ChevronDown className="w-4 h-4 transition-transform group-open:rotate-180" aria-hidden="true" />
+                </summary>
+                <div className="pt-2 space-y-3">
+                  <dl className="grid grid-cols-2 gap-3 text-xs">
+                    <div className="min-w-0"><dt className="text-ink-muted">Mail</dt><dd className="mt-0.5 font-mono text-ink break-all">{booking.email}</dd></div>
+                    <div><dt className="text-ink-muted">Teléfono</dt><dd className="mt-0.5 font-mono text-ink break-words">{booking.phone ?? '—'}</dd></div>
+                    <div><dt className="text-ink-muted">Cancha</dt><dd className="mt-0.5 text-ink break-words">{booking.court.name}</dd></div>
+                    <div><dt className="text-ink-muted">Precio</dt><dd className="mt-0.5 font-mono tabular-nums text-ink">{formatCurrencyArs(booking.price)}</dd></div>
+                  </dl>
+                  {onDelete && (confirmingId === booking.id ? (
+                    <div role="alertdialog" aria-label={`Confirmar la eliminación de la reserva de ${booking.name}`} className="space-y-2">
+                      <p className="text-xs text-ink">¿Eliminar la reserva de «{booking.name}» del {formatDate(booking.date)} a las {booking.time} hs? El turno queda libre.</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button type="button" onClick={() => handleDelete(booking)} disabled={busyId === booking.id} className="min-h-11 px-3 rounded-lg border border-red-600/60 bg-red-600/10 text-xs font-semibold text-red-700 disabled:opacity-50">{busyId === booking.id ? 'Eliminando…' : 'Eliminar reserva'}</button>
+                        <button type="button" onClick={() => setConfirmingId(null)} disabled={busyId === booking.id} className="min-h-11 px-3 rounded-lg border border-line text-xs font-semibold text-ink disabled:opacity-50">Cancelar</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button type="button" onClick={() => setConfirmingId(booking.id)} aria-label={`Eliminar la reserva de ${booking.name} del ${formatDate(booking.date)} a las ${booking.time} hs`} className="min-h-11 w-full px-3 rounded-lg border border-line text-xs font-semibold text-red-700">Eliminar reserva</button>
+                  ))}
+                </div>
+              </details>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };

@@ -341,12 +341,12 @@ export const ClubAdminsManager: React.FC<ClubAdminsManagerProps> = ({ clubId, cl
               <p className="p-6 text-sm text-ink-muted">No hay administradores que coincidan con esos filtros.</p>
             ) : (
             <>
-            <p className="mb-2 text-xs text-ink-muted sm:hidden">Deslizá la tabla hacia los lados para ver todas las columnas.</p>
+            <p className="mb-2 text-xs text-ink-muted lg:hidden">Abrí “Ver datos y acciones” para consultar el estado y gestionar cada administrador.</p>
             <div
               role="region"
               aria-label="Tabla de administradores; se puede desplazar horizontalmente"
               tabIndex={0}
-              className="min-w-0 overflow-x-auto overscroll-x-contain focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf"
+              className="hidden min-w-0 overflow-x-auto overscroll-x-contain focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf lg:block"
             >
             <table className="w-full min-w-[600px] text-left text-xs sm:text-sm">
               <thead className="bg-canvas border-b border-line text-ink-muted font-mono uppercase text-[11px]">
@@ -442,6 +442,46 @@ export const ClubAdminsManager: React.FC<ClubAdminsManagerProps> = ({ clubId, cl
               </tbody>
             </table>
             </div>
+            <ul className="lg:hidden divide-y divide-line rounded-xl border border-line bg-surface" aria-label="Administradores del club">
+              {filteredAdmins.map((admin) => (
+                <li key={admin.id} className={`p-4 space-y-3 ${admin.status === 'deactivated' ? 'opacity-70' : ''}`}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-sm text-ink break-words">{admin.name ?? admin.email}</p>
+                      <p className="mt-0.5 font-mono text-xs text-ink-muted break-all">{admin.email}</p>
+                    </div>
+                    <span className={`shrink-0 inline-flex items-center px-2 py-1 rounded text-[11px] font-mono font-semibold whitespace-nowrap ${STATUS_STYLE[admin.status]}`}>
+                      {STATUS_LABEL[admin.status]}
+                    </span>
+                  </div>
+                  {admin.status === 'invited' && admin.invitationExpired && <p className="text-xs text-amber-700 dark:text-amber-400">La invitación venció: reenviala.</p>}
+                  {sendFailed.has(admin.id) && <p role="alert" className="text-xs font-medium text-red-600 dark:text-red-400">No pudimos enviar la invitación, reenviala.</p>}
+                  <details className="group">
+                    <summary className="min-h-11 flex items-center justify-between gap-2 rounded text-xs font-semibold text-turf-ink cursor-pointer list-none [&::-webkit-details-marker]:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf">
+                      Ver datos y acciones
+                      <ChevronDown className="w-4 h-4 transition-transform group-open:rotate-180" aria-hidden="true" />
+                    </summary>
+                    <div className="pt-2 space-y-3">
+                      <div className="text-xs"><span className="text-ink-muted">Estado: </span><span className="text-ink">{STATUS_LABEL[admin.status]}</span></div>
+                      {confirmingId === admin.id ? (
+                        <div role="alertdialog" aria-label={`Confirmar la baja de ${admin.name ?? admin.email}`} className="space-y-2">
+                          <p className="text-xs text-ink">¿Dar de baja a «{admin.name ?? admin.email}»? Se cierran sus sesiones y no puede volver a entrar.</p>
+                          <div className="grid grid-cols-2 gap-2">
+                            <button type="button" onClick={() => handleRemove(admin)} disabled={busyId === admin.id} className="min-h-11 px-3 rounded-lg border border-red-600/60 bg-red-600/10 text-xs font-semibold text-red-700 disabled:opacity-50">{busyId === admin.id ? 'Guardando…' : 'Dar de baja'}</button>
+                            <button type="button" onClick={() => setConfirmingId(null)} disabled={busyId === admin.id} className="min-h-11 px-3 rounded-lg border border-line text-xs font-semibold text-ink disabled:opacity-50">Cancelar</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2">
+                          {admin.status === 'invited' && <button type="button" onClick={() => handleResend(admin)} disabled={busyId === admin.id} aria-label={`Reenviar la invitación a ${admin.email}`} className="min-h-11 col-span-2 px-3 rounded-lg border border-line text-xs font-semibold text-ink disabled:opacity-50">{busyId === admin.id ? 'Enviando…' : 'Reenviar invitación'}</button>}
+                          {admin.status !== 'deactivated' && <button type="button" onClick={() => setConfirmingId(admin.id)} aria-label={`Dar de baja a ${admin.name ?? admin.email}`} className="min-h-11 col-span-2 px-3 rounded-lg border border-line text-xs font-semibold text-red-700">Dar de baja</button>}
+                        </div>
+                      )}
+                    </div>
+                  </details>
+                </li>
+              ))}
+            </ul>
             </>
             )
           )}

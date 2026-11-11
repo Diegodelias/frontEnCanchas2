@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2 } from 'lucide-react';
+import { Building2, ChevronDown } from 'lucide-react';
 import { AppHeader } from '../components/layout/AppHeader';
 import { ClubDetail } from '../components/platform/ClubDetail';
 import { ClubsList } from '../components/platform/ClubsList';
@@ -61,8 +61,8 @@ export const PlatformAdminPage: React.FC = () => {
     <div className="min-h-screen flex flex-col bg-canvas text-ink">
       <AppHeader presentation="compact" />
 
-      <main className="flex-1 py-5 sm:py-8 lg:py-10">
-        <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
+      <main className="flex-1 py-4 sm:py-8 lg:py-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 sm:space-y-8">
           <div className="p-4 sm:p-6 rounded-2xl bg-surface border border-line">
             <span className="font-mono text-xs font-bold uppercase tracking-wider text-turf-ink px-2.5 py-0.5 rounded bg-turf-soft">
               Panel de la plataforma
@@ -76,13 +76,46 @@ export const PlatformAdminPage: React.FC = () => {
             </p>
           </div>
 
-          {!selected && <SiteNameForm />}
-
-          {!selected && <PlaySettingsForm />}
-
-          {!selected && <CreatePlayerForm create={platformApi.createPlayer} />}
-
-          {!selected && <GrantExtraPlaysForm />}
+          {!selected && (
+            <section className="space-y-3 sm:space-y-6" aria-label="Configuración de la plataforma">
+              <details className="group rounded-2xl sm:contents" open>
+                <summary className="sm:hidden min-h-12 flex items-center justify-between gap-3 px-4 rounded-xl bg-surface border border-line font-semibold text-sm text-ink cursor-pointer list-none [&::-webkit-details-marker]:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf">
+                  Configuración del sitio
+                  <ChevronDown className="w-4 h-4 text-ink-muted transition-transform group-open:rotate-180" aria-hidden="true" />
+                </summary>
+                <div className="pt-3 sm:pt-0 [&>section]:p-4 sm:[&>section]:p-6">
+                  <SiteNameForm />
+                </div>
+              </details>
+              <details className="group rounded-2xl sm:contents">
+                <summary className="sm:hidden min-h-12 flex items-center justify-between gap-3 px-4 rounded-xl bg-surface border border-line font-semibold text-sm text-ink cursor-pointer list-none [&::-webkit-details-marker]:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf">
+                  Cupo de jugadas
+                  <ChevronDown className="w-4 h-4 text-ink-muted transition-transform group-open:rotate-180" aria-hidden="true" />
+                </summary>
+                <div className="pt-3 sm:pt-0 [&>section]:p-4 sm:[&>section]:p-6">
+                  <PlaySettingsForm />
+                </div>
+              </details>
+              <details className="group rounded-2xl sm:contents">
+                <summary className="sm:hidden min-h-12 flex items-center justify-between gap-3 px-4 rounded-xl bg-surface border border-line font-semibold text-sm text-ink cursor-pointer list-none [&::-webkit-details-marker]:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf">
+                  Crear jugador
+                  <ChevronDown className="w-4 h-4 text-ink-muted transition-transform group-open:rotate-180" aria-hidden="true" />
+                </summary>
+                <div className="pt-3 sm:pt-0">
+                  <CreatePlayerForm create={platformApi.createPlayer} />
+                </div>
+              </details>
+              <details className="group rounded-2xl sm:contents">
+                <summary className="sm:hidden min-h-12 flex items-center justify-between gap-3 px-4 rounded-xl bg-surface border border-line font-semibold text-sm text-ink cursor-pointer list-none [&::-webkit-details-marker]:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turf">
+                  Sumar jugadas a un jugador
+                  <ChevronDown className="w-4 h-4 text-ink-muted transition-transform group-open:rotate-180" aria-hidden="true" />
+                </summary>
+                <div className="pt-3 sm:pt-0 [&>section]:p-4 sm:[&>section]:p-6">
+                  <GrantExtraPlaysForm />
+                </div>
+              </details>
+            </section>
+          )}
 
           {selected ? (
             <ClubDetail club={selected} onBack={() => setSelected(null)} />
